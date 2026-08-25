@@ -1,0 +1,140 @@
+[
+  {
+    "screen": "01_onboard_name.svg",
+    "line": "It starts with your name.",
+    "segs": [
+      1
+    ],
+    "onset": 0.135,
+    "end": 1.051,
+    "gap": 0.135
+  },
+  {
+    "screen": "02_onboard_phone.svg",
+    "line": "Verified once. So your circle knows you're real.",
+    "segs": [
+      2,
+      3
+    ],
+    "onset": 1.636,
+    "end": 4.038,
+    "gap": 0.585
+  },
+  {
+    "screen": "03_onboard_birthday.svg",
+    "line": "(no line \u2014 quick pass, under 1s)",
+    "segs": [],
+    "onset": null,
+    "end": null,
+    "gap": null
+  },
+  {
+    "screen": "04_onboard_commitments.svg",
+    "line": "Choose what you're committing to.",
+    "segs": [
+      4
+    ],
+    "onset": 4.623,
+    "end": 5.659,
+    "gap": 0.585
+  },
+  {
+    "screen": "05_onboard_places.svg",
+    "line": "And exactly where you'll do it.",
+    "segs": [
+      5
+    ],
+    "onset": 6.095,
+    "end": 7.115,
+    "gap": 0.43599999999999994
+  },
+  {
+    "screen": "06_home.svg",
+    "line": "This is your word.",
+    "segs": [
+      6
+    ],
+    "onset": 7.731,
+    "end": 8.541,
+    "gap": 0.6159999999999997
+  },
+  {
+    "screen": "07_tab_camera.svg",
+    "line": "The camera stays locked.",
+    "segs": [
+      7
+    ],
+    "onset": 9.307,
+    "end": 10.388,
+    "gap": 0.766
+  },
+  {
+    "screen": "08_arrival_toast.svg",
+    "line": "Until you actually arrive.",
+    "segs": [
+      8
+    ],
+    "onset": 10.943,
+    "end": 11.904,
+    "gap": 0.5549999999999997
+  },
+  {
+    "screen": "09_camera_unlocked.svg",
+    "line": "Then it opens.",
+    "segs": [
+      9
+    ],
+    "onset": 12.73,
+    "end": 13.435,
+    "gap": 0.8260000000000005
+  },
+  {
+    "screen": "11_circle_live.svg",
+    "line": "Proof, not words.",
+    "segs": [
+      10,
+      11
+    ],
+    "onset": 13.931,
+    "end": 15.537,
+    "gap": 0.49599999999999866
+  },
+  {
+    "screen": "10_friend_arrived.svg",
+    "line": "Your circle sees it. And you see them.",
+    "segs": [
+      12,
+      13
+    ],
+    "onset": 15.987,
+    "end": 17.954,
+    "gap": 0.4499999999999993
+  },
+  {
+    "screen": "07_tab_routine.svg",
+    "line": "Show up enough, and it compounds.",
+    "segs": [
+      14,
+      15
+    ],
+    "onset": 18.464,
+    "end": 20.355,
+    "gap": 0.509999999999998
+  },
+  {
+    "screen": "\u2014 logo close \u2014",
+    "line": "SILENT",
+    "segs": [],
+    "onset": null,
+    "end": null,
+    "gap": null
+  },
+  {
+    "screen": "\u2014 tagline \u2014",
+    "line": "SILENT",
+    "segs": [],
+    "onset": null,
+    "end": null,
+    "gap": null
+  }
+]
