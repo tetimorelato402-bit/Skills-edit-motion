@@ -1,0 +1,7 @@
+src/
+graded/
+out_*/
+__pycache__/
+source.mp4
+*.png
+!contact_ba.png
