@@ -1,0 +1,74 @@
+<!doctype html><meta charset="utf-8">
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<style>
+  body { margin:0; background:transparent; }
+  .stage { position:relative; }
+</style>
+
+<!-- ============ 1. icon tile: squircle + label + badge, 2x =========== -->
+<!-- tile canvas 2x: 600x900; icon 366x366 at (117,40); geometry maps to
+     plate: icon 183px at (90,245), label baseline 480, badge c(261,257) -->
+<div id="tile" class="stage" style="width:600px;height:900px">
+<svg width="600" height="900" viewBox="0 0 600 900">
+  <defs>
+    <clipPath id="sq"><path id="sqp"/></clipPath>
+  </defs>
+  <g id="icon" transform="translate(117,40)">
+    <path class="squircle" fill="#E7E0D2"/>
+    <!-- subtle top-light like iOS icon rendering -->
+    <path class="squircle" fill="url(#sheen)" opacity="0.55"/>
+    <g transform="translate(183,171) scale(3.1) translate(-40,-36)">
+      <path d="M8 20 L72 20 L62 30 L50 30 L50 40 L56 52 L24 52 L30 40 L30 30 L18 30 Z" fill="#15130E"/>
+      <rect x="34" y="40" width="12" height="14" fill="#15130E"/>
+    </g>
+    <text x="183" y="292" font-family="'DM Mono', ui-monospace, monospace" font-size="34"
+          letter-spacing="7" fill="#7C6342" text-anchor="middle">ANVIL</text>
+  </g>
+  <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F4EFE5"/><stop offset="0.5" stop-color="#E7E0D2" stop-opacity="0"/>
+  </linearGradient>
+  <!-- label: iOS home label ≈ 34px @1x -->
+  <text id="label" x="300" y="510" font-family="Inter, system-ui, sans-serif" font-size="68"
+        font-weight="500" fill="#FFFFFF" text-anchor="middle">Anvil</text>
+  <!-- badge -->
+  <g id="badge" transform="translate(459,64)">
+    <circle r="56" fill="#FF3B30"/>
+    <text y="24" font-family="Inter, system-ui, sans-serif" font-size="66" font-weight="400"
+          fill="#fff" text-anchor="middle">1</text>
+  </g>
+</svg>
+</div>
+
+<!-- ============ 2. icon art alone, 1024px, for the open morph ========= -->
+<div id="art" class="stage" style="width:1024px;height:1024px">
+<svg width="1024" height="1024" viewBox="0 0 366 366">
+  <path class="squircle" fill="#E7E0D2"/>
+  <path class="squircle" fill="url(#sheen2)" opacity="0.55"/>
+  <linearGradient id="sheen2" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#F4EFE5"/><stop offset="0.5" stop-color="#E7E0D2" stop-opacity="0"/>
+  </linearGradient>
+  <g transform="translate(183,171) scale(3.1) translate(-40,-36)">
+    <path d="M8 20 L72 20 L62 30 L50 30 L50 40 L56 52 L24 52 L30 40 L30 30 L18 30 Z" fill="#15130E"/>
+    <rect x="34" y="40" width="12" height="14" fill="#15130E"/>
+  </g>
+  <text x="183" y="292" font-family="'DM Mono', ui-monospace, monospace" font-size="34"
+        letter-spacing="7" fill="#7C6342" text-anchor="middle">ANVIL</text>
+</svg>
+</div>
+
+<script>
+// iOS squircle: superellipse |x|^n + |y|^n = 1, n = 5, for a 366-box
+const N = 5, R = 183;
+let d = "";
+for (let i = 0; i <= 360; i++) {
+  const t = (i / 360) * 2 * Math.PI;
+  const c = Math.cos(t), s = Math.sin(t);
+  const x = R + R * Math.sign(c) * Math.pow(Math.abs(c), 2 / N);
+  const y = R + R * Math.sign(s) * Math.pow(Math.abs(s), 2 / N);
+  d += (i ? "L" : "M") + x.toFixed(2) + " " + y.toFixed(2);
+}
+d += "Z";
+for (const p of document.querySelectorAll(".squircle")) p.setAttribute("d", d);
+document.getElementById("sqp").setAttribute("d", d);
+window.ready0 = true;
+</script>
