@@ -109,7 +109,9 @@ def finish(img, rng):
     vig = 1 - 0.052 * np.clip(dist - 0.55, 0, 1) ** 1.8
     a = a * vig[..., None]
     a[..., 2] *= (1 - 0.006 * np.clip(dist - 0.55, 0, 1)[..., None][..., 0] ** 1.8)
-    return Image.fromarray(np.clip(a, 0, 247).astype(np.uint8))
+    # the floor survives the grain: gaussian tails would otherwise punch
+    # a lifted 21 down to true black
+    return Image.fromarray(np.clip(a, 18, 247).astype(np.uint8))
 
 # --------------------------------------------------------------- the track
 
