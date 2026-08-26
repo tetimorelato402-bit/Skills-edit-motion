@@ -1,0 +1,5 @@
+node_modules/
+build/
+out/*
+!out/anvil-vertical.mp4
+!out/anvil-wide.mp4

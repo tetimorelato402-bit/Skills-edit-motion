@@ -19,6 +19,8 @@ export interface Frame {
   layers: Record<string, LayerState>;
   els: Record<string, ElState>;
   clips: Record<string, string>;
+  /** clip-paths on tagged elements — the stepped character reveals */
+  elClips: Record<string, string>;
   camera: CameraState;
   focus: FocusState;
   t: number;
@@ -36,6 +38,11 @@ export function evaluate(tracks: Track[], t: number): Frame {
       for (const id of tr.ids) if (!(id in els)) els[id] = { ...EL_REST, ...tr.from };
   }
   const clips: Record<string, string> = {};
+  // typed values are hidden until their reveal opens — seeded, not defaulted,
+  // so a field never flashes its finished value before the typing starts
+  const elClips: Record<string, string> = {};
+  for (const tr of tracks)
+    if (tr.k === "type") elClips[tr.id] = "inset(0 100% 0 0)";
 
   /**
    * Camera and focus are chained by DECLARATION, not by the clock: each move
@@ -81,6 +88,15 @@ export function evaluate(tracks: Track[], t: number): Frame {
     const p = progress(t, tr.at, tr.dur);
 
     switch (tr.k) {
+      case "type": {
+        // stepped, not eased: characters arrive whole, the way typing does
+        const n = Math.min(tr.chars, Math.floor(p * tr.chars + 1e-6));
+        const frac = n / tr.chars;
+        elClips[tr.id] = frac >= 1 ? "none"
+          : `inset(0 ${(100 * (1 - frac)).toFixed(2)}% 0 0)`;
+        break;
+      }
+
       case "el": {
         const e = ease(p);
         const from = { ...(els[tr.id] ?? EL_REST), ...tr.from };
@@ -125,7 +141,7 @@ export function evaluate(tracks: Track[], t: number): Frame {
         break;
     }
   }
-  return { layers, els, clips, camera, focus, t };
+  return { layers, els, clips, elClips, camera, focus, t };
 }
 
 /* ----------------------------------------------------------------- the DOM */
@@ -250,6 +266,10 @@ export function paint(frame: Frame) {
     }
   }
 
+  for (const [id, clip] of Object.entries(frame.elClips))
+    for (const el of document.querySelectorAll<HTMLElement>(`[data-el="${id}"]`))
+      el.style.clipPath = clip;
+
   // selective depth of field, and the bloom that sits on the subject
   const f = frame.focus;
   const mask = focusMask(f);
@@ -307,7 +327,9 @@ export const css = `
   [data-el="lock"], [data-el="lockShackle"], [data-el="lockCopy"], [data-el="finder"],
   [data-el="capture"], [data-el="statusLabel"], [data-el="chip0"], [data-el="chip1"],
   [data-el="chip2"], [data-el="mark"], [data-el="wordmark"], [data-el="tagline"],
-  [data-el="toast"] {
+  [data-el="toast"], [data-el="nameValue"], [data-el="phoneValue"],
+  [data-el="placeValue"], [data-el="day0"], [data-el="day1"], [data-el="day2"],
+  [data-el="day3"], [data-el="namePlaceholder"] {
     transform-box: fill-box; transform-origin: center;
   }
   .warmGlow {

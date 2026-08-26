@@ -4,13 +4,15 @@ A ~26 s vector walkthrough built from the 15 production SVG screens and the
 supplied voiceover. Screens stay SVG end to end — they are inlined into the
 DOM and rasterised only by the renderer, at whatever resolution you ask for.
 
-**Master format is 9:16, 1080×1920.** A 16:9 export is a secondary target.
-26.25 s, five acts and the silent ending. `03_onboard_birthday` is cut:
-birthday entry is compliance, not product.
+**Master format is 9:16, 1080×1920** (`out/anvil-vertical.mp4`); the 16:9
+export (`out/anvil-wide.mp4`) is a secondary target. 26.25 s, five acts and
+the silent ending. `03_onboard_birthday` is cut: birthday entry is
+compliance, not product.
 
-**Revision status:** Act 2 and Act 3 are rebuilt (vertical, corrected release
-sequence, drift, focus, new sound). Acts 1, 4, 5 and the ending still carry
-their previous staging and have not yet been reworked for the new systems.
+All five acts run on the same systems: continuous drift (nothing is ever
+fully still), per-card depth bands, a breathing camera that travels through
+the cuts, selective depth of field pointed at each line's subject before the
+line lands, and a warm synthesised sound world with no music.
 
 ## Layout
 
@@ -45,16 +47,18 @@ scrubber jump to a section (`full`, `act1`, `act23`, `act45`, `end`).
 
 ```bash
 node scripts/mix.mjs
-node scripts/render.mjs                                    # the whole film, 1080p
-node scripts/render.mjs --height 2160 --out anvil-4k       # 4K
-node scripts/render.mjs --from 12.9 --to 14.5 --out unlock # one beat
+node scripts/render.mjs --out anvil-vertical                       # 9:16 master
+node scripts/render.mjs --format wide --out anvil-wide             # 16:9
+node scripts/render.mjs --height 3840 --out anvil-4k               # 9:16 4K
+node scripts/render.mjs --from 12.9 --to 14.5 --out unlock         # one beat
 ```
 
 | flag | default | notes |
 |---|---|---|
+| `--format` | `vertical` | `vertical` (1080×1920) or `wide` (1920×1080) |
 | `--from` `--to` | `0` `26.25` | seconds on the film clock |
 | `--fps` | `30` | |
-| `--height` | `1080` | `720`, `1440`, `2160` all work — the stage is scaled, not upsampled, so the SVGs re-rasterise sharp at every size |
+| `--height` | format's own | any height — the stage is scaled, not upsampled, so the SVGs re-rasterise sharp at every size |
 | `--out` | `anvil` | writes `out/<name>.mp4` |
 
 Rendering is deterministic: the page exposes `setTime(t)` and holds no clock
@@ -83,8 +87,8 @@ identically.
 
 | sound | where | character |
 |---|---|---|
-| `ui_tap` | chip select, field focus, button press | felt on a soft surface; body, no click |
-| `key` | typing on name / phone / place fields | a light mechanical key, wood not plastic |
+| `ui_tap` | every chip select, tab press, and the button press that causes each cut | felt on a soft surface; body, no click |
+| `key` | typing — one key per revealed character, punctuation silent | a light mechanical key, wood not plastic |
 | `whoosh_down` / `whoosh_up` | screen transitions | low air, its band pitched to the direction of travel |
 | `lock_catch` | 07 settling | a soft mechanical catch — deliberately not metallic |
 | `unlock` | the release | the biggest sound in the film: the catch giving way, a low swell, then air |
@@ -146,6 +150,8 @@ reads as a snap. The camera curve leaves slowly, carries, and settles long.
 | `stagger` | children 80 ms apart |
 | `recede` | a layer leaves with nothing replacing it |
 | `apertureOpen` | used once, on the unlock |
+| `drift` | two incommensurate sines per axis — the never-still floor under everything |
+| type track | stepped character reveal on a tagged text element, keys emitted by `typeBeat` |
 
 `crossDepth`'s outgoing half is tuned to vanish under something covering it,
 so it blinks out in a fifth of its beat. `recede` exists because the ending
@@ -165,11 +171,11 @@ whatever gap the neighbouring beats happen to leave. Holds survive retiming.
 
 | act | screens | what the motion is doing |
 |---|---|---|
-| 1 — setup | 01, 02, 04, 05 | quick and light; 0.18–0.32 s cuts. The one `stagger` in the film lights the three chosen commitments under their own line. |
+| 1 — setup | 01, 02, 04, 05 | quick and light; 0.18–0.32 s cuts, each caused by a visible button press. The name, number and place are typed live, one key per character. The one chip `stagger` lights the commitments under their own line. |
 | 2 — the constraint | 06, 07 | the film slows and then stops. 3.10 s on the locked screen — the longest single-screen dwell — with 0.81 s of absolute stillness at full push. |
 | 3 — the unlock | 08 banner, 09 | the release runs in the 0.826 s of silence after the line: the shackle lifts alone, then the viewfinder opens out of the lock while the camera pulls back. "Then it opens." lands on the aftermath. |
-| 4 — the loop | 11, 10 | 0.24 s and 0.20 s. Seven frames and six. No breath anywhere. |
-| 5 — the long game | 07_tab_routine | one cut, then 2.14 s still under the last line. |
+| 4 — the loop | 11, 10 | 0.24 s and 0.20 s. Seven frames and six. Each cut lands already pointed at its subject; the frame moves between the two halves of "Your circle sees it. And you see them." |
+| 5 — the long game | 07_tab_routine | the filled days pop with ascending ticks under "Show up enough", then the frame drops to the streak as "…and it compounds" lands. |
 | ending | — | silent. The screen recedes, the beige holds empty, the mark forms, ANVIL settles beside it, the tagline arrives, and the frame goes to ink. |
 
 Act 2 and Act 4 are the film's whole argument in its rhythm: the longest
@@ -183,6 +189,6 @@ forced by the voice — it is what the product does.
 - **`07_tab_circle` and `12_notification`** are unused. `12_notification`
   reads "Joe arrived at the gym", which belongs to Act 4's friend beat, but
   Act 4 is cut too fast to carry a floating overlay as well.
-- **`08_arrival_toast`'s body** is unused; only its banner is. The asset's
-  screen is already unlocked, so playing it whole would kill the lock a
-  second before "Then it opens." The banner rides over the still-locked 07.
+- **`08_arrival_toast`'s body** is unused, and its banner survives only as
+  strings: the system notification the film shows is rebuilt at notification
+  geometry and hung across the device's top edge.

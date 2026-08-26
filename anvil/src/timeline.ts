@@ -62,11 +62,36 @@ export const LOCK = { x: 215, y: 330 } as const;
 /** What each line is about, in screen coordinates. Every spoken line has a
  *  visual subject; the frame is pointing at it before the line lands. */
 export const SUBJECT = {
+  nameField:   { x: 215, y: 317 },   // 01 — the input being typed into
+  phoneField:  { x: 215, y: 231 },   // 02 — the number field
+  chips:       { x: 215, y: 193 },   // 04 — the three chosen commitments
+  placeField:  { x: 215, y: 465 },   // 05 — the focused place field
   commitments: { x: 215, y: 376 },   // 06_home — the commitments card
   lock:        { x: 215, y: 330 },   // 07 — the padlock
   banner:      { x: 215, y: -18 },   // the system notification, above the device
   viewfinder:  { x: 215, y: 340 },   // 09 — the open camera
+  proofPhoto:  { x: 215, y: 230 },   // 11 — the posted proof itself
+  friendRow:   { x: 215, y: 101 },   // 10 — "Jeff made it to the gym"
+  friendList:  { x: 215, y: 376 },   // 10 — "and you see them": the shared commitments
+  weekRow:     { x: 215, y: 176 },   // routine — the filled days
+  streak:      { x: 213, y: 283 },   // routine — "Current streak 12"
 } as const;
+
+/** A value typed into a field: the reveal track plus one key per character
+ *  that should sound (punctuation stays silent). */
+const typeBeat = (id: string, at: number, dur: number, chars: number,
+                  keys: number[], gain: number): Track[] => [
+  { k: "type", id, at, dur, chars },
+  ...keys.map((i): Track => ({ k: "sfx", at: at + (i * dur) / chars, src: "key", gain })),
+];
+
+/** The warm highlight that lands on a line's subject as the line begins. */
+const bloom = (on: number, peak = 0.62): Track[] => [
+  { k: "el", id: "focusBloom", at: on - 0.09, dur: 0.32,
+    from: { opacity: 0, scale: 0.72 }, to: { opacity: peak, scale: 1 } },
+  { k: "el", id: "focusBloom", at: on + 0.28, dur: 0.8,
+    from: { opacity: peak }, to: { opacity: 0.1 } },
+];
 
 /* -------------------------------------------------------------- beat types */
 
@@ -79,6 +104,10 @@ export type Track =
       /** px the incoming screen travels through the cut — momentum, not a swap */
       travel?: number;
       aperture?: { x: number; y: number; radius: number }; note?: string }
+  /** a value typed into a field: stepped character reveal on a tagged text
+      element. The key sounds are separate sfx cues emitted by typeBeat(), so
+      the mix hears exactly what the reveal shows. */
+  | { k: "type"; id: string; at: number; dur: number; chars: number; note?: string }
   /** where the eye is being sent, and how far the rest of the frame gives way */
   | { k: "focus"; at: number; dur: number;
       to: { x?: number; y?: number; radius?: number; blur?: number }; note?: string }
@@ -119,8 +148,10 @@ const CUT_SEEN  = 0.20;
 const CROSS_LONG= 0.26;
 
 /* ============================================================ ACT 1 — SETUP
- * Quick and light. 03_onboard_birthday is cut: birthday entry is compliance,
- * not product, and it explains nothing the film is here to explain.
+ * Quick and light, but never a slideshow: every line's subject is framed
+ * before the line lands, the name and number and place are TYPED rather than
+ * shown, and each cut is a button press — a tap, then the whoosh it causes.
+ * 03_onboard_birthday is cut: compliance, not product.
  */
 
 const filmOpensAt = HEAD;                               // 0.350 → settled 0.885
@@ -129,27 +160,62 @@ export const act1: Track[] = [
   { k: "hold", at: 0, dur: HEAD, note: "the beige world, empty, before the voice" },
   { k: "layer", id: "name", at: filmOpensAt, dur: OPEN_IN, via: "settleIn",
     note: "01 settles at 0.885" },
+  { k: "focus", at: 0.60, dur: 0.55, to: { ...SUBJECT.nameField, radius: 240, blur: 1.9 },
+    note: "the frame is on the input before the first word" },
+  { k: "cam", at: 0.95, dur: 1.00,
+    to: { fx: SUBJECT.nameField.x, fy: SUBJECT.nameField.y, scale: 1.045, center: 0.32 } },
+  ...bloom(NAME.on),
+  // the name arrives as it is spoken about
+  { k: "el", id: "namePlaceholder", at: 1.24, dur: 0.10,
+    from: { opacity: 1 }, to: { opacity: 0 } },
+  ...typeBeat("nameValue", 1.28, 0.63, 7, [1, 2, 3, 4, 5, 6, 7], 0.26),
   { k: "hold", at: filmOpensAt + OPEN_IN, dur: NAME.off - (filmOpensAt + OPEN_IN),
     note: "under 'It starts with your name.'" },
 
-  { k: "cross", out: "name", in: "phone", at: NAME.off, dur: CROSS_Q, depth: 400 },
+  { k: "sfx", at: NAME.off - 0.07, src: "ui_tap", gain: 0.34, note: "Continue" },
+  { k: "cross", out: "name", in: "phone", at: NAME.off, dur: CROSS_Q, depth: 400, travel: 64 },
+  { k: "sfx", at: NAME.off, src: "whoosh_up", gain: 0.30 },
+  { k: "cam", at: NAME.off, dur: CROSS_Q, to: { fx: 215, fy: 300, scale: 1.005, center: 0.15 },
+    note: "the camera passes through the cut, not around it" },
+  { k: "focus", at: 2.30, dur: 0.45, to: { ...SUBJECT.phoneField, radius: 240, blur: 1.9 } },
+  { k: "cam", at: 2.60, dur: 1.30,
+    to: { fx: SUBJECT.phoneField.x, fy: SUBJECT.phoneField.y, scale: 1.05, center: 0.35 } },
+  ...bloom(PHONE.on),
+  // "(305) 555-1234" — the digits sound, the punctuation doesn't
+  ...typeBeat("phoneValue", 2.95, 1.05, 14, [2, 3, 4, 7, 8, 9, 10, 11, 12, 13, 14], 0.20),
   { k: "hold", at: NAME.off + CROSS_Q, dur: PHONE.off - (NAME.off + CROSS_Q),
     note: "under the two-sentence verification line" },
 
-  { k: "cross", out: "phone", in: "commit", at: PHONE.off, dur: CROSS_Q, depth: 400 },
-  // The one stagger in the film, and the only motion under a line outside
-  // Act 3: the three chosen commitments light one at a time while she says
-  // "Choose what you're committing to." Act 1 is the light act; this is the
-  // line describing itself.
+  { k: "sfx", at: PHONE.off - 0.07, src: "ui_tap", gain: 0.32, note: "Send code" },
+  { k: "cross", out: "phone", in: "commit", at: PHONE.off, dur: CROSS_Q, depth: 400, travel: 64 },
+  { k: "sfx", at: PHONE.off, src: "whoosh_up", gain: 0.28 },
+  { k: "cam", at: PHONE.off, dur: CROSS_Q, to: { fx: 215, fy: 260, scale: 1.01, center: 0.18 } },
+  { k: "focus", at: 5.30, dur: 0.40, to: { ...SUBJECT.chips, radius: 230, blur: 1.9 } },
+  { k: "cam", at: 5.45, dur: 0.85,
+    to: { fx: SUBJECT.chips.x, fy: SUBJECT.chips.y, scale: 1.05, center: 0.40 } },
+  ...bloom(COMMIT.on),
+  // the one stagger in the film: the commitments light as she names them,
+  // each with the tap that chose it
   { k: "stagger", ids: ["chip0", "chip1", "chip2"], at: COMMIT.on + 0.077,
     dur: 0.28, step: 0.08,
-    from: { opacity: 0.35, scale: 0.94 }, to: { opacity: 1, scale: 1 },
-    note: "the commitments, one at a time, under their own line" },
+    from: { opacity: 0.35, scale: 0.94 }, to: { opacity: 1, scale: 1 } },
+  { k: "sfx", at: 5.72, src: "ui_tap", gain: 0.30 },
+  { k: "sfx", at: 5.80, src: "ui_tap", gain: 0.30 },
+  { k: "sfx", at: 5.88, src: "ui_tap", gain: 0.30 },
 
-  { k: "cross", out: "commit", in: "places", at: COMMIT.off, dur: CROSS_T, depth: 400,
+  { k: "sfx", at: COMMIT.off - 0.07, src: "ui_tap", gain: 0.30, note: "Set 3 places" },
+  { k: "cross", out: "commit", in: "places", at: COMMIT.off, dur: CROSS_T, depth: 400, travel: 56,
     note: "0.18 s — the tightest gap in Act 1" },
+  { k: "sfx", at: COMMIT.off, src: "whoosh_up", gain: 0.26 },
+  { k: "cam", at: COMMIT.off, dur: CROSS_T, to: { fx: 215, fy: 350, scale: 1.01, center: 0.20 } },
+  { k: "focus", at: 6.85, dur: 0.40, to: { ...SUBJECT.placeField, radius: 240, blur: 1.9 } },
+  { k: "cam", at: 7.00, dur: 0.90,
+    to: { fx: SUBJECT.placeField.x, fy: SUBJECT.placeField.y, scale: 1.045, center: 0.35 } },
+  ...bloom(PLACES.on),
+  ...typeBeat("placeValue", 7.30, 0.70, 13, [2, 4, 6, 8, 10, 12, 13], 0.16),
   { k: "hold", at: COMMIT.off + CROSS_T, dur: PLACES.off - (COMMIT.off + CROSS_T),
     note: "under 'And exactly where you'll do it.'" },
+  { k: "sfx", at: PLACES.off - 0.07, src: "ui_tap", gain: 0.32, note: "Enter Anvil" },
 ];
 
 /* ==================================================== ACT 2 — THE CONSTRAINT
@@ -173,6 +239,10 @@ export const act2: Track[] = [
   { k: "cross", out: "places", in: "home", at: toHome, dur: CROSS_ACT, depth: 400,
     travel: 70, note: "into Act 2 — the film slows here" },
   { k: "sfx", at: toHome, src: "whoosh_up", gain: 0.34 },
+  { k: "cam", at: toHome, dur: CROSS_ACT, to: { fx: 215, fy: 400, scale: 1.03, center: 0.20 } },
+  { k: "cam", at: 8.55, dur: 0.85,
+    to: { fx: SUBJECT.commitments.x, fy: SUBJECT.commitments.y, scale: 1.07, center: 0.42 },
+    note: "settling onto the commitments before 'This is your word.'" },
   { k: "focus", at: homeIn - 0.2, dur: 0.55,
     to: { ...SUBJECT.commitments, radius: 250, blur: 2.4 },
     note: "the frame is on the commitments before 'This is your word.' lands" },
@@ -189,6 +259,7 @@ export const act2: Track[] = [
   // stationary positions
   { k: "cam", at: toLocked, dur: CROSS,
     to: { fx: 215, fy: 560, scale: 1.10, center: 0.30 }, note: "through the cut" },
+  { k: "sfx", at: toLocked - 0.07, src: "ui_tap", gain: 0.32, note: "the Camera tab" },
   { k: "sfx", at: toLocked, src: "whoosh_down", gain: 0.38 },
   { k: "sfx", at: lockedIn - 0.03, src: "lock_catch", gain: 0.62,
     note: "the catch seating — the app is held closed" },
@@ -292,17 +363,39 @@ export const act3: Track[] = [
 /* ========================================================= ACT 4 — THE LOOP
  * Cut hard. 0.24 s and 0.20 s — seven and six frames. After Act 2's hold the
  * rhythm reads as a snap, which is the point: you arrive, the camera opens,
- * the proof is up. No breath anywhere in this act.
+ * the proof is up. The frame is still directed inside the snap: each cut
+ * lands already pointed at its line's subject.
  */
 
 export const act4: Track[] = [
-  { k: "cross", out: "opened", in: "proof", at: OPENS.off, dur: CUT_PROOF, depth: 400,
+  { k: "sfx", at: OPENS.off, src: "shutter", gain: 0.5, note: "the proof posts" },
+  { k: "cross", out: "opened", in: "proof", at: OPENS.off, dur: CUT_PROOF, depth: 400, travel: 46,
     note: "the snap — 7 frames, no hold on either side" },
+  { k: "cam", at: OPENS.off, dur: CUT_PROOF,
+    to: { fx: SUBJECT.proofPhoto.x, fy: SUBJECT.proofPhoto.y, scale: 1.07, center: 0.35 } },
+  { k: "focus", at: OPENS.off, dur: CUT_PROOF + 0.02,
+    to: { ...SUBJECT.proofPhoto, radius: 230, blur: 2.6 } },
+  ...bloom(PROOF.on),
+  { k: "cam", at: 14.95, dur: 1.50,
+    to: { fx: SUBJECT.proofPhoto.x, fy: SUBJECT.proofPhoto.y, scale: 1.11, center: 0.45 },
+    note: "a slow creep into the photo under 'Proof, not words.'" },
   { k: "hold", at: OPENS.off + CUT_PROOF, dur: PROOF.off - (OPENS.off + CUT_PROOF),
     note: "under 'Proof, not words.'" },
 
-  { k: "cross", out: "proof", in: "seen", at: PROOF.off, dur: CUT_SEEN, depth: 400,
+  { k: "cross", out: "proof", in: "seen", at: PROOF.off, dur: CUT_SEEN, depth: 400, travel: 40,
     note: "6 frames — the fastest cut in the film" },
+  { k: "sfx", at: PROOF.off, src: "whoosh_down", gain: 0.22 },
+  { k: "cam", at: PROOF.off, dur: CUT_SEEN,
+    to: { fx: SUBJECT.friendRow.x, fy: SUBJECT.friendRow.y, scale: 1.06, center: 0.40 } },
+  { k: "focus", at: PROOF.off, dur: CUT_SEEN + 0.02,
+    to: { ...SUBJECT.friendRow, radius: 200, blur: 2.6 } },
+  ...bloom(CIRCLE.on),
+  // "Your circle sees it." is the banner; "And you see them." is the list —
+  // the frame moves between the line's two halves, arriving before the second
+  { k: "focus", at: 17.90, dur: 0.40, to: { ...SUBJECT.friendList, radius: 260, blur: 2.2 } },
+  { k: "cam", at: 17.90, dur: 0.55,
+    to: { fx: SUBJECT.friendList.x, fy: SUBJECT.friendList.y, scale: 1.05, center: 0.35 } },
+  ...bloom(VO.circle.on + VO_AT + 1.321, 0.4),   // 18.308 — the second half lands
   { k: "hold", at: PROOF.off + CUT_SEEN, dur: CIRCLE.off - (PROOF.off + CUT_SEEN),
     note: "under 'Your circle sees it. And you see them.'" },
 ];
@@ -310,7 +403,27 @@ export const act4: Track[] = [
 /* ==================================================== ACT 5 — THE LONG GAME */
 
 export const act5: Track[] = [
-  { k: "cross", out: "seen", in: "routine", at: CIRCLE.off, dur: CROSS_LONG, depth: 400 },
+  { k: "sfx", at: CIRCLE.off - 0.06, src: "ui_tap", gain: 0.30, note: "the Routine tab" },
+  { k: "cross", out: "seen", in: "routine", at: CIRCLE.off, dur: CROSS_LONG, depth: 400, travel: 48 },
+  { k: "sfx", at: CIRCLE.off, src: "whoosh_down", gain: 0.24 },
+  { k: "cam", at: CIRCLE.off, dur: CROSS_LONG, to: { fx: 215, fy: 250, scale: 1.02, center: 0.25 } },
+  { k: "focus", at: 19.10, dur: 0.35, to: { ...SUBJECT.weekRow, radius: 230, blur: 2.4 } },
+  { k: "cam", at: 19.25, dur: 0.70,
+    to: { fx: SUBJECT.weekRow.x, fy: SUBJECT.weekRow.y, scale: 1.08, center: 0.50 } },
+  ...bloom(COMPOUND.on),
+  // the filled days pop one at a time, a small ascending tick under each —
+  // "Show up enough" drawn as marks landing
+  { k: "stagger", ids: ["day0", "day1", "day2", "day3"], at: 19.55, dur: 0.30, step: 0.17,
+    from: { opacity: 0.25, scale: 0.55 }, to: { opacity: 1, scale: 1 } },
+  { k: "sfx", at: 19.58, src: "tick0", gain: 0.45 },
+  { k: "sfx", at: 19.75, src: "tick1", gain: 0.45 },
+  { k: "sfx", at: 19.92, src: "tick2", gain: 0.45 },
+  { k: "sfx", at: 20.09, src: "tick3", gain: 0.45 },
+  // "…and it compounds." — the frame drops to the streak as the words land
+  { k: "focus", at: 20.15, dur: 0.40, to: { ...SUBJECT.streak, radius: 200, blur: 2.6 } },
+  { k: "cam", at: 20.15, dur: 0.55,
+    to: { fx: SUBJECT.streak.x, fy: SUBJECT.streak.y, scale: 1.10, center: 0.55 } },
+  ...bloom(20.485, 0.5),
   { k: "hold", at: CIRCLE.off + CROSS_LONG, dur: COMPOUND.off - (CIRCLE.off + CROSS_LONG),
     note: "under 'Show up enough, and it compounds.'" },
 ];
@@ -318,7 +431,8 @@ export const act5: Track[] = [
 /* ====================================================== THE SILENT ENDING
  * The voice has stopped for good. Nothing here is scored; the room tone is
  * the only thing left, so the silence has texture instead of sounding like
- * the file gave out.
+ * the file gave out. The frame lets go of everything it was holding — depth
+ * of field clears, the camera returns to rest, the screen recedes.
  */
 
 const voiceEnds  = COMPOUND.off;            // 21.355
@@ -334,14 +448,17 @@ const fadeAt     = tagDone + 0.90;          // 25.700
 const filmEnds   = fadeAt + 0.55;           // 26.250
 
 export const ending: Track[] = [
+  { k: "focus", at: 21.40, dur: 0.85, to: { x: 215, y: 466, radius: 1200, blur: 0 },
+    note: "depth of field lets go with the voice" },
+  { k: "cam", at: 21.42, dur: 0.95, to: { fx: 215, fy: 466, scale: 1.0, center: 0 },
+    note: "the camera returns to rest" },
+  { k: "el", id: "focusBloom", at: 21.35, dur: 0.5, from: {}, to: { opacity: 0 } },
   { k: "hold", at: voiceEnds, dur: beat - voiceEnds,
     note: "hold on the routine screen — the voice is gone and the film knows it" },
   { k: "exit", id: "routine", at: beat, dur: receded - beat, depth: 520,
     note: "everything recedes" },
-  // the warm light lives in the phone's space; it leaves when the phone does,
-  // or it sits in the empty frame behind the lockup as a stain
   { k: "el", id: "warmGlow", at: beat, dur: (receded - beat) * 0.7,
-    from: { opacity: 0.32 }, to: { opacity: 0 } },
+    from: { opacity: 0.3 }, to: { opacity: 0 } },
   { k: "hold", at: receded, dur: markAt - receded,
     note: "the beige space alone, 0.32 s — the silence is the ending" },
 

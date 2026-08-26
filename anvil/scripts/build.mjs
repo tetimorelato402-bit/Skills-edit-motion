@@ -153,6 +153,52 @@ const out = {};
   out["06_home"] = serialize(depthBands(doc));
 }
 
+// 01_onboard_name — the name is TYPED, not shown. The asset ships a
+// placeholder; the film replaces it with a value that arrives character by
+// character, with a key under each character. A screen about your name
+// where the name just sits there would be a screenshot, not a moment.
+{
+  const doc = parse(src("01_onboard_name"));
+  const t = doc.toks;
+  tag(t, find(t, `>First name<`), "namePlaceholder");
+  const field = find(t, `<rect x="56" y="296"`);
+  t.splice(field + 2, 0, { tag: "text", raw:
+    `<text data-el="nameValue" x="72" y="323" font-family="Inter, system-ui, sans-serif" ` +
+    `font-size="14" font-weight="500" fill="#15130E">Matheus</text>` });
+  out["01_onboard_name"] = serialize(depthBands(doc));
+}
+
+// 02_onboard_phone — the number types in the same way
+{
+  const doc = parse(src("02_onboard_phone"));
+  const t = doc.toks;
+  const i = find(t, `>(305) 555-1234<`);
+  t[i].raw = t[i].raw
+    .replace('fill="#8B8475"', 'fill="#15130E" font-weight="500"')
+    .replace("<text", `<text data-el="phoneValue"`);
+  out["02_onboard_phone"] = serialize(depthBands(doc));
+}
+
+// 05_onboard_places — the focused field (ink border) gets its value typed
+{
+  const doc = parse(src("05_onboard_places"));
+  const t = doc.toks;
+  tag(t, find(t, `>Venetian Pool<`), "placeValue");
+  out["05_onboard_places"] = serialize(depthBands(doc));
+}
+
+// 07_tab_routine — the filled day marks pop one at a time under their line
+{
+  const doc = parse(src("07_tab_routine"));
+  const t = doc.toks;
+  let n = 0;
+  for (const cx of [42, 99, 213, 270]) {
+    const c = find(t, `<circle cx="${cx}" cy="172" r="17" fill="#A8895E"`);
+    group(t, c, c + 1, `day${n++}`);       // circle + its check path
+  }
+  out["07_tab_routine"] = serialize(depthBands(doc));
+}
+
 // 04_onboard_commitments — the three chosen chips are the film's one stagger
 {
   const doc = parse(src("04_onboard_commitments"));
@@ -217,9 +263,8 @@ const out = {};
 }
 
 // everything else passes through with fonts swapped only
-for (const n of ["01_onboard_name", "02_onboard_phone",
-                 "05_onboard_places", "07_tab_routine", "07_tab_circle",
-                 "10_friend_arrived", "11_circle_live", "12_notification"]) {
+for (const n of ["07_tab_circle", "10_friend_arrived", "11_circle_live",
+                 "12_notification"]) {
   out[n] = serialize(depthBands(parse(src(n))));
 }
 
