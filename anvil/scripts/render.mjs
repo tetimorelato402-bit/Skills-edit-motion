@@ -13,10 +13,10 @@ const arg = (k, d) => {
 };
 
 const from = Number(arg("from", 0));
-const to = Number(arg("to", 13.9));
+const to = Number(arg("to", 26.25));
 const fps = Number(arg("fps", 30));
 const height = Number(arg("height", 1080));
-const name = arg("out", "act2-3");
+const name = arg("out", "anvil");
 const scale = height / 1080;
 
 const frames = join(ROOT, "build/frames");
@@ -52,32 +52,21 @@ for (let i = 0; i < total; i++) {
 await browser.close();
 server.close();
 
-/* ---- audio bed for this section: VO slice + the clang, placed absolutely ---- */
+/* ---- audio: slice the prebuilt mix, so picture and sound share one clock ---- */
 
-const clangAt = Number(arg("clang", 11.904));
-const dur = to - from;
 const out = join(ROOT, `out/${name}.mp4`);
 mkdirSync(join(ROOT, "out"), { recursive: true });
-
-const hasClang = clangAt >= from && clangAt < to;
-const filter = hasClang
-  ? `[1:a]atrim=start=${from}:end=${to},asetpts=N/SR/TB[vo];` +
-    `[2:a]adelay=${Math.round((clangAt - from) * 1000)}|${Math.round((clangAt - from) * 1000)},` +
-    `pan=mono|c0=0.5*c0+0.5*c1[cl];` +
-    `[vo][cl]amix=inputs=2:duration=first:normalize=0,alimiter=limit=0.97[a]`
-  : `[1:a]atrim=start=${from}:end=${to},asetpts=N/SR/TB,alimiter=limit=0.97[a]`;
 
 execFileSync("ffmpeg", [
   "-hide_banner", "-v", "error", "-y",
   "-framerate", String(fps), "-i", join(frames, "f%05d.png"),
-  "-i", join(ROOT, "audio/vo_trimmed.wav"),
-  ...(hasClang ? ["-i", join(ROOT, "audio/clang.wav")] : []),
-  "-filter_complex", filter,
-  "-map", "0:v", "-map", "[a]",
+  "-ss", String(from), "-t", String(to - from), "-i", join(ROOT, "audio/mix.wav"),
+  "-map", "0:v", "-map", "1:a",
   "-c:v", "libx264", "-preset", "slow", "-crf", "17",
-  "-pix_fmt", "yuv420p", "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
+  "-pix_fmt", "yuv420p",
+  "-color_primaries", "bt709", "-color_trc", "bt709", "-colorspace", "bt709",
   "-c:a", "aac", "-b:a", "192k",
-  "-t", String(dur), out,
+  "-shortest", out,
 ], { stdio: "inherit" });
 
 console.log(`\nwrote ${out}`);

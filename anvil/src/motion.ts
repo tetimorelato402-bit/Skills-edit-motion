@@ -167,6 +167,17 @@ export function crossDepth(p: number, { depth = 220, aperture = false } = {}) {
 }
 
 /**
+ * recede — a layer leaves with nothing replacing it. crossDepth's outgoing
+ * half is wrong here: it is tuned to disappear under something that covers
+ * it, so on its own it blinks out in a fifth of the beat. This holds, then
+ * drifts away, on the camera curve — the ending has time and should use it.
+ */
+export function recede(p: number, { depth = 520 } = {}): Partial<LayerState> {
+  const e = easeCamera(p);
+  return { opacity: 1 - e, z: lerp(0, -depth, e), lift: 1 - e };
+}
+
+/**
  * apertureOpen — the incoming screen is revealed by a circle growing from a
  * point rather than by a fade. Used once, on the unlock: the viewfinder opens
  * out of the lock's own centre, which is the thing the film is about.

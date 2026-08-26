@@ -82,6 +82,18 @@ const out = {};
   out["06_home"] = serialize(doc);
 }
 
+// 04_onboard_commitments — the three chosen chips are the film's one stagger
+{
+  const doc = parse(src("04_onboard_commitments"));
+  const t = doc.toks;
+  let at = find(t, `<rect x="34" y="172"`);
+  for (let i = 0; i < 3; i++) {
+    group(t, at, at + 1, `chip${i}`);   // each chip is a rect + its label
+    at += 1;
+  }
+  out["04_onboard_commitments"] = serialize(doc);
+}
+
 // 07_tab_camera — the lock is the idea, so it gets handles
 {
   const doc = parse(src("07_tab_camera"));
@@ -132,11 +144,29 @@ const out = {};
 }
 
 // everything else passes through with fonts swapped only
-for (const n of ["01_onboard_name", "02_onboard_phone", "04_onboard_commitments",
+for (const n of ["01_onboard_name", "02_onboard_phone",
                  "05_onboard_places", "07_tab_routine", "07_tab_circle",
                  "10_friend_arrived", "11_circle_live", "12_notification"]) {
   out[n] = src(n);
 }
+
+/* ---------- the closing lockup, in stage space ---------- */
+
+// Shifted +30 from a naive centring: the wordmark's letter-spacing adds a
+// trailing gap after the L that the bounding box counts and the eye does not,
+// so measured-centre and optical-centre differ by half a letter-space.
+// The positioning transform lives on an OUTER group: an animated node must
+// not carry a transform attribute of its own, because the CSS transform the
+// renderer writes replaces it outright and snaps the element to the origin.
+const ANVIL_MARK =
+  `<path d="M8 20 L72 20 L62 30 L50 30 L50 40 L56 52 L24 52 L30 40 L30 30 L18 30 Z" fill="#15130E"/>` +
+  `<rect x="34" y="40" width="12" height="14" fill="#15130E"/>`;
+
+out["logo"] = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<g transform="translate(772,457)"><g id="mark"><g transform="scale(2.6) translate(-40,-32)">${ANVIL_MARK}</g></g></g>
+<text id="wordmark" x="896" y="502" font-family="Fraunces, Georgia, serif" font-size="92" font-weight="700" letter-spacing="16" fill="#15130E">ANVIL</text>
+<text id="tagline" x="960" y="596" font-family="Inter, system-ui, sans-serif" font-size="29" fill="#8B8475" text-anchor="middle">Sharpen iron with iron.</text>
+</svg>`;
 
 writeFileSync(join(OUT, "screens.js"),
   `export const SCREENS = ${JSON.stringify(out)};\n`);
@@ -162,12 +192,14 @@ ${FONTS}
   <input id="scrub" type="range">
   <span class="t" id="t">0.000s</span>
 </div>
+<div class="sec"></div>
 <script type="module" src="./preview.js"></script>
 `);
 
 /* ---------- bundle ---------- */
 
-for (const [entry, name] of [["src/preview.ts", "preview.js"], ["src/frame.ts", "frame.js"]]) {
+for (const [entry, name] of [["src/preview.ts", "preview.js"], ["src/frame.ts", "frame.js"],
+                             ["src/timeline.ts", "timeline.js"]]) {
   if (!existsSync(join(ROOT, entry))) continue;
   await esbuild.build({
     entryPoints: [join(ROOT, entry)],

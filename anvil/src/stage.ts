@@ -4,7 +4,7 @@
  * the tracks in timeline.ts.
  */
 import {
-  ease, progress, settleIn, revealUp, crossDepth, focusPush, apertureOpen,
+  ease, progress, settleIn, revealUp, crossDepth, focusPush, apertureOpen, recede,
   cameraTransform, layerTransform, lerp,
   REST, HIDDEN, CAMERA_REST, type LayerState, type CameraState,
 } from "./motion.js";
@@ -28,12 +28,15 @@ export function evaluate(tracks: Track[], t: number): Frame {
   const layers: Record<string, LayerState> = {};
   for (const id of Object.keys(LAYERS)) layers[id] = { ...HIDDEN };
   const parts: Record<string, LayerState> = {};
-  for (const keys of Object.values(LAYERS))
-    for (const k of keys) parts[k.replace(/^\d+_/, "")] = { ...REST };
+  for (const def of Object.values(LAYERS))
+    for (const k of def.screens) parts[k.replace(/^\d+_/, "")] = { ...REST };
   const els: Record<string, ElState> = {};
   // every animated node starts at the `from` of the first track that owns it
-  for (const tr of tracks)
+  for (const tr of tracks) {
     if (tr.k === "el" && !(tr.id in els)) els[tr.id] = { ...EL_REST, ...tr.from };
+    if (tr.k === "stagger")
+      for (const id of tr.ids) if (!(id in els)) els[id] = { ...EL_REST, ...tr.from };
+  }
   const clips: Record<string, string> = {};
   let camera: CameraState = { ...CAMERA_REST };
   let camFrom: CameraState = { ...CAMERA_REST };
@@ -43,6 +46,21 @@ export function evaluate(tracks: Track[], t: number): Frame {
   const ordered = [...tracks].sort((a, b) => a.at - b.at);
 
   for (const tr of ordered) {
+    if (tr.k === "stagger") {
+      const step = tr.step ?? 0.08;
+      tr.ids.forEach((id, i) => {
+        const q = ease(progress(t, tr.at + i * step, tr.dur));
+        const from = { ...EL_REST, ...tr.from };
+        const to = { ...from, ...tr.to };
+        els[id] = {
+          opacity: lerp(from.opacity, to.opacity, q),
+          x: lerp(from.x, to.x, q),
+          y: lerp(from.y, to.y, q),
+          scale: lerp(from.scale, to.scale, q),
+        };
+      });
+      continue;
+    }
     if (tr.k === "el") {
       if (t < tr.at) continue;
       const p = progress(t, tr.at, tr.dur);
@@ -94,6 +112,11 @@ export function evaluate(tracks: Track[], t: number): Frame {
         if (p >= 1) camFrom = { ...camera };
         break;
 
+      case "exit":
+        layers[tr.id] = p >= 1 ? { ...HIDDEN }
+                               : { ...REST, ...recede(p, { depth: tr.depth }) };
+        break;
+
       case "hold":
       case "sfx":
         break;
@@ -122,11 +145,17 @@ export function build(root: HTMLElement, sectionLayers = Object.keys(LAYERS)) {
   wrap.append(cam);
   root.append(wrap);
 
+  // stage-space layers sit in the frame itself, not inside the phone
+  const stageSpace = document.createElement("div");
+  stageSpace.className = "stageSpace";
+  root.append(stageSpace);
+
   for (const id of sectionLayers) {
+    const def = LAYERS[id];
     const layer = document.createElement("div");
-    layer.className = "layer";
+    layer.className = def.space === "stage" ? "layer stageLayer" : "layer";
     layer.id = `layer-${id}`;
-    for (const key of LAYERS[id]) {
+    for (const key of def.screens) {
       const part = document.createElement("div");
       part.className = "part";
       // "08_toast" → part id "toast", so the timeline names it as content
@@ -137,13 +166,18 @@ export function build(root: HTMLElement, sectionLayers = Object.keys(LAYERS)) {
       svg.removeAttribute("height");
       layer.append(part);
     }
-    cam.append(layer);
+    (def.space === "stage" ? stageSpace : cam).append(layer);
   }
 
   const glow = document.createElement("div");
   glow.id = "warmGlow";
   glow.className = "warmGlow";
   cam.append(glow);
+
+  const fade = document.createElement("div");
+  fade.id = "filmFade";
+  fade.className = "filmFade";
+  root.append(fade);
 
   return root;
 }
@@ -162,10 +196,12 @@ export function paint(frame: Frame) {
     el.style.visibility = s.opacity <= 0.001 ? "hidden" : "visible";
     el.style.clipPath = frame.clips[id] ?? "none";
     // depth reads as a soft contact shadow that grows with lift — never hard
-    const spread = 26 + 34 * s.lift;
-    el.style.boxShadow =
-      `0 ${(10 + 26 * s.lift).toFixed(1)}px ${spread.toFixed(1)}px ` +
-      `rgba(44, 33, 20, ${(0.10 + 0.13 * s.lift).toFixed(3)})`;
+    if (!el.classList.contains("stageLayer")) {
+      const spread = 26 + 34 * s.lift;
+      el.style.boxShadow =
+        `0 ${(10 + 26 * s.lift).toFixed(1)}px ${spread.toFixed(1)}px ` +
+        `rgba(44, 33, 20, ${(0.10 + 0.13 * s.lift).toFixed(3)})`;
+    }
   }
 
   for (const [id, s] of Object.entries(frame.parts)) {
@@ -225,10 +261,21 @@ export const css = `
     transform-origin: 50% 50%;
     will-change: transform, opacity;
   }
+  .stageSpace {
+    position: absolute; inset: 0;
+    width: ${STAGE.width}px; height: ${STAGE.height}px;
+  }
+  .stageLayer { border-radius: 0; overflow: visible; }
   .part { position: absolute; inset: 0; transform-origin: 50% 50%; }
   .part svg { width: 100%; height: 100%; display: block; }
-  #lock, #lockShackle, #lockCopy, #finder, #capture, #statusLabel {
+  #lock, #lockShackle, #lockCopy, #finder, #capture, #statusLabel,
+  #chip0, #chip1, #chip2, #mark, #wordmark, #tagline {
     transform-box: fill-box; transform-origin: center;
+  }
+  /* out to ink — warm, not black */
+  .filmFade {
+    position: absolute; inset: 0; background: #15130E;
+    opacity: 0; pointer-events: none;
   }
   .warmGlow {
     position: absolute; left: 215px; top: 330px;
