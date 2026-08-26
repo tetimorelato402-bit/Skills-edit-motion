@@ -60,12 +60,83 @@ const find = (toks, needle, from = 0) => {
 /** wrap toks[a..b] in <g id=…>, in place */
 function group(toks, a, b, id, attrs = "") {
   const inner = toks.slice(a, b + 1).map((t) => t.raw).join("");
-  toks.splice(a, b - a + 1, { tag: "g", raw: `<g id="${id}"${attrs ? " " + attrs : ""}>${inner}</g>` });
+  toks.splice(a, b - a + 1, { tag: "g", raw: `<g data-el="${id}"${attrs ? " " + attrs : ""}>${inner}</g>` });
 }
 const tag = (toks, i, id) => {
-  toks[i].raw = toks[i].raw.replace(/^<([a-zA-Z]+)/, `<$1 id="${id}"`);
+  toks[i].raw = toks[i].raw.replace(/^<([a-zA-Z]+)/, `<$1 data-el="${id}"`);
 };
 const serialize = ({ head, toks }) => head + toks.map((t) => t.raw).join("") + "</svg>";
+
+/* ---------- depth banding ----------
+ * A screen that drifts as one rigid sheet reads as a picture of an app, not
+ * as an app. These wrap each screen's contents into bands that drift
+ * independently: the header and the tab bar barely move (they are chrome,
+ * attached to the device), and each card group moves on its own phase at its
+ * own depth. Bands carry no transform attribute of their own, so the
+ * renderer's CSS transform has nothing to fight.
+ */
+
+const yOf = (raw) => {
+  const m = /\sy="(-?[\d.]+)"/.exec(raw) ?? /\scy="(-?[\d.]+)"/.exec(raw)
+        ?? /\sy1="(-?[\d.]+)"/.exec(raw) ?? /translate\([\d.-]+,\s*(-?[\d.]+)\)/.exec(raw);
+  return m ? parseFloat(m[1]) : null;
+};
+/** a wide rounded rect, or a mono section label — both start a new card group */
+const startsGroup = (raw) => {
+  const w = /\swidth="([\d.]+)"/.exec(raw);
+  if (raw.startsWith("<rect") && /\srx="/.test(raw) && w && +w[1] >= 300) return true;
+  return raw.startsWith("<text") && /letter-spacing="2"/.test(raw) && /DM Mono/.test(raw);
+};
+
+function band(toks, a, b, depth, phase) {
+  if (b < a) return 0;
+  const inner = toks.slice(a, b + 1).map((t) => t.raw).join("");
+  toks.splice(a, b - a + 1, { tag: "g",
+    raw: `<g data-depth="${depth}" data-phase="${phase.toFixed(2)}">${inner}</g>` });
+  return 1;
+}
+
+/** Wrap a phone screen's tokens into chrome / card-group / chrome bands. */
+function depthBands(doc) {
+  const t = doc.toks;
+  // tab bar: the dark pill near the bottom and everything after it
+  let tab = t.findIndex((x) => /<rect[^>]*\sy="848"/.test(x.raw));
+  if (tab === -1) tab = t.length;
+  // header: everything above the divider line at y=56
+  let head = t.findIndex((x) => /<line[^>]*\sy1="56"/.test(x.raw));
+  head = head === -1 ? -1 : head;
+
+  if (tab < t.length) band(t, tab, t.length - 1, 0.30, 4.1);
+  const bodyEnd = (tab < t.length ? tab : t.length) - 1;
+
+  // card groups, bottom-up so indices stay valid
+  const starts = [];
+  for (let i = head + 1; i <= bodyEnd; i++) if (startsGroup(t[i].raw)) starts.push(i);
+  for (let k = starts.length - 1; k >= 0; k--) {
+    const a = starts[k];
+    const b = (k === starts.length - 1 ? bodyEnd : starts[k + 1] - 1);
+    band(t, a, b, 0.86 + 0.24 * (k % 4), 1.7 * k + 0.4);
+  }
+  if (head > 0) band(t, 0, head, 0.34, 2.6);
+  return doc;
+}
+
+/**
+ * The arrival banner, rebuilt rather than relocated. The asset ships it as an
+ * in-app card sized to the screen's gutters; a system notification is a
+ * different object — wider than the app, rounder, and hung across the top
+ * edge of the device rather than laid inside it. Only the strings survive.
+ */
+const TOAST_SVG = (title, sub) =>
+  `<svg xmlns="http://www.w3.org/2000/svg" width="462" height="116" viewBox="0 0 462 116">` +
+  `<g data-el="toast">` +
+  `<rect x="6" y="16" width="450" height="84" rx="26" fill="#241C13"/>` +
+  `<circle cx="54" cy="58" r="21" fill="#A8895E"/>` +
+  `<text x="54" y="65" font-family="Fraunces, Georgia, serif" font-size="18" font-weight="700" fill="#E7E0D2" text-anchor="middle">A</text>` +
+  `<text x="90" y="52" font-family="Fraunces, Georgia, serif" font-size="18" font-weight="700" fill="#E7E0D2">${title}</text>` +
+  `<text x="90" y="76" font-family="'DM Mono', ui-monospace, monospace" font-size="12" fill="#C3B49B">${sub}</text>` +
+  `<text x="428" y="52" font-family="'DM Mono', ui-monospace, monospace" font-size="12" fill="#8B8475" text-anchor="end">now</text>` +
+  `</g></svg>`;
 
 /* ---------- derive the variants the timeline animates ---------- */
 
@@ -79,7 +150,7 @@ const out = {};
   tag(t, find(t, `<rect x="18" y="112"`), "cardTop");
   tag(t, find(t, `<rect x="18" y="310"`), "cardCommitments");
   tag(t, find(t, `<rect x="18" y="488"`), "cardMarks");
-  out["06_home"] = serialize(doc);
+  out["06_home"] = serialize(depthBands(doc));
 }
 
 // 04_onboard_commitments — the three chosen chips are the film's one stagger
@@ -91,7 +162,7 @@ const out = {};
     group(t, at, at + 1, `chip${i}`);   // each chip is a rect + its label
     at += 1;
   }
-  out["04_onboard_commitments"] = serialize(doc);
+  out["04_onboard_commitments"] = serialize(depthBands(doc));
 }
 
 // 07_tab_camera — the lock is the idea, so it gets handles
@@ -107,7 +178,7 @@ const out = {};
   group(t, ring, ring + 2, "lock");
   const copy = find(t, `>Not there yet<`);
   group(t, copy, copy + 2, "lockCopy");
-  out["07_locked"] = serialize(doc);
+  out["07_locked"] = serialize(depthBands(doc));
 }
 
 // 08_arrival_toast — split the banner off from the screen underneath it
@@ -122,11 +193,13 @@ const out = {};
   const f = find(t, `<circle cx="215.0" cy="330" r="46"`);
   group(t, f, f + 1, "finder");
   tag(t, find(t, `>YOU ARE HERE<`), "hereLabel");
-  out["08_arrived"] = serialize(doc);
-  // the banner ships inset from the card gutter and clips the status label
-  // behind it; align it to the card (x=18, w=394) and it reads as one system
-  const aligned = toast.replace('<rect x="46" y="70" width="338"', '<rect x="46" y="70" width="394"');
-  out["08_toast"] = `${doc.head}<g id="toast" transform="translate(-28,0)">${aligned}</g></svg>`;
+  out["08_arrived"] = serialize(depthBands(doc));
+  const text = (needle) => {
+    const m = new RegExp(`>([^<]*${needle}[^<]*)<`).exec(toast);
+    if (!m) throw new Error(`build: banner text ${needle} not found`);
+    return m[1];
+  };
+  out["08_toast"] = TOAST_SVG(text("made it"), text("camera"));
 }
 
 // 09_camera_unlocked
@@ -140,14 +213,14 @@ const out = {};
   tag(t, find(t, `>YOU ARE HERE<`), "hereLabel");
   const c = find(t, `<rect x="46" y="524"`);
   group(t, c, c + 1, "capture");
-  out["09_unlocked"] = serialize(doc);
+  out["09_unlocked"] = serialize(depthBands(doc));
 }
 
 // everything else passes through with fonts swapped only
 for (const n of ["01_onboard_name", "02_onboard_phone",
                  "05_onboard_places", "07_tab_routine", "07_tab_circle",
                  "10_friend_arrived", "11_circle_live", "12_notification"]) {
-  out[n] = src(n);
+  out[n] = serialize(depthBands(parse(src(n))));
 }
 
 /* ---------- the closing lockup, in stage space ---------- */
@@ -163,9 +236,9 @@ const ANVIL_MARK =
   `<rect x="34" y="40" width="12" height="14" fill="#15130E"/>`;
 
 out["logo"] = `<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
-<g transform="translate(772,457)"><g id="mark"><g transform="scale(2.6) translate(-40,-32)">${ANVIL_MARK}</g></g></g>
-<text id="wordmark" x="896" y="502" font-family="Fraunces, Georgia, serif" font-size="92" font-weight="700" letter-spacing="16" fill="#15130E">ANVIL</text>
-<text id="tagline" x="960" y="596" font-family="Inter, system-ui, sans-serif" font-size="29" fill="#8B8475" text-anchor="middle">Sharpen iron with iron.</text>
+<g transform="translate(772,457)"><g data-el="mark"><g transform="scale(2.6) translate(-40,-32)">${ANVIL_MARK}</g></g></g>
+<text data-el="wordmark" x="896" y="502" font-family="Fraunces, Georgia, serif" font-size="92" font-weight="700" letter-spacing="16" fill="#15130E">ANVIL</text>
+<text data-el="tagline" x="960" y="596" font-family="Inter, system-ui, sans-serif" font-size="29" fill="#8B8475" text-anchor="middle">Sharpen iron with iron.</text>
 </svg>`;
 
 writeFileSync(join(OUT, "screens.js"),

@@ -54,6 +54,20 @@ export const lerp = (a: number, b: number, p: number) => a + (b - a) * p;
 export const progress = (t: number, at: number, dur: number) =>
   dur <= 0 ? (t >= at ? 1 : 0) : clamp01((t - at) / dur);
 
+/* ------------------------------------------------------------------- drift
+ *
+ * Nothing in this film is ever fully still. Two sine components at periods
+ * that do not divide into each other, so the motion never resolves into a
+ * loop the eye can catch, and an amplitude small enough that it is felt
+ * rather than seen. Every drifting thing gets its own phase, which is what
+ * stops a screen and its contents moving as one rigid sheet.
+ */
+export function drift(t: number, phase: number, amp: number,
+                      p1 = 8.3, p2 = 13.7): number {
+  return amp * (0.62 * Math.sin((2 * Math.PI * t) / p1 + phase) +
+                0.38 * Math.sin((2 * Math.PI * t) / p2 + phase * 1.7));
+}
+
 /* ------------------------------------------------------------------- state */
 
 export interface LayerState {
@@ -75,6 +89,19 @@ export const REST: LayerState = {
 };
 
 export const HIDDEN: LayerState = { ...REST, opacity: 0 };
+
+/** Where the eye is being sent, and how hard the rest of the frame gives way. */
+export interface FocusState {
+  /** focal point in screen coordinates */
+  x: number;
+  y: number;
+  /** radius of the in-focus region, screen px */
+  radius: number;
+  /** blur applied outside it, screen px */
+  blur: number;
+}
+
+export const FOCUS_REST: FocusState = { x: 215, y: 466, radius: 1200, blur: 0 };
 
 export interface CameraState {
   /** zoom factor about the focal point */
@@ -234,10 +261,32 @@ export function apply(base: LayerState, ...parts: Partial<LayerState>[]): LayerS
 
 /** Screen-space → CSS. The camera scales about the phone's centre, then
  *  translates so the focal point drifts toward frame centre by `center`. */
-export function cameraTransform(c: CameraState, w = 430, h = 932): string {
-  const dx = -c.scale * (c.fx - w / 2) * c.center;
-  const dy = -c.scale * (c.fy - h / 2) * c.center;
-  return `translate(${dx.toFixed(3)}px, ${dy.toFixed(3)}px) scale(${c.scale.toFixed(4)})`;
+export function cameraTransform(c: CameraState, t = 0, w = 430, h = 932): string {
+  // the camera is never locked off: a slow breath on all three axes, under
+  // the threshold of conscious notice but never absent
+  const bx = drift(t, 0.0, 2.0, 11.3, 17.9);
+  const by = drift(t, 1.9, 3.4, 9.7, 15.1);
+  const bs = 1 + drift(t, 3.4, 0.0045, 12.9, 20.3);
+  const dx = -c.scale * (c.fx - w / 2) * c.center + bx;
+  const dy = -c.scale * (c.fy - h / 2) * c.center + by;
+  return `translate(${dx.toFixed(3)}px, ${dy.toFixed(3)}px) scale(${(c.scale * bs).toFixed(4)})`;
+}
+
+/** Mask that keeps the focal region sharp and lets the rest go. */
+export function focusMask(f: FocusState): string {
+  if (f.blur < 0.05) return "none";
+  const inner = Math.max(f.radius * 0.55, 8).toFixed(1);
+  const outer = Math.max(f.radius, 12).toFixed(1);
+  return `radial-gradient(circle ${outer}px at ${f.x.toFixed(1)}px ${f.y.toFixed(1)}px,` +
+         ` #000 0px, #000 ${inner}px, transparent ${outer}px)`;
+}
+
+export function lerpFocus(a: FocusState, b: FocusState, p: number): FocusState {
+  const e = easeCamera(p);
+  return {
+    x: lerp(a.x, b.x, e), y: lerp(a.y, b.y, e),
+    radius: lerp(a.radius, b.radius, e), blur: lerp(a.blur, b.blur, e),
+  };
 }
 
 export function layerTransform(s: LayerState): string {

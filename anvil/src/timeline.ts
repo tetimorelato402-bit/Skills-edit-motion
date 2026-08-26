@@ -42,19 +42,31 @@ const CIRCLE = cue("circle"), COMPOUND = cue("compound");
 
 /* ------------------------------------------------------------- stage setup */
 
-export const STAGE = {
-  width: 1920,
-  height: 1080,
-  fps: 30,
-  /** phone is 430×932; this puts it at 857 px tall in a 1080 frame */
-  phoneScale: 0.92,
+export type Format = "vertical" | "wide";
+
+/**
+ * Vertical is the master. The phone sits at ~68% of frame height so the
+ * beige world survives above and below it rather than being cropped away;
+ * the wide export is a secondary target and takes what fits.
+ */
+export const FORMATS = {
+  vertical: { width: 1080, height: 1920, phoneScale: 1.40 },  // 1305 px tall, 68%
+  wide:     { width: 1920, height: 1080, phoneScale: 0.92 },
 } as const;
+
+export const STAGE = { fps: 30 } as const;
 
 /** The lock icon's centre in screen coordinates — the film's focal point. */
 export const LOCK = { x: 215, y: 330 } as const;
 
-/** The anvil strike, on the film clock. */
-export const CLANG_AT = ARRIVE.off;
+/** What each line is about, in screen coordinates. Every spoken line has a
+ *  visual subject; the frame is pointing at it before the line lands. */
+export const SUBJECT = {
+  commitments: { x: 215, y: 376 },   // 06_home — the commitments card
+  lock:        { x: 215, y: 330 },   // 07 — the padlock
+  banner:      { x: 215, y: -18 },   // the system notification, above the device
+  viewfinder:  { x: 215, y: 340 },   // 09 — the open camera
+} as const;
 
 /* -------------------------------------------------------------- beat types */
 
@@ -64,7 +76,12 @@ export type Track =
   | { k: "layer"; id: string; at: number; dur: number; via: "settleIn" | "revealUp";
       opts?: { distance?: number; from?: "below" | "above" }; note?: string }
   | { k: "cross"; out: string; in: string; at: number; dur: number; depth?: number;
+      /** px the incoming screen travels through the cut — momentum, not a swap */
+      travel?: number;
       aperture?: { x: number; y: number; radius: number }; note?: string }
+  /** where the eye is being sent, and how far the rest of the frame gives way */
+  | { k: "focus"; at: number; dur: number;
+      to: { x?: number; y?: number; radius?: number; blur?: number }; note?: string }
   /** a layer leaves with nothing replacing it */
   | { k: "exit"; id: string; at: number; dur: number; depth?: number; note?: string }
   | { k: "part"; id: string; at: number; dur: number; via: "settleIn" | "revealUp";
@@ -90,10 +107,13 @@ const CROSS     = 0.44;   // Act 2 — the slow act
 // Shorter than it looks: a shorter push buys a longer freeze, and the freeze
 // is the point. At 0.60 s the camera is still travelling when she starts
 // speaking and has stopped dead 0.75 s before she finishes.
-const PUSH      = 0.60;
+const PUSH      = 0.55;
 const TOAST_IN  = 0.26;
-const SHACKLE   = 0.18;
-const UNLOCK    = 0.396;
+// The release is three moves now, not two: the shackle lifts, the lock and
+// its copy clear on the still-locked screen, and only then does the film cut.
+const SHACKLE   = 0.15;
+const CLEAR     = 0.15;
+const OPEN      = 0.276;
 const CUT_PROOF = 0.24;   // Act 4 — the snap
 const CUT_SEEN  = 0.20;
 const CROSS_LONG= 0.26;
@@ -103,13 +123,13 @@ const CROSS_LONG= 0.26;
  * not product, and it explains nothing the film is here to explain.
  */
 
-const openAt = HEAD;                                    // 0.350 → settled 0.885
+const filmOpensAt = HEAD;                               // 0.350 → settled 0.885
 
 export const act1: Track[] = [
   { k: "hold", at: 0, dur: HEAD, note: "the beige world, empty, before the voice" },
-  { k: "layer", id: "name", at: openAt, dur: OPEN_IN, via: "settleIn",
+  { k: "layer", id: "name", at: filmOpensAt, dur: OPEN_IN, via: "settleIn",
     note: "01 settles at 0.885" },
-  { k: "hold", at: openAt + OPEN_IN, dur: NAME.off - (openAt + OPEN_IN),
+  { k: "hold", at: filmOpensAt + OPEN_IN, dur: NAME.off - (filmOpensAt + OPEN_IN),
     note: "under 'It starts with your name.'" },
 
   { k: "cross", out: "name", in: "phone", at: NAME.off, dur: CROSS_Q, depth: 400 },
@@ -134,7 +154,8 @@ export const act1: Track[] = [
 
 /* ==================================================== ACT 2 — THE CONSTRAINT
  * The act slows down and then stops. The hold on the lock is the longest
- * stillness in the film by a wide margin — everything Act 4 releases from.
+ * stillness in the film — though "stillness" here means the drift and the
+ * camera's breath and nothing else. Nothing is ever locked off.
  */
 
 const toHome   = PLACES.off;                            // 8.115
@@ -142,73 +163,128 @@ const homeIn   = toHome + CROSS_ACT;                    // 8.455 settled
 const toLocked = HOME.off;                              // 9.541
 const lockedIn = toLocked + CROSS;                      // 9.981 settled
 const pushAt   = lockedIn + 0.04;                       // 10.021
-const holdAt   = pushAt + PUSH;                         // 10.621
+const holdAt   = pushAt + PUSH;                         // 10.571
+/** the camera starts easing out just before the banner does — the
+ *  notification is what pulls the frame back off the lock */
+const pullAt   = 11.360;
 const toastAt  = ARRIVE.on - LEAD - TOAST_IN;           // 11.433
 
 export const act2: Track[] = [
   { k: "cross", out: "places", in: "home", at: toHome, dur: CROSS_ACT, depth: 400,
-    note: "into Act 2 — the film slows here" },
-  { k: "hold", at: homeIn, dur: HOME.on - homeIn,
-    note: "act boundary: the lead is the hold" },
+    travel: 70, note: "into Act 2 — the film slows here" },
+  { k: "sfx", at: toHome, src: "whoosh_up", gain: 0.34 },
+  { k: "focus", at: homeIn - 0.2, dur: 0.55,
+    to: { ...SUBJECT.commitments, radius: 250, blur: 2.4 },
+    note: "the frame is on the commitments before 'This is your word.' lands" },
+  { k: "el", id: "focusBloom", at: HOME.on - 0.09, dur: 0.34,
+    from: { opacity: 0, scale: 0.7 }, to: { opacity: 0.85, scale: 1 } },
+  { k: "el", id: "focusBloom", at: HOME.on + 0.25, dur: 0.7,
+    from: { opacity: 0.85 }, to: { opacity: 0.16 } },
   { k: "hold", at: HOME.on, dur: HOME.off - HOME.on,
-    note: "still under 'This is your word.'" },
+    note: "under 'This is your word.' — drift only" },
 
   { k: "cross", out: "home", in: "locked", at: toLocked, dur: CROSS, depth: 400,
-    note: "06_home → 07_tab_camera" },
+    travel: 96, note: "06_home → 07_tab_camera, travelling through the space" },
+  // the camera pushes through the cut rather than cutting between two
+  // stationary positions
+  { k: "cam", at: toLocked, dur: CROSS,
+    to: { fx: 215, fy: 560, scale: 1.10, center: 0.30 }, note: "through the cut" },
+  { k: "sfx", at: toLocked, src: "whoosh_down", gain: 0.38 },
+  { k: "sfx", at: lockedIn - 0.03, src: "lock_catch", gain: 0.62,
+    note: "the catch seating — the app is held closed" },
 
   { k: "cam", at: pushAt, dur: PUSH,
-    to: { fx: LOCK.x, fy: LOCK.y, scale: 1.50, center: 0.68 },
+    to: { ...SUBJECT.lock, fx: SUBJECT.lock.x, fy: SUBJECT.lock.y, scale: 1.72, center: 0.86 },
     note: "focusPush into the lock — starts on silence, still moving at 10.307" },
+  { k: "focus", at: pushAt, dur: PUSH + 0.16,
+    to: { ...SUBJECT.lock, radius: 140, blur: 4.6 },
+    note: "the rest of the screen gives way; only the lock stays sharp" },
+  { k: "el", id: "focusBloom", at: LOCKED.on - 0.10, dur: 0.36,
+    from: { opacity: 0, scale: 0.66 }, to: { opacity: 0.7, scale: 1 } },
+  { k: "el", id: "focusBloom", at: LOCKED.on + 0.30, dur: 0.9,
+    from: { opacity: 0.7 }, to: { opacity: 0.2 } },
 
-  // 0.63 s of absolute stillness, landing while she is still speaking and
-  // running past the end of the line. Nothing else in the film holds this
-  // long. It is what the Act 4 snap releases from.
-  { k: "hold", at: holdAt, dur: toastAt - holdAt,
-    note: "the uncomfortable hold — 0.812 s, dead still at full push" },
+  // The hold. Drift and breath only — 0.79 s of it, landing while she is
+  // still speaking and running past the end of the line.
+  { k: "hold", at: holdAt, dur: pullAt - holdAt,
+    note: "the uncomfortable hold — 0.789 s at full push, drift only" },
 ];
 
-/* ======================================================= ACT 3 — THE UNLOCK */
+/* ======================================================= ACT 3 — THE UNLOCK
+ *
+ * The banner is the TRIGGER, not a caption. It arrives while the screen is
+ * still visibly locked; the lock then releases on that screen, in place; only
+ * then does the film cut to the open camera. Announcing the unlock over a
+ * stale locked state was the bug this sequence exists to fix.
+ */
 
-const releaseAt = ARRIVE.off;                           // 12.904
-const unlockAt  = releaseAt + SHACKLE;                  // 13.084
-const opened    = unlockAt + UNLOCK;                    // 13.480 = OPENS.on − LEAD
+const releaseAt = ARRIVE.off;                           // 12.904 — the shackle
+const clearAt   = releaseAt + SHACKLE;                  // 13.054 — the lock clears
+const openAt    = clearAt + CLEAR;                      // 13.204 — the cut
+const opened    = openAt + OPEN;                        // 13.480 = OPENS.on − LEAD
 
 export const act3: Track[] = [
-  { k: "part", id: "toast", at: toastAt, dur: TOAST_IN, via: "revealUp",
-    opts: { distance: 30, from: "above" },
-    note: "arrival banner drops onto the still-locked screen" },
-  { k: "hold", at: toastAt + TOAST_IN, dur: releaseAt - (toastAt + TOAST_IN),
-    note: "still under 'Until you actually arrive.'" },
+  // 1 — the frame comes off the lock to receive a system notification
+  { k: "cam", at: pullAt, dur: 0.40,
+    to: { fx: 215, fy: 120, scale: 1.12, center: 0.5 },
+    note: "the notification pulls the camera off the lock and up" },
+  { k: "focus", at: pullAt, dur: 0.44,
+    to: { ...SUBJECT.banner, radius: 270, blur: 2.2 } },
+  { k: "layer", id: "toast", at: toastAt, dur: TOAST_IN, via: "revealUp",
+    opts: { distance: 46, from: "above" },
+    note: "the banner drops over the top edge of the device — settled 11.693" },
+  { k: "sfx", at: toastAt + 0.06, src: "arrival", gain: 0.5 },
+  { k: "hold", at: toastAt + TOAST_IN, dur: 12.55 - (toastAt + TOAST_IN),
+    note: "under 'Until you actually arrive.' — the screen is still locked" },
 
-  { k: "sfx", at: releaseAt, src: "clang", gain: 0.9, note: "the strike, on top, never ducked" },
+  // 2 — the frame returns to the lock before the release, not after
+  { k: "cam", at: 12.55, dur: 0.36,
+    to: { ...SUBJECT.lock, fx: SUBJECT.lock.x, fy: SUBJECT.lock.y, scale: 1.44, center: 0.78 },
+    note: "back to the lock while she is still speaking, so the eye is there first" },
+  { k: "focus", at: 12.55, dur: 0.36,
+    to: { ...SUBJECT.lock, radius: 165, blur: 3.8 } },
+
+  // 3 — the lock releases, on the locked screen, in place
+  { k: "sfx", at: releaseAt, src: "unlock", gain: 1.0,
+    note: "the biggest sound in the film — the catch giving way, then air" },
   { k: "el", id: "lockShackle", at: releaseAt, dur: SHACKLE,
-    from: { y: 0 }, to: { y: -7 },
+    from: { y: 0 }, to: { y: -9 },
     note: "the shackle lifts — the only thing moving" },
-
-  { k: "el", id: "lock", at: unlockAt, dur: UNLOCK,
-    from: { opacity: 1, scale: 1 }, to: { opacity: 0, scale: 0.86 } },
-  { k: "el", id: "lockCopy", at: unlockAt, dur: UNLOCK * 0.6,
+  { k: "el", id: "lock", at: clearAt, dur: CLEAR,
+    from: { opacity: 1, scale: 1 }, to: { opacity: 0, scale: 0.84 } },
+  { k: "el", id: "lockCopy", at: clearAt, dur: CLEAR,
+    from: { opacity: 1, y: 0 }, to: { opacity: 0, y: 8 },
+    note: "'Not there yet' clears — the screen is no longer claiming to be locked" },
+  { k: "el", id: "statusLabel", at: clearAt, dur: CLEAR,
     from: { opacity: 1 }, to: { opacity: 0 } },
-  { k: "cross", out: "locked", in: "opened", at: unlockAt, dur: UNLOCK, depth: 150,
-    aperture: { x: LOCK.x, y: LOCK.y, radius: 660 },
-    note: "07 → 09, opening out of the lock's own centre; the banner rides " +
-          "out with the layer it belongs to" },
-  // no track on #finder: the aperture opens out of the lock's centre, so the
-  // viewfinder is already revealed from the middle outward.
-  { k: "el", id: "warmGlow", at: unlockAt, dur: 0.52,
-    from: { opacity: 0, scale: 0.4 }, to: { opacity: 1, scale: 1 },
-    note: "warm light shift, blooming out of the lock" },
-  { k: "el", id: "warmGlow", at: unlockAt + 0.52, dur: 0.83,
-    from: { opacity: 1 }, to: { opacity: 0.32, scale: 1.16 },
-    note: "and settling back — light that arrived, not a lamp left on" },
-  { k: "cam", at: unlockAt, dur: UNLOCK,
-    to: { fx: LOCK.x, fy: LOCK.y, scale: 1.06, center: 0.2 },
+  { k: "el", id: "toast", at: clearAt, dur: CLEAR + 0.1,
+    from: { opacity: 1, y: 0 }, to: { opacity: 0, y: -22 },
+    note: "the notification has done its job and withdraws" },
+
+  // 4 — and only then, the cut
+  { k: "cross", out: "locked", in: "opened", at: openAt, dur: OPEN, depth: 150,
+    aperture: { x: SUBJECT.lock.x, y: SUBJECT.lock.y, radius: 660 },
+    note: "07 → 09, opening out of the lock's own centre" },
+  { k: "el", id: "warmGlow", at: openAt, dur: 0.5,
+    from: { opacity: 0, scale: 0.4 }, to: { opacity: 1, scale: 1 } },
+  { k: "el", id: "warmGlow", at: openAt + 0.5, dur: 0.8,
+    from: { opacity: 1 }, to: { opacity: 0.3, scale: 1.16 } },
+  { k: "cam", at: openAt, dur: OPEN,
+    to: { ...SUBJECT.viewfinder, fx: SUBJECT.viewfinder.x, fy: SUBJECT.viewfinder.y,
+          scale: 1.08, center: 0.24 },
     note: "the frame opens up as the lock lets go" },
-  { k: "cam", at: opened, dur: 0.82,
+  { k: "focus", at: openAt, dur: OPEN + 0.42,
+    to: { ...SUBJECT.viewfinder, radius: 330, blur: 1.5 },
+    note: "depth opens with it, but the viewfinder keeps the eye" },
+  { k: "cam", at: opened, dur: 0.86,
     to: { fx: 215, fy: 466, scale: 1.0, center: 0 },
     note: "the last of the pull-back, decelerating under the line" },
 
   { k: "hold", at: opened, dur: LEAD, note: "the aftermath — 09 settled at 13.480" },
+  { k: "el", id: "focusBloom", at: OPENS.on - 0.10, dur: 0.38,
+    from: { opacity: 0, scale: 0.7 }, to: { opacity: 0.66, scale: 1 } },
+  { k: "el", id: "focusBloom", at: OPENS.on + 0.3, dur: 0.9,
+    from: { opacity: 0.66 }, to: { opacity: 0 } },
   { k: "hold", at: OPENS.on, dur: OPENS.off - OPENS.on,
     note: "'Then it opens.' lands on a settled screen" },
 ];
@@ -292,7 +368,12 @@ export const ending: Track[] = [
 
 /* --------------------------------------------------------------- assembly */
 
-export interface LayerDef { space: "phone" | "stage"; screens: string[] }
+export interface LayerDef {
+  space: "phone" | "camera" | "stage";
+  screens: string[];
+  /** camera-space layers are hung at an explicit box in phone coordinates */
+  box?: { x: number; y: number; w: number; h: number };
+}
 
 /** Which SVGs compose each layer, bottom to top, and where it lives. */
 export const LAYERS: Record<string, LayerDef> = {
@@ -301,11 +382,17 @@ export const LAYERS: Record<string, LayerDef> = {
   commit:  { space: "phone", screens: ["04_onboard_commitments"] },
   places:  { space: "phone", screens: ["05_onboard_places"] },
   home:    { space: "phone", screens: ["06_home"] },
-  locked:  { space: "phone", screens: ["07_locked", "08_toast"] },
+  locked:  { space: "phone", screens: ["07_locked"] },
   opened:  { space: "phone", screens: ["09_unlocked"] },
   proof:   { space: "phone", screens: ["11_circle_live"] },
   seen:    { space: "phone", screens: ["10_friend_arrived"] },
   routine: { space: "phone", screens: ["07_tab_routine"] },
+  // The arrival banner is a SYSTEM notification, so it is hung across the top
+  // edge of the device — wider than the device, outside its clip, and above
+  // every app layer. Inside the frame it read as a caption on the app's own
+  // state, which is the one thing it must not be.
+  toast:   { space: "camera", screens: ["08_toast"],
+             box: { x: -16, y: -78, w: 462, h: 116 } },
   logo:    { space: "stage", screens: ["logo"] },
 };
 
@@ -314,7 +401,7 @@ export const film: Track[] = [...act1, ...act2, ...act3, ...act4, ...act5, ...en
 export const SECTION = {
   full:  { from: 0, to: filmEnds },
   act1:  { from: 0, to: HOME.on },
-  act23: { from: PLACES.off, to: OPENS.off },
+  act23: { from: 8.00, to: 14.40 },
   act45: { from: OPENS.off, to: voiceEnds },
   end:   { from: voiceEnds - 0.6, to: filmEnds },
 };

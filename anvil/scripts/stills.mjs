@@ -9,9 +9,11 @@ const outDir = join(ROOT, "build/stills");
 mkdirSync(outDir, { recursive: true });
 const times = process.argv.slice(2).map(Number);
 const b = await chromium.launch(LAUNCH);
-const p = await b.newPage({ viewport: { width: 1920, height: 1080 } });
+const fmt = process.env.FMT ?? "vertical";
+const dim = fmt === "wide" ? [1920,1080] : [1080,1920];
+const p = await b.newPage({ viewport: { width: dim[0], height: dim[1] } });
 const { server, url } = await serve();
-await p.goto(`${url}/build/frame.html`);
+await p.goto(`${url}/build/frame.html?format=${fmt}`);
 await p.waitForFunction(() => window.ready === true, null, { timeout: 20000 }).catch(()=>{});
 for (const t of times) {
   await p.evaluate((tt) => window.setTime(tt), t);

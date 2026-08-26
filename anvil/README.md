@@ -4,8 +4,13 @@ A ~26 s vector walkthrough built from the 15 production SVG screens and the
 supplied voiceover. Screens stay SVG end to end — they are inlined into the
 DOM and rasterised only by the renderer, at whatever resolution you ask for.
 
-**Complete.** 26.25 s, five acts and the silent ending.
-`03_onboard_birthday` is cut: birthday entry is compliance, not product.
+**Master format is 9:16, 1080×1920.** A 16:9 export is a secondary target.
+26.25 s, five acts and the silent ending. `03_onboard_birthday` is cut:
+birthday entry is compliance, not product.
+
+**Revision status:** Act 2 and Act 3 are rebuilt (vertical, corrected release
+sequence, drift, focus, new sound). Acts 1, 4, 5 and the ending still carry
+their previous staging and have not yet been reworked for the new systems.
 
 ## Layout
 
@@ -64,11 +69,32 @@ decorating.
 `scripts/mix.mjs` assembles the whole bed once, so picture and sound share
 one clock and the renderer only ever slices it:
 
-| layer | level | notes |
+Sound cues are not listed in the mix script. They are `sfx` tracks in
+`timeline.ts`, sitting next to the motion they belong to, so a beat cannot be
+retimed without its sound moving with it.
+
+`scripts/sfx.py` synthesises the whole library. Every sound is built to one
+rule — warm, organic, tactile; felt, wood, leather, low breath. In practice
+that means almost nothing above 4 kHz, attacks measured in milliseconds
+rather than samples (a zero-length attack is what makes a click sound
+digital), inharmonic partials rather than clean integer ratios, a noise
+component in everything, and a little pitch drift so no two bodies ring
+identically.
+
+| sound | where | character |
 |---|---|---|
-| VO | 0 dB, master reference | placed at `VO_AT`; never stretched, pitched or ducked |
-| anvil clang | −1 dB, on the unlock | sits on top, never ducked |
-| room tone | −46 dBFS | generated, not sampled — see below |
+| `ui_tap` | chip select, field focus, button press | felt on a soft surface; body, no click |
+| `key` | typing on name / phone / place fields | a light mechanical key, wood not plastic |
+| `whoosh_down` / `whoosh_up` | screen transitions | low air, its band pitched to the direction of travel |
+| `lock_catch` | 07 settling | a soft mechanical catch — deliberately not metallic |
+| `unlock` | the release | the biggest sound in the film: the catch giving way, a low swell, then air |
+| `arrival` | the banner | one soft chime, a struck bowl, damped |
+| `shutter` | proof posting | quick and tactile |
+| `tick0…4` | streak marks | a small ascending wooden tick per filled day |
+| room tone | everywhere | −46 dBFS, generated — see below |
+
+The anvil clang is gone. One metal hit in an otherwise dry film reads as a
+slideshow cue rather than as the product making a sound.
 
 The film has long silences by design, and digital zero does not read as
 quiet, it reads as playback having stopped. `scripts/roomtone.py` generates

@@ -4,6 +4,7 @@ import { mkdirSync, rmSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { serve } from "./serve.mjs";
+import { FORMATS } from "../build/timeline.js";
 import { execFileSync } from "node:child_process";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -15,9 +16,12 @@ const arg = (k, d) => {
 const from = Number(arg("from", 0));
 const to = Number(arg("to", 26.25));
 const fps = Number(arg("fps", 30));
-const height = Number(arg("height", 1080));
+const format = arg("format", "vertical");
+const F = FORMATS[format];
+if (!F) throw new Error(`unknown format ${format} — try vertical|wide`);
+const height = Number(arg("height", F.height));
 const name = arg("out", "anvil");
-const scale = height / 1080;
+const scale = height / F.height;
 
 const frames = join(ROOT, "build/frames");
 rmSync(frames, { recursive: true, force: true });
@@ -25,21 +29,21 @@ mkdirSync(frames, { recursive: true });
 
 const browser = await chromium.launch(LAUNCH);
 const page = await browser.newPage({
-  viewport: { width: Math.round(1920 * scale), height: Math.round(1080 * scale) },
+  viewport: { width: Math.round(F.width * scale), height: Math.round(F.height * scale) },
   deviceScaleFactor: 1,
 });
 const { server, url } = await serve();
-await page.goto(`${url}/build/frame.html`);
+await page.goto(`${url}/build/frame.html?format=${format}`);
 await page.waitForFunction(() => window.ready === true, null, { timeout: 20000 })
   .catch(() => {});
 if (scale !== 1) {
   await page.addStyleTag({ content:
     `.stage{transform:scale(${scale});transform-origin:top left}
-     html,body{width:${1920 * scale}px;height:${1080 * scale}px;overflow:hidden}` });
+     html,body{width:${F.width * scale}px;height:${F.height * scale}px;overflow:hidden}` });
 }
 
 const total = Math.round((to - from) * fps);
-process.stdout.write(`rendering ${total} frames @ ${fps}fps, ${Math.round(1920 * scale)}×${height}\n`);
+process.stdout.write(`rendering ${total} frames @ ${fps}fps, ${format} ${Math.round(F.width * scale)}×${height}\n`);
 for (let i = 0; i < total; i++) {
   const t = from + i / fps;
   await page.evaluate((tt) => window.setTime(tt), t);

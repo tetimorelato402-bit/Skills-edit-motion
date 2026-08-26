@@ -29,12 +29,14 @@ const toastLead = toastOnset - settled.toast;
 console.log(`${"toast".padEnd(11)} ${settled.toast.toFixed(3).padStart(7)} ${toastOnset.toFixed(3).padStart(8)} ${toastLead.toFixed(3).padStart(8)}`);
 if (toastLead < LEAD - 1e-9) bad++;
 
-/* no beat may overlap another beat on the same layer, and no two moves may run
-   at once except where the timeline documents a compound gesture */
-const moves = film.filter((t) => t.k !== "hold" && t.k !== "sfx" && t.dur > 0)
+/* Screens are what may not move at once. Camera, focus and bloom now run
+   continuously and in parallel by design — the film is never locked off — so
+   flagging those would be flagging the intent. Two SCREENS moving at once is
+   still a mistake. */
+const moves = film.filter((t) => ["layer", "cross", "exit"].includes(t.k) && t.dur > 0)
   .map((t) => ({ k: t.k, id: t.id ?? `${t.out}→${t.in}`, a: t.at, b: t.at + t.dur }))
   .sort((x, y) => x.a - y.a);
-console.log("\nconcurrent moves:");
+console.log("\nconcurrent screen moves:");
 for (let i = 0; i < moves.length; i++)
   for (let j = i + 1; j < moves.length; j++)
     if (moves[j].a < moves[i].b - 1e-9)
