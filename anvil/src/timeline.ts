@@ -71,6 +71,7 @@ export const SUBJECT = {
   banner:      { x: 215, y: -18 },   // the system notification, above the device
   viewfinder:  { x: 215, y: 340 },   // 09 — the open camera
   proofPhoto:  { x: 215, y: 230 },   // 11 — the posted proof itself
+  maraRow:     { x: 215, y: 524 },   // 11 — the member who hasn't shown up
   friendRow:   { x: 215, y: 101 },   // 10 — "Jeff made it to the gym"
   friendList:  { x: 215, y: 376 },   // 10 — "and you see them": the shared commitments
   weekRow:     { x: 215, y: 176 },   // routine — the filled days
@@ -104,6 +105,11 @@ export type Track =
       /** px the incoming screen travels through the cut — momentum, not a swap */
       travel?: number;
       aperture?: { x: number; y: number; radius: number }; note?: string }
+  /** the heavy register: the object falls to rest, compresses, recovers.
+      target "layer" applies the landing to a whole screen (drop 0 = pure
+      absorption); default is a tagged element. */
+  | { k: "land"; id: string; at: number; dur: number; drop?: number;
+      compress?: number; target?: "el" | "layer"; note?: string }
   /** a value typed into a field: stepped character reveal on a tagged text
       element. The key sounds are separate sfx cues emitted by typeBeat(), so
       the mix hears exactly what the reveal shows. */
@@ -134,9 +140,9 @@ const CROSS_T   = 0.18;   // Act 1's tightest gap
 const CROSS_ACT = 0.34;   // into Act 2
 const CROSS     = 0.44;   // Act 2 — the slow act
 // Shorter than it looks: a shorter push buys a longer freeze, and the freeze
-// is the point. At 0.60 s the camera is still travelling when she starts
-// speaking and has stopped dead 0.75 s before she finishes.
-const PUSH      = 0.55;
+// is the point. At 0.42 s the camera moves fast enough to feel pulled, and
+// the stillness that follows is nearly a full second.
+const PUSH      = 0.42;
 const TOAST_IN  = 0.26;
 // The release is three moves now, not two: the shackle lifts, the lock and
 // its copy clear on the still-locked screen, and only then does the film cut.
@@ -174,7 +180,7 @@ export const act1: Track[] = [
 
   { k: "sfx", at: NAME.off - 0.07, src: "ui_tap", gain: 0.34, note: "Continue" },
   { k: "cross", out: "name", in: "phone", at: NAME.off, dur: CROSS_Q, depth: 400, travel: 64 },
-  { k: "sfx", at: NAME.off, src: "whoosh_up", gain: 0.30 },
+  { k: "sfx", at: NAME.off, src: "whoosh_a", gain: 0.26 },
   { k: "cam", at: NAME.off, dur: CROSS_Q, to: { fx: 215, fy: 300, scale: 1.005, center: 0.15 },
     note: "the camera passes through the cut, not around it" },
   { k: "focus", at: 2.30, dur: 0.45, to: { ...SUBJECT.phoneField, radius: 240, blur: 1.9 } },
@@ -188,7 +194,7 @@ export const act1: Track[] = [
 
   { k: "sfx", at: PHONE.off - 0.07, src: "ui_tap", gain: 0.32, note: "Send code" },
   { k: "cross", out: "phone", in: "commit", at: PHONE.off, dur: CROSS_Q, depth: 400, travel: 64 },
-  { k: "sfx", at: PHONE.off, src: "whoosh_up", gain: 0.28 },
+  { k: "sfx", at: PHONE.off, src: "whoosh_b", gain: 0.22 },
   { k: "cam", at: PHONE.off, dur: CROSS_Q, to: { fx: 215, fy: 260, scale: 1.01, center: 0.18 } },
   { k: "focus", at: 5.30, dur: 0.40, to: { ...SUBJECT.chips, radius: 230, blur: 1.9 } },
   { k: "cam", at: 5.45, dur: 0.85,
@@ -204,9 +210,10 @@ export const act1: Track[] = [
   { k: "sfx", at: 5.88, src: "ui_tap", gain: 0.30 },
 
   { k: "sfx", at: COMMIT.off - 0.07, src: "ui_tap", gain: 0.30, note: "Set 3 places" },
+  // no whoosh on this one — just the tap. The silences between moves are
+  // what let the whooshes that remain actually land.
   { k: "cross", out: "commit", in: "places", at: COMMIT.off, dur: CROSS_T, depth: 400, travel: 56,
-    note: "0.18 s — the tightest gap in Act 1" },
-  { k: "sfx", at: COMMIT.off, src: "whoosh_up", gain: 0.26 },
+    note: "0.18 s — the tightest gap in Act 1, cut on the tap alone" },
   { k: "cam", at: COMMIT.off, dur: CROSS_T, to: { fx: 215, fy: 350, scale: 1.01, center: 0.20 } },
   { k: "focus", at: 6.85, dur: 0.40, to: { ...SUBJECT.placeField, radius: 240, blur: 1.9 } },
   { k: "cam", at: 7.00, dur: 0.90,
@@ -229,10 +236,10 @@ const homeIn   = toHome + CROSS_ACT;                    // 8.455 settled
 const toLocked = HOME.off;                              // 9.541
 const lockedIn = toLocked + CROSS;                      // 9.981 settled
 const pushAt   = lockedIn + 0.04;                       // 10.021
-const holdAt   = pushAt + PUSH;                         // 10.571
+const holdAt   = pushAt + PUSH;                         // 10.441
 /** the camera starts easing out just before the banner does — the
  *  notification is what pulls the frame back off the lock */
-const pullAt   = 11.360;
+const pullAt   = 11.420;
 const toastAt  = ARRIVE.on - LEAD - TOAST_IN;           // 11.433
 
 export const act2: Track[] = [
@@ -261,14 +268,21 @@ export const act2: Track[] = [
     to: { fx: 215, fy: 560, scale: 1.10, center: 0.30 }, note: "through the cut" },
   { k: "sfx", at: toLocked - 0.07, src: "ui_tap", gain: 0.32, note: "the Camera tab" },
   { k: "sfx", at: toLocked, src: "whoosh_down", gain: 0.38 },
-  { k: "sfx", at: lockedIn - 0.03, src: "lock_catch", gain: 0.62,
-    note: "the catch seating — the app is held closed" },
+  // The lock LANDS. The screen glides in on the light register while the
+  // lock falls onto it in the heavy one, hitting just before the screen
+  // settles — the catch is the sound of that landing, not set dressing.
+  { k: "land", id: "lock", at: 9.64, dur: 0.42, drop: 30, compress: 2.5,
+    note: "contact at 9.884, at rest 10.06 — lead 0.247 on the line" },
+  { k: "sfx", at: 9.884, src: "lock_catch", gain: 0.68,
+    note: "the sound of the lock landing" },
 
+  // 1.95× fills the whole frame with the phone — no beige left, no exit.
+  // Standing at a closed door.
   { k: "cam", at: pushAt, dur: PUSH,
-    to: { ...SUBJECT.lock, fx: SUBJECT.lock.x, fy: SUBJECT.lock.y, scale: 1.72, center: 0.86 },
+    to: { ...SUBJECT.lock, fx: SUBJECT.lock.x, fy: SUBJECT.lock.y, scale: 1.95, center: 0.90 },
     note: "focusPush into the lock — starts on silence, still moving at 10.307" },
   { k: "focus", at: pushAt, dur: PUSH + 0.16,
-    to: { ...SUBJECT.lock, radius: 140, blur: 4.6 },
+    to: { ...SUBJECT.lock, radius: 120, blur: 5.2 },
     note: "the rest of the screen gives way; only the lock stays sharp" },
   { k: "el", id: "focusBloom", at: LOCKED.on - 0.10, dur: 0.36,
     from: { opacity: 0, scale: 0.66 }, to: { opacity: 0.7, scale: 1 } },
@@ -278,7 +292,8 @@ export const act2: Track[] = [
   // The hold. Drift and breath only — 0.79 s of it, landing while she is
   // still speaking and running past the end of the line.
   { k: "hold", at: holdAt, dur: pullAt - holdAt,
-    note: "the uncomfortable hold — 0.789 s at full push, drift only" },
+    note: "the uncomfortable hold — 0.979 s at full push, drift only, the " +
+          "room tone sinking out from under it" },
 ];
 
 /* ======================================================= ACT 3 — THE UNLOCK
@@ -351,6 +366,8 @@ export const act3: Track[] = [
     to: { fx: 215, fy: 466, scale: 1.0, center: 0 },
     note: "the last of the pull-back, decelerating under the line" },
 
+  { k: "land", id: "opened", target: "layer", at: opened, dur: 0.30, drop: 0, compress: 3.5,
+    note: "the open camera absorbs its own arrival — weight, not float" },
   { k: "hold", at: opened, dur: LEAD, note: "the aftermath — 09 settled at 13.480" },
   { k: "el", id: "focusBloom", at: OPENS.on - 0.10, dur: 0.38,
     from: { opacity: 0, scale: 0.7 }, to: { opacity: 0.66, scale: 1 } },
@@ -376,15 +393,23 @@ export const act4: Track[] = [
   { k: "focus", at: OPENS.off, dur: CUT_PROOF + 0.02,
     to: { ...SUBJECT.proofPhoto, radius: 230, blur: 2.6 } },
   ...bloom(PROOF.on),
-  { k: "cam", at: 14.95, dur: 1.50,
-    to: { fx: SUBJECT.proofPhoto.x, fy: SUBJECT.proofPhoto.y, scale: 1.11, center: 0.45 },
-    note: "a slow creep into the photo under 'Proof, not words.'" },
+  { k: "cam", at: 14.95, dur: 0.38,
+    to: { fx: SUBJECT.proofPhoto.x, fy: SUBJECT.proofPhoto.y, scale: 1.10, center: 0.45 },
+    note: "a short push into the photo under 'Proof,'" },
+  // THE SHADOW. "Proof," is the photo; "not words." is Mara, who said she
+  // would come and hasn't. The frame drops to her row and just sits there —
+  // no bloom, no commentary. The app shows who didn't show up.
+  { k: "focus", at: 15.35, dur: 0.42, to: { ...SUBJECT.maraRow, radius: 150, blur: 3.2 },
+    note: "arrives at 15.77, before 'not words.' lands at 15.816" },
+  { k: "cam", at: 15.35, dur: 0.50,
+    to: { fx: SUBJECT.maraRow.x, fy: SUBJECT.maraRow.y, scale: 1.12, center: 0.50 },
+    note: "0.77 s on 'Mara — not yet' before the cut" },
   { k: "hold", at: OPENS.off + CUT_PROOF, dur: PROOF.off - (OPENS.off + CUT_PROOF),
     note: "under 'Proof, not words.'" },
 
   { k: "cross", out: "proof", in: "seen", at: PROOF.off, dur: CUT_SEEN, depth: 400, travel: 40,
     note: "6 frames — the fastest cut in the film" },
-  { k: "sfx", at: PROOF.off, src: "whoosh_down", gain: 0.22 },
+  { k: "sfx", at: PROOF.off, src: "whoosh_c", gain: 0.20 },
   { k: "cam", at: PROOF.off, dur: CUT_SEEN,
     to: { fx: SUBJECT.friendRow.x, fy: SUBJECT.friendRow.y, scale: 1.06, center: 0.40 } },
   { k: "focus", at: PROOF.off, dur: CUT_SEEN + 0.02,
@@ -464,9 +489,9 @@ export const ending: Track[] = [
 
   { k: "layer", id: "logo", at: markAt, dur: 0, via: "settleIn",
     note: "the lockup layer opens; its parts arrive one at a time" },
-  { k: "el", id: "mark", at: markAt, dur: markDone - markAt,
-    from: { opacity: 0, y: 26, scale: 0.96 }, to: { opacity: 1, y: 0, scale: 1 },
-    note: "the anvil mark forms, alone" },
+  // an anvil does not fade in. It lands — silently; the ending stays unscored
+  { k: "land", id: "mark", at: markAt, dur: markDone - markAt, drop: 40, compress: 3,
+    note: "the mark falls into place, compresses, and is still" },
   { k: "hold", at: markDone, dur: wordAt - markDone, note: "" },
   { k: "el", id: "wordmark", at: wordAt, dur: wordDone - wordAt,
     from: { opacity: 0, x: -18 }, to: { opacity: 1, x: 0 },

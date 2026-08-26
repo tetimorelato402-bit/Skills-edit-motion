@@ -34,12 +34,17 @@ const inputs = ["-i", A("room.wav"), "-i", A("vo_trimmed.wav"),
                 ...cues.flatMap((c) => ["-i", join(ROOT, "audio/sfx", `${c.src}.wav`)])];
 
 const chains = [
+  // The room tone sinks almost to nothing through the lock hold — the air
+  // goes out of the room while the viewer stands at the closed door — and
+  // comes back with the release, so the unlock lands into a real vacuum.
+  // Only the generated floor is touched; the VO is never processed.
+  `[0:a]volume='1-0.8*clip((t-10.45)/0.9,0,1)+0.8*clip((t-12.90)/0.35,0,1)':eval=frame[rm]`,
   // VO is the master reference: placed, never stretched, pitched or ducked.
   `[1:a]adelay=${ms(VO_AT)},apad[vo]`,
   ...cues.map((c, i) =>
     `[${i + 2}:a]volume=${c.gain},adelay=${ms(c.at)},apad[s${i}]`),
 ];
-const labels = ["[0:a]", "[vo]", ...cues.map((_, i) => `[s${i}]`)].join("");
+const labels = ["[rm]", "[vo]", ...cues.map((_, i) => `[s${i}]`)].join("");
 
 execFileSync("ffmpeg", [
   "-hide_banner", "-v", "error", "-y", ...inputs,

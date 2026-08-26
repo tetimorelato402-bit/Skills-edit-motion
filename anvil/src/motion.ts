@@ -194,6 +194,40 @@ export function crossDepth(p: number, { depth = 220, aperture = false } = {}) {
 }
 
 /**
+ * landIn — the heavy register. The film has two kinds of motion: the light
+ * register (settleIn, crossDepth — things that glide) for setup, and this,
+ * for consequence. The object FALLS to its rest position with accelerating
+ * velocity, hits, compresses a few pixels past rest, and recovers. Mass
+ * arriving, not drifting in. Used by the lock, the unlock's aftermath, and
+ * the anvil mark — the things the film means.
+ *
+ * `drop: 0` gives pure landing absorption — no fall, just the compression —
+ * for objects that are already in place when the impact reaches them.
+ */
+export function landIn(
+  p: number, { drop = 30, compress = 2.5 } = {},
+): { opacity: number; y: number; scaleMul: number } {
+  // with no fall the impact IS the start: the whole duration is absorption
+  const pc = drop > 0 ? 0.58 : 0;        // moment of contact
+  if (p <= 0) return { opacity: drop > 0 ? 0 : 1, y: -drop, scaleMul: 1 };
+  if (p < pc) {
+    const q = p / pc;
+    return {
+      opacity: drop > 0 ? clamp01(q / 0.4) : 1,
+      y: -drop * (1 - Math.pow(q, 1.9)),  // accelerating, not eased — it falls
+      scaleMul: 1,
+    };
+  }
+  const r = clamp01((p - pc) / (1 - pc));
+  const ring = Math.sin(Math.PI * Math.min(r / 0.85, 1)) * Math.exp(-1.6 * r);
+  return {
+    opacity: 1,
+    y: compress * ring,                   // past rest, downward, then back
+    scaleMul: 1 - 0.014 * ring,           // the body absorbs the hit
+  };
+}
+
+/**
  * recede — a layer leaves with nothing replacing it. crossDepth's outgoing
  * half is wrong here: it is tuned to disappear under something that covers
  * it, so on its own it blinks out in a fifth of the beat. This holds, then

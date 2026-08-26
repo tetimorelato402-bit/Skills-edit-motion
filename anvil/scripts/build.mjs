@@ -263,8 +263,34 @@ const out = {};
 }
 
 // everything else passes through with fonts swapped only
-for (const n of ["07_tab_circle", "10_friend_arrived", "11_circle_live",
-                 "12_notification"]) {
+// 11_circle_live — the film's one shadow. The asset shows only success; the
+// product's power is that it also shows who didn't come. A circle-status
+// card goes under the proof post: Jeff posted, Mara hasn't. No commentary —
+// the row just exists, the way it would in the app.
+{
+  const doc = parse(src("11_circle_live"));
+  const t = doc.toks;
+  const tab = t.findIndex((x) => /<rect[^>]*\sy="848"/.test(x.raw));
+  t.splice(tab, 0, { tag: "g", raw:
+    `<text x="20" y="428" font-family="'DM Mono', ui-monospace, monospace" font-size="11" letter-spacing="2" fill="#8B8475">YOUR CIRCLE</text>` +
+    `<rect x="18" y="440" width="394" height="112" rx="18" fill="#F2EDE4" stroke="#D8CFBE"/>` +
+    `<circle cx="52" cy="478" r="15" fill="#A8895E"/>` +
+    `<text x="52" y="483" font-family="Fraunces, Georgia, serif" font-size="13" font-weight="700" fill="#E7E0D2" text-anchor="middle">J</text>` +
+    `<text x="80" y="483" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#15130E">Jeff</text>` +
+    `<circle cx="368" cy="478" r="8" fill="#7C6342"/>` +
+    `<path d="M364.5 478 l2.6 2.6 l5 -5.4" stroke="#E7E0D2" stroke-width="1.8" fill="none" stroke-linecap="round"/>` +
+    `<text x="352" y="483" font-family="'DM Mono', ui-monospace, monospace" font-size="11" fill="#7C6342" text-anchor="end">posted</text>` +
+    `<line x1="36" y1="500" x2="394" y2="500" stroke="#D8CFBE"/>` +
+    `<g data-el="maraRow">` +
+    `<circle cx="52" cy="524" r="15" fill="none" stroke="#8B8475" stroke-width="1.5" stroke-dasharray="3 3"/>` +
+    `<text x="52" y="529" font-family="Fraunces, Georgia, serif" font-size="13" font-weight="700" fill="#8B8475" text-anchor="middle">M</text>` +
+    `<text x="80" y="529" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" fill="#15130E">Mara</text>` +
+    `<text x="394" y="529" font-family="'DM Mono', ui-monospace, monospace" font-size="11" fill="#8B8475" text-anchor="end">not yet</text>` +
+    `</g>` });
+  out["11_circle_live"] = serialize(depthBands(doc));
+}
+
+for (const n of ["07_tab_circle", "10_friend_arrived", "12_notification"]) {
   out[n] = serialize(depthBands(parse(src(n))));
 }
 

@@ -4,7 +4,7 @@
  * the tracks in timeline.ts.
  */
 import {
-  ease, progress, settleIn, revealUp, crossDepth, focusPush, apertureOpen, recede,
+  ease, progress, settleIn, revealUp, crossDepth, focusPush, apertureOpen, recede, landIn,
   cameraTransform, layerTransform, lerp, drift, focusMask, lerpFocus,
   REST, HIDDEN, CAMERA_REST, FOCUS_REST,
   type LayerState, type CameraState, type FocusState,
@@ -36,7 +36,14 @@ export function evaluate(tracks: Track[], t: number): Frame {
     if (tr.k === "el" && !(tr.id in els)) els[tr.id] = { ...EL_REST, ...tr.from };
     if (tr.k === "stagger")
       for (const id of tr.ids) if (!(id in els)) els[id] = { ...EL_REST, ...tr.from };
+    if (tr.k === "land" && tr.target !== "layer" && !(tr.id in els)) {
+      const drop = tr.drop ?? 30;
+      els[tr.id] = { ...EL_REST, opacity: drop > 0 ? 0 : 1, y: -drop };
+    }
   }
+  /** layer landings resolve after the main pass, on top of whatever the
+      layer's own tracks produced */
+  const layerLands: { id: string; y: number; scaleMul: number }[] = [];
   const clips: Record<string, string> = {};
   // typed values are hidden until their reveal opens — seeded, not defaulted,
   // so a field never flashes its finished value before the typing starts
@@ -88,6 +95,13 @@ export function evaluate(tracks: Track[], t: number): Frame {
     const p = progress(t, tr.at, tr.dur);
 
     switch (tr.k) {
+      case "land": {
+        const l = landIn(p, { drop: tr.drop, compress: tr.compress });
+        if (tr.target === "layer") layerLands.push({ id: tr.id, y: l.y, scaleMul: l.scaleMul });
+        else els[tr.id] = { opacity: l.opacity, x: 0, y: l.y, scale: l.scaleMul };
+        break;
+      }
+
       case "type": {
         // stepped, not eased: characters arrive whole, the way typing does
         const n = Math.min(tr.chars, Math.floor(p * tr.chars + 1e-6));
@@ -140,6 +154,10 @@ export function evaluate(tracks: Track[], t: number): Frame {
       case "sfx":
         break;
     }
+  }
+  for (const l of layerLands) {
+    const st = layers[l.id];
+    if (st) { st.y += l.y; st.scale *= l.scaleMul; }
   }
   return { layers, els, clips, elClips, camera, focus, t };
 }

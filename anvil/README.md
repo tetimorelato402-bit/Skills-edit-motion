@@ -89,7 +89,7 @@ identically.
 |---|---|---|
 | `ui_tap` | every chip select, tab press, and the button press that causes each cut | felt on a soft surface; body, no click |
 | `key` | typing — one key per revealed character, punctuation silent | a light mechanical key, wood not plastic |
-| `whoosh_down` / `whoosh_up` | screen transitions | low air, its band pitched to the direction of travel |
+| `whoosh_up` / `whoosh_down` / `_a` / `_b` / `_c` | screen transitions | a family of low air, no two adjacent moves alike; one Act 1 cut carries no whoosh at all |
 | `lock_catch` | 07 settling | a soft mechanical catch — deliberately not metallic |
 | `unlock` | the release | the biggest sound in the film: the catch giving way, a low swell, then air |
 | `arrival` | the banner | one soft chime, a struck bowl, damped |
@@ -131,9 +131,12 @@ line of output rather than as something you have to catch by eye.
 
 ## Motion system
 
-One easing everywhere: `cubic-bezier(0.22, 1, 0.36, 1)`. Nothing is linear,
-including opacity ramps — a linear fade is what turns a dissolve into a
-double exposure.
+Two registers. The light one — `cubic-bezier(0.22, 1, 0.36, 1)` — carries
+setup: things glide. The heavy one — `landIn` — carries consequence: the
+object falls to rest with accelerating velocity, compresses a few pixels
+past its mark, and recovers. The lock, the unlock's aftermath and the anvil
+mark land; everything else glides. Nothing is linear, including opacity
+ramps — a linear fade is what turns a dissolve into a double exposure.
 
 The one documented exception is `easeCamera`, `cubic-bezier(0.42, 0, 0.22, 1)`.
 The primary curve spends 40 % of its travel in the first 15 % of its time,
@@ -151,6 +154,7 @@ reads as a snap. The camera curve leaves slowly, carries, and settles long.
 | `recede` | a layer leaves with nothing replacing it |
 | `apertureOpen` | used once, on the unlock |
 | `drift` | two incommensurate sines per axis — the never-still floor under everything |
+| `landIn` | the heavy register: fall, contact, compression, recovery; `drop: 0` is pure absorption |
 | type track | stepped character reveal on a tagged text element, keys emitted by `typeBeat` |
 
 `crossDepth`'s outgoing half is tuned to vanish under something covering it,
@@ -172,9 +176,9 @@ whatever gap the neighbouring beats happen to leave. Holds survive retiming.
 | act | screens | what the motion is doing |
 |---|---|---|
 | 1 — setup | 01, 02, 04, 05 | quick and light; 0.18–0.32 s cuts, each caused by a visible button press. The name, number and place are typed live, one key per character. The one chip `stagger` lights the commitments under their own line. |
-| 2 — the constraint | 06, 07 | the film slows and then stops. 3.10 s on the locked screen — the longest single-screen dwell — with 0.81 s of absolute stillness at full push. |
+| 2 — the constraint | 06, 07 | the film slows and then stops. The lock LANDS (heavy register, the catch as its impact), the push goes to 1.95× — the phone fills the frame entirely — and the hold is 0.98 s with the room tone sinking out from under it. The unlock lands into that vacuum. |
 | 3 — the unlock | 08 banner, 09 | the release runs in the 0.826 s of silence after the line: the shackle lifts alone, then the viewfinder opens out of the lock while the camera pulls back. "Then it opens." lands on the aftermath. |
-| 4 — the loop | 11, 10 | 0.24 s and 0.20 s. Seven frames and six. Each cut lands already pointed at its subject; the frame moves between the two halves of "Your circle sees it. And you see them." |
+| 4 — the loop | 11, 10 | 0.24 s and 0.20 s. Seven frames and six. "Proof," is the photo; "not words." is the film's one shadow — the frame drops to "Mara · not yet", the member who hasn't shown up, and sits there without comment. |
 | 5 — the long game | 07_tab_routine | the filled days pop with ascending ticks under "Show up enough", then the frame drops to the streak as "…and it compounds" lands. |
 | ending | — | silent. The screen recedes, the beige holds empty, the mark forms, ANVIL settles beside it, the tagline arrives, and the frame goes to ink. |
 

@@ -106,16 +106,18 @@ def key():
     return env(click * 0.5 + body * 0.5, 0.0015, 0.02)
 
 
-def whoosh(direction):
+def whoosh(direction, d=0.42, lo=420, hi=1600):
     """
     Low airy travel. Pitched to the direction of the move: a downward move
     sweeps its band down, a forward move sweeps up. Air, never a synth sweep.
+    Duration and band are parameters so the film can carry a family of these
+    — four identical whooshes in a row read as a loop, not a journey.
     """
-    d = 0.42
     tt = t(d)
     n = lp(noise(d), 4000)
     # band centre travels; lowpass cascade does the shaping
-    lo, hi = (1500, 420) if direction == "down" else (420, 1600)
+    if direction == "down":
+        lo, hi = hi, lo
     cut = lo + (hi - lo) * (tt / d) ** 0.7
     out = np.zeros_like(n)
     a = np.exp(-2 * np.pi * cut / SR)
@@ -225,6 +227,10 @@ if __name__ == "__main__":
     write("key", key(), 0.42)
     write("whoosh_down", whoosh("down"), 0.5)
     write("whoosh_up", whoosh("up"), 0.5)
+    # the Act 1 family: shorter, and no two alike
+    write("whoosh_a", whoosh("up", d=0.26, lo=520, hi=1750), 0.46)
+    write("whoosh_b", whoosh("up", d=0.20, lo=360, hi=1150), 0.44)
+    write("whoosh_c", whoosh("down", d=0.22, lo=480, hi=1350), 0.44)
     write("lock_catch", lock_catch(), 0.6)
     write("unlock", unlock(), 0.95)
     write("arrival", arrival(), 0.62)
