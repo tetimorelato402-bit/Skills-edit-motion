@@ -1,0 +1,14 @@
+{
+  "name": "anvil-walkthrough",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/build.mjs && node scripts/serve.mjs",
+    "render": "node scripts/render.mjs"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "playwright": "^1.62.1"
+  }
+}
