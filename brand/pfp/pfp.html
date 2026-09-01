@@ -1,0 +1,78 @@
+<meta charset="utf-8">
+<style>
+:root{
+  --paper:#EFE3CC; --ink:#2B100A; --ox:#8C2A11; --ochre:#B48B56; --sienna:#935730;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1080px;overflow:hidden}
+body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+#s{position:relative;width:1080px;height:1080px;overflow:hidden;background:var(--paper)}
+.o{position:absolute;inset:0;display:none}
+.o.on{display:block}
+img{display:block}
+</style>
+<div id="s"></div>
+<script>
+const S=document.getElementById('s');
+const P="/tmp/claude-0/-home-user-Skills-edit-motion/6f53a120-094f-50a3-8e5f-8ef8a3354c74/scratchpad/pfp/";
+function o(){const d=document.createElement('div');d.className='o';S.appendChild(d);return d;}
+function img(p,src,css){const i=document.createElement('img');i.src=src;Object.assign(i.style,css||{});p.appendChild(i);return i;}
+function div(p,css,txt){const d=document.createElement('div');Object.assign(d.style,css);if(txt!==undefined)d.textContent=txt;p.appendChild(d);return d;}
+const opts=[];
+
+// 1 — the painting, cropped to fill
+const a=o(); opts.push(['portrait',a]);
+img(a,P+'portrait_punch.png',{width:'1080px',height:'1080px'});
+
+// 2 — duotone into the brand ramp
+const b=o(); opts.push(['duotone',b]);
+img(b,P+'portrait_duotone.png',{width:'1080px',height:'1080px'});
+
+// 3 — hard posterise, screenprint
+const c=o(); opts.push(['poster',c]);
+img(c,P+'portrait_poster.png',{width:'1080px',height:'1080px'});
+
+// 4 — selected: the studio's canvas language, on the face
+const d=o(); opts.push(['selected',d]);
+div(d,{position:'absolute',inset:'0',background:'var(--ink)'});
+img(d,P+'portrait_duotone.png',{position:'absolute',left:'150px',top:'150px',width:'780px',height:'780px'});
+(function(){
+  const x=150,y=150,w=780,h=780,sz=44;
+  div(d,{position:'absolute',left:x+'px',top:y+'px',width:w+'px',height:h+'px',
+         border:'4px solid #EFE3CC',boxSizing:'border-box'});
+  [[x,y],[x+w/2,y],[x+w,y],[x+w,y+h/2],[x+w,y+h],[x+w/2,y+h],[x,y+h],[x,y+h/2]]
+    .forEach(p=>div(d,{position:'absolute',left:(p[0]-sz/2)+'px',top:(p[1]-sz/2)+'px',
+      width:sz+'px',height:sz+'px',background:'#EFE3CC'}));
+})();
+
+// 5 — the monogram
+const e=o(); opts.push(['t-monogram',e]);
+div(e,{position:'absolute',inset:'0',background:'var(--paper)'});
+div(e,{position:'absolute',left:'0',top:'-176px',width:'1080px',textAlign:'center',
+  color:'var(--ox)',fontSize:'980px',fontWeight:'900',letterSpacing:'-0.06em',lineHeight:'1'},'t.');
+
+// 6 — monogram inverted on oxblood
+const f=o(); opts.push(['t-inverted',f]);
+div(f,{position:'absolute',inset:'0',background:'var(--ox)'});
+div(f,{position:'absolute',left:'0',top:'-176px',width:'1080px',textAlign:'center',
+  color:'var(--paper)',fontSize:'980px',fontWeight:'900',letterSpacing:'-0.06em',lineHeight:'1'},'t.');
+
+// 7 — the ease curve as the mark
+const g=o(); opts.push(['curve',g]);
+div(g,{position:'absolute',inset:'0',background:'var(--ink)'});
+g.insertAdjacentHTML('beforeend',`<svg width="1080" height="1080" style="position:absolute;left:0;top:0">
+  <path d="M 190 830 C 330 250, 470 190, 890 176" fill="none" stroke="#EFE3CC" stroke-width="52" stroke-linecap="round"/>
+  <rect x="152" y="792" width="76" height="76" fill="#8C2A11" transform="rotate(45 190 830)"/>
+  <rect x="852" y="138" width="76" height="76" fill="#8C2A11" transform="rotate(45 890 176)"/>
+</svg>`);
+
+// 8 — wordmark
+const h=o(); opts.push(['wordmark',h]);
+div(h,{position:'absolute',inset:'0',background:'var(--paper)'});
+div(h,{position:'absolute',left:'0',top:'392px',width:'1080px',textAlign:'center',
+  color:'var(--ox)',fontSize:'300px',fontWeight:'900',letterSpacing:'-0.06em',lineHeight:'1'},'teti.');
+
+window.OPTS=opts.map(x=>x[0]);
+window.show=function(n){opts.forEach(([k,el],i)=>el.classList.toggle('on',i===n));return opts[n][0];};
+window.show(0);
+</script>
