@@ -1,18 +1,28 @@
 # Study 001 — how to finish and post
 
-**Post `study-001-v9.mp4`** — 19.2s, 1080×1920, H.264, with its **complete soundtrack**
-burnt in: a beat, a sound for every motion, a jazz bed very low underneath, and one hook that
-answers every landing. There is no music to add in Instagram.
+**Post `study-001-v10.mp4`** — 21.2s, 1080×1920, H.264, with its **complete soundtrack**
+burnt in: a house beat, and every motion in the film cut to it. There is no music to add in
+Instagram. **Note the runtime: 21.2s, not 19.2** — the film was re-cut to whole bars.
 `study-001-v4-painted.mp4` is kept as the earlier painted cut; older versions are in git history.
 
-v9 makes the hook. The five-note run when the layers snap home after the bend (10.56) — five
-plucks climbing a D minor arpeggio at 92 ms steps, sweeping left to right — is the sound teti
-picked out as the catchy one, so it now answers every major landing: the snap into the title,
-MOTION landing, the ball's second bounce, the match cut, the curve filling the frame, the
-handles snapping around MOVE., the portrait arriving, and MOVE. landing in the joke. Same
-shape and timing every time, transposed to the chord of the moment (Dm, Bb, A7, Gm). The
-pitched "felt hammer" ticks on the hero-line letters and the spacing marks, which read as a
-hammer on bells, are dry noise ticks now, and the soft chord under the portrait is gone.
+v10 is the film re-cut to a house beat, in the temperament of Kungs' "I Feel So Bad" feat.
+Ephemerals (123 BPM, A minor) — teti's reference. It runs at 125 BPM, the same room, because
+125 divides the film exactly: a beat is 0.48s, a bar 1.92s, and the film is eleven bars.
+
+This is not a re-score. The picture was re-timed and re-rendered so that every motion in
+focus lands on the beat: the caret blinks on the beat; MOTION falls on 2 and lands on 3; each
+of the three studies gets a bar, the spacing chart drops a mark on every sixteenth, the ball
+contacts on 2 and taps on 4, the seven bars stagger up the eighths; the setup plays one move
+per beat — click, keyframe, keyframe, grab — and the ease is dragged onto the downbeat of bar
+7, which is the drop, where the post comes apart and its five layers snap home on the
+eighths; the hero line arrives one line per beat with MOVE. home on the next downbeat; the
+type cycle plays sixteenths and lands on Inter on the last downbeat; MOVE. slides out on 3
+and springs home on 4. Under that: four on the floor, clap on 2 and 4, offbeat open hats, an
+A-minor bass vamp and a two-bar pluck riff, with the arrangement built to the film — bar 1 is
+the intro, bar 6 empties out as the build, bar 7 is the drop, and the last bars thin to the
+final hit before the loop.
+
+v9 had made a five-note run into a hook; that and the jazz bed under v8 were both rejected.
 
 v8 added the jazz bed teti asked for after hearing v7, kept very low: an upright bass walking
 the six bars in quarter notes with three chromatic pickups, a Rhodes comping rootless jazz
@@ -64,18 +74,18 @@ Source of truth is `source/video.html` — the whole film is code; `source/rende
 The soundtrack is in the file. Do **not** add a track in the Reel editor: the film's beat is
 its own, and anything Instagram lays over it will fight the 75 BPM grid.
 
-1. New Reel → upload `study-001-v9.mp4`.
+1. New Reel → upload `study-001-v10.mp4`.
 2. If the editor suggests audio, decline it. In the mixer, **original audio at 100%**, no music.
-3. Leave the volume alone — the mix sits at −16.1 LUFS, and Instagram normalises to about −14.
-4. Check on the phone speaker before posting: the snap at 01.6, the squash at 05.95 and the
-   bend at 09.3–10.0 should all read without headphones. If the intro (00.0–01.6) sounds like
-   silence, that is correct — the caret ticks are meant to be barely there.
+3. Leave the volume alone — the mix sits at −14.3 LUFS, which is where Instagram normalises.
+4. Check on the phone speaker before posting: the beat landing at 01.9, the ball's contact at
+   06.2 and the drop at 11.5 should all read without headphones. The intro (00.0–01.9) is
+   deliberately near-empty — a filtered kick on 1 and 3, and the caret.
 5. If a beat is ever re-timed, re-run `sound.py` (cue times follow the film) and remux — see
    `../../CLAUDE.md`. The picture does not need re-rendering for a sound change.
 
 ## 2. Cover
 
-Use `study-001-v9-cover.png` (the first frame — "STILL." with the selection handles). It reads as
+Use `study-001-v10-cover.png` (the first frame — "STILL." with the selection handles). It reads as
 intentional, not broken, and it is the reason someone stops.
 
 ## 3. Caption
@@ -111,7 +121,7 @@ down to 30 — that is where the motion blur comes from, so do not shortcut it).
 
 The MP4 is post-ready as is. If you'd rather finish it yourself in Resolve:
 
-- Import `study-001-v9.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
+- Import `study-001-v10.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
 - Or rebuild any single beat in Fusion following `BUILD.md`, and cut it against the rendered version.
 - The beat most worth re-shooting yourself is **beat 4 (08.2–12.2s)**: a real screen recording of you
   dragging a real ease curve in Resolve's Spline editor is more honest than the simulated UI here,
@@ -119,14 +129,15 @@ The MP4 is post-ready as is. If you'd rather finish it yourself in Resolve:
 
 ## Beat map (for trimming and alignment)
 
-| Beat | In | Out | What |
-|---|---|---|---|
-| 1 | 00.0 | 01.6 | STILL. — the frozen post (cover frame); grain-dissolves out |
-| 2 | 01.6 | 04.2 | Study title, MOTION drops in; paint wipe out |
-| 3 | 04.2 | 08.2 | The anatomy: timing, spacing, easing, weight, rhythm |
-| 4 | 08.2 | 12.2 | The editor's hand — **the bend glides 09.32→09.96**, bar 4 downbeat at 09.6 |
-| 5 | 12.2 | 15.8 | Someone has to decide how things move. |
-| 6 | 15.8 | 19.2 | teti. — type cycle → portrait mark, then MOVE. moves |
+| Beat | Bars | In | Out | What |
+|---|---|---|---|---|
+| 1 | 1 | 00.00 | 01.92 | STILL. — the cover frame; the caret blinks on the beat; grain-dissolves out |
+| 2 | 2 | 01.92 | 03.84 | Study title; MOTION falls on 2, **lands on 3 (02.88)**; paint wipe out |
+| 3 | 3–5 | 03.84 | 09.60 | The anatomy — one study per bar: spacing on sixteenths, weight contacting on 2 and 4, the stagger up the eighths |
+| 4 | 6–7 | 09.60 | 13.44 | The editor's hand — one move per beat, **the drag lands on the drop (11.52)**, the layers snap home on the eighths |
+| 5 | 8–9 | 13.44 | 17.28 | Someone has to decide how things move — one line per beat, **MOVE. home on 15.36** |
+| 6 | 10–11 | 17.28 | 21.12 | teti. — the type cycle lands on Inter at 19.20, the mark opens, then MOVE. moves (out 20.16, home 20.64) |
 
-The beat is 75 BPM counted from 00.0, so the bar lines fall at 00.0, 03.2, 06.4, 09.6, 12.8
-and 16.0 — six bars exactly. Every cut sits one sixteenth (0.2 s) after a quarter note.
+125 BPM from frame 0: a beat is 0.48 s, a bar 1.92 s, and the film is eleven bars exactly, so
+the loop point is a downbeat. Bar lines: 00.00, 01.92, 03.84, 05.76, 07.68, 09.60, 11.52,
+13.44, 15.36, 17.28, 19.20. Every cut is on a downbeat and every landing is on a beat.

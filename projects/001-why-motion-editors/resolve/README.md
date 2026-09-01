@@ -43,7 +43,7 @@ It should print your current project's name. If it prints `None` or raises, step
 ## Then run this
 
 ```sh
-python3 build_timeline.py --media ../study-001-v9.mp4
+python3 build_timeline.py --media ../study-001-v10.mp4
 ```
 
 It creates the project, sets 1080×1920 @ 30p, imports the render, builds the timeline and

@@ -48,19 +48,26 @@ Preview a few frames instead of the whole film while iterating:
   recognisable thing about the reference (yuk.aji's *LILIUM*). Same grammar, different
   voice — that is the line between homage and copy. See `brand/PALETTE.md`.
 - **There is no music. The film carries its own score; nothing is added in Instagram.**
-  teti retired "Parisienne Walkways" after v6 ("I don't like any music"). The soundtrack is
-  synthesised in `sound.py`: a beat, and a sound for every motion. The beat is **75 BPM from
-  frame 0** — the film is exactly six bars of 4/4, the snap (1.6), the drag (9.6), the name
-  (16.0) and the loop point sit on quarter notes, and every cut lands one sixteenth after a
-  quarter, the same push each time. The guitar bend became a **synth glide whose pitch follows
-  the exact easeInOut of the drag (9.32→9.96 s)**. Drums sit on the grid; every other cue sits
-  on its motion. Under it all, very low, a jazz bed: upright bass, Rhodes voicings, a swung
-  ride, with the hats on the swung skip — the V→i resolves on 9.6, so the bend lands on a chord
-  change. **The hook** is the five-note run of the layers snapping home (10.56 s, 92 ms steps);
-  it answers every major landing, transposed to the chord — keep it identical in shape and
-  timing, that is what makes it a hook. **Nothing rings like a bell**: pitched ticks on letters
-  read as a hammer on bells and were removed. If a beat moves in `video.html`, mirror the
-  constant in `sound.py` and re-run it — the cues follow.
+  teti retired "Parisienne Walkways" after v6 ("I don't like any music"). Two synthesised
+  soundtracks were then rejected (a sparse motion score, then a jazz bed with a bespoke
+  five-note hook — "I don't like it at all"). What landed is **house**, asked for by
+  reference: Kungs' *I Feel So Bad* feat. Ephemerals (123 BPM, A minor).
+- **The film is cut to a 125 BPM grid, and that is the load-bearing fact.** 125 is the same
+  room as the reference and divides the film exactly: a beat is **0.48 s**, a bar **1.92 s**,
+  and the film is **eleven bars = 21.12 s**, so the loop point lands on a downbeat. In
+  `video.html` the grid is `BPM/BEAT/BAR` and `bt(n)` = beat n from frame 0; every section
+  boundary and every motion is written in `bt()`, not in fractions of a scene. **Do not
+  re-time anything to a value that is not a multiple of 0.12 s (a sixteenth).** The
+  landings: MOTION on `bt(7)`, the ball on `bt(13)`/`bt(15)`, the seven-bar stagger up the
+  eighths, the drag arriving on `bt(24)` (the drop), the five layers on the eighths after it,
+  one hero line per beat with MOVE. home on `bt(32)`, the type cycle on sixteenths landing on
+  Inter at `bt(40)`, MOVE. out on `bt(43)` and home on `bt(44)`.
+- **`sound.py` mirrors that grid and must be re-run after any timing change.** Four on the
+  floor, clap on 2 and 4, offbeat open hats, an A-minor i–VI bass vamp, a two-bar pluck riff,
+  risers into the drop and the end card. The bend is still a glide on the drag's exact
+  easeInOut — it now runs `bt(23)→bt(24)` and lands with the drop. Arrangement: bar 1 intro,
+  bar 2 the beat lands, 3–5 the groove, 6 the build (bass and hats pull out), 7 THE DROP,
+  8–9 the hero, 10–11 the end card thinning to the last hit.
 - **The palette is derived, not chosen.** It was extracted from teti's oil portrait
   (`brand/portrait-source.png`) by k-means. Colour may move in *value*; it must not leave
   the warm family.
@@ -104,14 +111,22 @@ Preview a few frames instead of the whole film while iterating:
 - **Re-render a range, not the film.** `render.py --start 438 --end 508` overwrites just those
   frames in place; a transition fix is ~1 minute instead of 40.
 - **A sound change is a remux, not a render.** `python3 sound.py` takes two seconds; then
-  `ffmpeg -i study-001-v9.mp4 -i sound.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k
+  `ffmpeg -i study-001-v10.mp4 -i sound.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k
   -movflags +faststart -shortest out.mp4` swaps the track without touching the picture.
   Check loudness with `ffmpeg -i out.mp4 -af ebur128=peak=true -f null -`: the film sits at
-  **−16.1 LUFS integrated, true peak −1.4 dBFS**. Reels normalise to about −14, so do not
-  chase loudness; do keep true peak under −1 dB or the AAC encode clips the kicks.
-- **In `sound.py`, note names must not shadow the beats.** `B2` and `B3` are beat tuples, so
-  B natural is `Bn2`/`Bn3`. (The first jazz pass redefined `B2` as 123.47 Hz and every
-  `B2[0]` downstream became "float is not subscriptable".)
+  **−14.3 LUFS integrated, true peak −1.3 dBFS** — house sits louder than the earlier sparse
+  cuts, and Reels normalise to about −14, so that is the target. Keep true peak under −1 dB
+  or the AAC encode clips the kicks.
+- **In `sound.py`, note names must not shadow the beats.** `B2`…`B6` are beat tuples, so a
+  note constant may never reuse those names. (A jazz pass redefined `B2` as 123.47 Hz and
+  every `B2[0]` downstream became "float is not subscriptable".)
+- **A line of type must sweep in a fixed time, not a fixed time per letter.** The hero lines
+  are 7 to 13 characters; with a constant per-letter step the long lines were still filling in
+  when MOVE. landed. The step is `(BEAT/2)/(nchars-1)`, so every line is home one beat after
+  it starts, whatever its length.
+- **Check the whole timeline for JS errors before committing to a 38-minute render.** Driving
+  `renderFrame` across all 2534 frames in a headless page takes ~40 s and catches a throw or a
+  console error that a preview still would miss.
 - **Two transients closer than ~35 ms fuse; 100–250 ms apart they flam.** When a drum hit
   and a motion cue nearly coincide, put the drum exactly on the motion (the bar-3 downbeat
   *is* the ball's second bounce at 6.417) rather than on the grid next to it.

@@ -34,9 +34,9 @@ matches the repo, so every path in the docs resolves. You lose git history, noth
 | `projects/001-why-motion-editors/POSTING.md` | How to post it: cover, caption, hashtags — and why nothing gets added for sound |
 | `projects/001-why-motion-editors/BUILD.md` | Beat-by-beat build notes in DaVinci Resolve terms |
 | `projects/001-why-motion-editors/source/` | **The film itself** — `video.html` is the whole thing, `render.py` renders it, `paint.py` makes the oil-paint textures |
-| `projects/001-why-motion-editors/sound.py` + `.wav` | **The whole soundtrack** — a 75 BPM beat, a sound for every motion and a low jazz bed, synthesised from the film's own timings |
+| `projects/001-why-motion-editors/sound.py` + `.wav` | **The whole soundtrack** — a 125 BPM house beat and a sound for every motion, on the same grid the film is cut to |
 | `projects/001-why-motion-editors/resolve/` | Resolve scripting setup + a timeline builder (untested against a live Resolve) |
-| `projects/001-why-motion-editors/study-001-v9.mp4` | **The finished film** — this is the one to post; its soundtrack is complete, add no music |
+| `projects/001-why-motion-editors/study-001-v10.mp4` | **The finished film** — this is the one to post; its soundtrack is complete, add no music |
 | `brand/PALETTE.md` | The colour system, extracted from the portrait |
 | `brand/pfp/` | The eight profile-picture options; `opt1_portrait.png` is the one chosen and live |
 

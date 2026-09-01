@@ -98,16 +98,25 @@ function scene(id){
 }
 
 // ---------------------------------------------------------------- timeline
-const B1=[0.0 , 1.6];    // STILL.
-const B2=[1.6 , 4.2];    // study title
-const B3=[4.2 , 8.2];    // specimen board
-const B4=[8.2 ,12.2];    // the editor's hand   <- guitar bend lands ~9.4s
-const B5=[12.2,15.8];    // hero line
-const B6=[15.8,19.2];    // end card
-const DUR=19.2;
-const PRE=0.26;                      // default transition overlap, seconds
-// per-scene overlap: the dissolve and the paint wipe need room to be read
-const PRES=[0, 0.40, 0.44, PRE, PRE, PRE];
+// ---- the beat -------------------------------------------------------------
+// The film is cut to a house grid in the temperament of Kungs' "I Feel So Bad"
+// (123 BPM, A minor). 125 BPM is the same room and divides the film exactly:
+// a beat is 0.48s, a bar 1.92s, and the whole film is 11 bars — so the loop
+// point lands on a downbeat. EVERY motion below is placed on this grid: the
+// cuts on downbeats, the landings on beats, the staggers on eighths, the
+// spacing chart on sixteenths. `bt(n)` is beat n counted from frame 0.
+const BPM=125, BEAT=60/BPM, BAR=4*BEAT;      // 0.48, 1.92
+const bt=n=>n*BEAT;
+const B1=[bt( 0), bt( 4)];   // bar  1     STILL.
+const B2=[bt( 4), bt( 8)];   // bar  2     study title
+const B3=[bt( 8), bt(20)];   // bars 3-5   the anatomy — one bar per study
+const B4=[bt(20), bt(28)];   // bars 6-7   the editor's hand — the drop is bt(24)
+const B5=[bt(28), bt(36)];   // bars 8-9   hero line
+const B6=[bt(36), bt(44)];   // bars 10-11 end card
+const DUR=bt(44);            // 21.12 — 11 bars
+const PRE=BEAT/2;                    // default transition overlap: an eighth
+// per-scene overlap: the dissolve and the paint wipe get a whole beat
+const PRES=[0, BEAT, BEAT, PRE, PRE, PRE];
 const dissolveFn=document.getElementById('dissolveFn');
 
 // =================================================================
@@ -224,8 +233,9 @@ function renderS1(t){
   s1dot.style.left=px(84+wStill-6);
   const wDot=s1dot.getBoundingClientRect().width;
   s1caret.style.left=px(84+wStill+wDot+18);
-  // only the caret moves — the discomfort is the point
-  const on=(Math.floor(t/0.53)%2)===0;
+  // only the caret moves — and it blinks on the beat, so the first motion in the
+  // film is already the beat (a real caret blinks at about this rate anyway)
+  const on=(Math.floor(t/BEAT)%2)===0;
   s1caret.style.opacity=on?'1':'0';
 }
 
@@ -266,31 +276,30 @@ function renderS2(t,ein){
   }else if(s2.style.filter!=='none'){
     s2.style.filter='none';            // drop the full-frame filter once it has landed
   }
-  // rule draws in
-  s2rule.style.width=px(easeOut(clamp(u/0.18))*912);
-  s2kicker.style.opacity=clamp(u/0.06).toFixed(3);
-  // line 1 + 3 rise in
-  const a=easeOut(clamp((u-0.04)/0.22));
+  // rule draws in on the downbeat, over an eighth
+  s2rule.style.width=px(easeOut(clamp((t-bt(4))/(BEAT/2)))*912);
+  s2kicker.style.opacity=clamp((t-bt(4))/0.12).toFixed(3);
+  // WHY DO WE NEED rises on the downbeat; EDITORS? on the & of beat 4
+  const a=easeOut(clamp((t-bt(4))/(BEAT*0.75)));
   s2l1.style.transform=`translateY(${(1-a)*40}px)`; s2l1.style.opacity=a.toFixed(3);
-  const c=easeOut(clamp((u-0.30)/0.22));
+  const c=easeOut(clamp((t-bt(6.5))/(BEAT/2)));
   s2l3.style.transform=`translateY(${(1-c)*40}px)`; s2l3.style.opacity=c.toFixed(3);
-  s2q.style.opacity=(easeOut(clamp((u-0.55)/0.3))*0.9).toFixed(3);
+  s2q.style.opacity=(easeOut(clamp((t-bt(7))/BEAT))*0.9).toFixed(3);
 
-  // MOTION drops in with overshoot, then settles — the word misbehaves
-  const dStart=0.16, dEnd=0.52;
-  const p=clamp((u-dStart)/(dEnd-dStart));
+  // MOTION falls on beat 2 of the bar and LANDS ON BEAT 3 — the film's first hit
+  const MO_GO=bt(5), MO_HIT=bt(7);
+  const p=clamp((t-MO_GO)/(MO_HIT-MO_GO));
   let y;
-  if(p<=0){ y=-520; }
+  if(t<MO_GO){ y=-520; }
   else{
-    const drop=bez(0.3,0,0.2,1)(clamp(p/0.62));      // fast fall
-    y=lerp(-520,0,drop);
-    if(p>0.62){                                       // settle bounce
-      const q=(p-0.62)/0.38;
+    y=lerp(-520,0,bez(0.3,0,0.2,1)(p));              // fast fall onto the beat
+    if(t>MO_HIT){                                     // settle bounce, one beat long
+      const q=(t-MO_HIT)/BEAT;
       y += Math.sin(q*Math.PI*2.2)*26*Math.exp(-q*4.2);
     }
   }
   s2motion.style.top=px(MOTION_Y+y);
-  s2motion.style.opacity=p>0?'1':'0';
+  s2motion.style.opacity=t>=MO_GO?'1':'0';
   // velocity smear: ghost copies trailing the movement
   const vy=Math.abs(y-(window.__lastY!==undefined?window.__lastY:y));
   window.__lastY=y;
@@ -411,7 +420,7 @@ function renderS3(t,ein){
   }else if(s3inner.style.clipPath!=='none'){
     s3inner.style.clipPath='none';
   }
-  s3title.style.opacity=easeOut(clamp(u/0.08)).toFixed(3);
+  s3title.style.opacity=easeOut(clamp((t-B3[0])/(BEAT/2))).toFixed(3);
 
   // which study is on, and how far through it
   const k=Math.min(2,Math.floor(u*3));
@@ -420,23 +429,25 @@ function renderS3(t,ein){
   s3lab.textContent=lab; s3num.textContent=num; s3cap.textContent=cap;
   STUDIES.forEach(([,,,g],i)=>g.style.opacity=(i===k?1:0));
 
-  // the label snaps in with anticipation, the caption follows
-  const li=antic(clamp(p/0.20));
+  // the label pulls back on the downbeat and SNAPS onto the second eighth
+  const li=antic(clamp(p/0.1938));
   s3lab.style.transform=`translateX(${((1-li)*-40).toFixed(1)}px)`;
   s3lab.style.opacity=clamp(p/0.06).toFixed(3);
   s3num.style.opacity=clamp(p/0.10).toFixed(3);
-  s3cap.style.opacity=easeOut(clamp((p-0.14)/0.20)).toFixed(3);
+  s3cap.style.opacity=easeOut(clamp((p-0.125)/0.125)).toFixed(3);
 
   if(k===0){
     // the head travels on an ease; a ghost is dropped at every EVEN slice of time,
     // so the marks crowd where it is slow — that is what spacing means
+    // one mark per SIXTEENTH NOTE — the chart is the hi-hat grid, and the marks
+    // crowd where the head is slow, which is exactly what spacing means
     const e=bez(0.5,0,0.5,1);
-    const trav=clamp(p/0.78), x0=120, x1=884;
+    const trav=clamp(p/0.875), x0=120, x1=884;
     ghosts.forEach((gh,i)=>{
       const f=i/(NG-1);
       gh.style.left=px(lerp(x0,x1,e(f)));
       gh.style.top=px(STG_T+60);
-      const on=clamp((trav-f)*9);
+      const on=clamp((trav-f)*16);
       gh.style.opacity=(on*0.55).toFixed(3);
       gh.style.transform=`scale(${lerp(0.7,1,on)})`;
     });
@@ -444,24 +455,24 @@ function renderS3(t,ein){
     s3head.style.top=px(STG_T+60);
     s3rule.style.opacity=easeOut(clamp(p/0.2)).toFixed(3);
   }else if(k===1){
-    // a real weight demo: accelerate, squash on contact, follow through, settle
-    const per=0.92, ph=(p%per)/per;
+    // a real weight demo, played over one bar: it lands on beat 2 and taps on beat 4
+    const per=1.0, ph=(p%per)/per;
     const top0=STG_T-30, rest=FLOOR-BALL;
     let y,sx=1,sy=1;
-    if(ph<0.34){                       // fall — gravity, so it accelerates
-      const f=ph/0.34; y=lerp(top0,rest,f*f);
+    if(ph<0.25){                       // fall — gravity, so it accelerates
+      const f=ph/0.25; y=lerp(top0,rest,f*f);
       sx=lerp(1,0.86,f*f); sy=lerp(1,1.18,f*f);          // stretch into the fall
-    }else if(ph<0.42){                 // contact — squash, and it stays low a beat
-      const f=(ph-0.34)/0.08, sN=Math.sin(f*Math.PI);
+    }else if(ph<0.3125){               // CONTACT on beat 2 — squash, and it stays low
+      const f=(ph-0.25)/0.0625, sN=Math.sin(f*Math.PI);
       y=rest+sN*10; sx=1+sN*0.42; sy=1-sN*0.34;
-    }else if(ph<0.72){                 // the bounce, much lower than the drop
-      const f=(ph-0.42)/0.30, h=Math.sin(f*Math.PI)*230;
+    }else if(ph<0.75){                 // the bounce, much lower than the drop
+      const f=(ph-0.3125)/0.4375, h=Math.sin(f*Math.PI)*230;
       y=rest-h; sx=lerp(1,0.94,Math.sin(f*Math.PI)); sy=lerp(1,1.07,Math.sin(f*Math.PI));
-    }else if(ph<0.82){                 // second, small contact
-      const f=(ph-0.72)/0.10, sN=Math.sin(f*Math.PI);
+    }else if(ph<0.8125){               // second contact, on beat 4
+      const f=(ph-0.75)/0.0625, sN=Math.sin(f*Math.PI);
       y=rest+sN*4; sx=1+sN*0.16; sy=1-sN*0.13;
     }else{                             // settle
-      const f=(ph-0.82)/0.18, h=Math.sin(f*Math.PI)*54;
+      const f=(ph-0.8125)/0.1875, h=Math.sin(f*Math.PI)*54;
       y=rest-h;
     }
     s3ball.style.left=px((W-BALL)/2); s3ball.style.top=px(y);
@@ -472,11 +483,12 @@ function renderS3(t,ein){
     s3shadow.style.width=px(sw); s3shadow.style.left=px((W-sw)/2);
     s3shadow.style.top=px(FLOOR-8); s3shadow.style.opacity=(0.18+prox*0.40).toFixed(3);
   }else{
-    // stagger with overshoot: the delay between elements is the whole point
-    const per=1.05, ph=(p%per)/per;
+    // stagger with overshoot: the delay between elements is an EIGHTH NOTE, so the
+    // seven arrivals march up the offbeat grid — the delay is the content, and the beat
+    const per=1.0, ph=(p%per)/per;
     bars.forEach((b,i)=>{
-      const d=i*0.055;
-      const f=clamp((ph-d)/0.36);
+      const d=i*0.125;
+      const f=clamp((ph-d)/0.1938);
       const g=antic(f);
       const h=lerp(26,300,g<0?0:g);
       b.style.height=px(Math.max(18,h));
@@ -554,10 +566,12 @@ const backOut=bez(0.28,1.42,0.44,1);      // arrives past the mark, then settles
 // pull the post apart into its layers, then rebuild it with stagger + overshoot
 function cardBuild(card,q){
   const L=card.layers, n=L.length;
-  const sep=easeInOut(clamp(q/0.30));
+  // q runs across one bar. It comes apart in the first beat, then the five layers
+  // snap home one per eighth note — the rebuild plays the groove.
+  const sep=easeInOut(clamp(q/0.25));
   L.forEach((node,i)=>{
     const c=i-(n-1)/2;
-    const asm=backOut(clamp((q-0.36-i*0.055)/0.40));
+    const asm=backOut(clamp((q-0.163-i*0.125)/0.25));
     const k=sep*(1-asm);
     node.style.transform=
       `translate3d(${(c*46*k).toFixed(1)}px,${(-c*30*k).toFixed(1)}px,${(c*130*k).toFixed(1)}px)`+
@@ -579,10 +593,13 @@ function renderS4(t,ein){
   s4body.style.opacity=easeOut(clamp((ein-0.55)/0.45)).toFixed(3);
   if(ein<1) return;
 
-  const pMove=clamp(u/0.10), pSel=clamp((u-0.09)/0.05);
-  const pKeys=clamp((u-0.16)/0.10);
-  const pDrag=clamp((u-0.28)/0.16);        // the bend lands here, 9.6s
-  const pB   =clamp((u-0.38)/0.42);        // take apart, put back together
+  // bar 6 sets it up, bar 7 is the drop. beat by beat:
+  //   bt20 cursor enters · bt21 click · bt22 keyframe · bt22.5 keyframe
+  //   bt23 grab · bt23→bt24 THE DRAG · bt24 the drop, the post comes apart
+  //   bt25 26 27 28 the layers snap home on the eighths
+  const pMove=clamp((t-bt(20))/BEAT), pSel=clamp((t-bt(21))/0.08);
+  const pDrag=clamp((t-bt(23))/BEAT);      // the ease is dragged onto the downbeat
+  const pB   =clamp((t-bt(24))/BAR);       // take apart, put back together
 
   const d=easeInOut(pDrag);
   const cp=LIN.map((v,i)=>lerp(v,EAS[i],d));
@@ -594,38 +611,38 @@ function renderS4(t,ein){
     dd+=(i?' L ':'M ')+X.toFixed(1)+' '+Y.toFixed(1);
   }
   s4curve.setAttribute('d',dd);
-  s4curve.style.opacity=pKeys>0.4?'1':'0';
+  s4curve.style.opacity=t>=bt(22.2)?'1':'0';
 
   s4kf1.style.left=px(GX0-14); s4kf1.style.top=px(GY0+GH-14);
   s4kf2.style.left=px(GX0+GW-14); s4kf2.style.top=px(GY0-14);
-  const k1=backOut(clamp(pKeys/0.5)), k2=backOut(clamp((pKeys-0.35)/0.65));
+  const k1=backOut(clamp((t-bt(22))/(BEAT/2))), k2=backOut(clamp((t-bt(22.5))/(BEAT/2)));
   s4kf1.style.opacity=k1.toFixed(3); s4kf1.style.transform=`rotate(45deg) scale(${lerp(0.2,1,k1)})`;
   s4kf2.style.opacity=k2.toFixed(3); s4kf2.style.transform=`rotate(45deg) scale(${lerp(0.2,1,k2)})`;
 
   const hx=GX0+cp[0]*GW, hy=GY0+GH-cp[1]*GH;
   s4hLine.setAttribute('d',`M ${GX0} ${GY0+GH} L ${hx.toFixed(1)} ${hy.toFixed(1)}`);
-  s4hLine.style.opacity=pKeys>0.6?'1':'0';
+  s4hLine.style.opacity=t>=bt(22.5)?'1':'0';
   s4hDot.style.left=px(hx-13); s4hDot.style.top=px(hy-13);
-  s4hDot.style.opacity=pKeys>0.6?'1':'0';
+  s4hDot.style.opacity=t>=bt(22.5)?'1':'0';
 
   let cx,cy;
-  if(u<0.14){ cx=lerp(1000,560,easeOut(pMove)); cy=lerp(1600,620,easeOut(pMove)); }
-  else if(u<0.28){ const q=easeOut(clamp((u-0.14)/0.14));
+  if(t<bt(21)){ cx=lerp(1000,560,easeOut(pMove)); cy=lerp(1600,620,easeOut(pMove)); }
+  else if(t<bt(23)){ const q=easeOut(clamp((t-bt(21))/(2*BEAT)));
                    cx=lerp(560,GX0+LIN[0]*GW,q); cy=lerp(620,GY0+GH-LIN[1]*GH,q); }
   else { cx=hx; cy=hy; }
   s4cursor.style.left=px(cx); s4cursor.style.top=px(cy);
   s4handles.style.opacity=(pSel>0?1:0).toFixed(3);
 
-  s4tag.textContent = u<0.16 ? '' : u<0.28 ? 'TWO KEYFRAMES'
-                    : u<0.38 ? 'DRAG THE EASE' : u<0.80 ? 'IT IS MADE OF LAYERS' : 'THIS IS THE JOB';
-  s4tag.style.opacity=u>0.16?'0.8':'0';
+  s4tag.textContent = t<bt(22) ? '' : t<bt(23) ? 'TWO KEYFRAMES'
+                    : t<bt(24) ? 'DRAG THE EASE' : t<bt(27) ? 'IT IS MADE OF LAYERS' : 'THIS IS THE JOB';
+  s4tag.style.opacity=t>=bt(22)?'0.8':'0';
 
   if(pB<=0){
     cardBuild(s4card,0);
     animateCard(s4card,pDrag>0?pDrag:0,f);
   }else if(pB<1){
     cardBuild(s4card,pB);
-    animateCard(s4card,clamp((pB-0.34)/0.5),f);
+    animateCard(s4card,clamp((pB-0.25)/0.45),f);
   }else{
     cardBuild(s4card,1);
     const per=1.9, ph=((t-(B4[0]+0.80*(B4[1]-B4[0])))%per)/per;
@@ -693,39 +710,40 @@ function renderS5(t,ein){
     return;
   }
 
+  // one line per beat, each line home on the next beat.
   heroLines.forEach((line,i)=>{
-    const n=line._chars.length;
-    const base=0.05+i*0.055;
+    // the sweep is half a beat whatever the line's length, so every line is home
+    // exactly one beat after it starts — and MOVE. is home on the downbeat
+    const t0=bt(28+i), st=(BEAT/2)/Math.max(1,line._chars.length-1);
     line._chars.forEach((ch,k)=>{
-      // each letter climbs out from behind its own mask, one after the next
-      const f=clamp((u-base-k*0.016)/0.16);
+      const f=clamp((t-t0-k*st)/(BEAT/2));
       const g=(i===3?backOut5:easeOut)(f);
       ch.style.transform=`translateY(${((1-g)*104).toFixed(2)}%)`;
     });
-    line.style.opacity=clamp((u-base+0.04)*20).toFixed(3);
-    if(i===3 && u>0.46){
-      // MOVE. is the only word that keeps moving, because it has to
-      const drift=Math.sin((u-0.46)*Math.PI*2.0)*9;
+    line.style.opacity=clamp((t-t0+0.04)*20).toFixed(3);
+    if(i===3 && t>bt(32)){
+      // MOVE. is the only word that keeps moving, because it has to — one cycle a bar
+      const drift=Math.sin((t-bt(32))/BAR*Math.PI*2)*9;
       line.style.transform=`translate(${drift.toFixed(2)}px,0)`;
     }
   });
 
   // handles snap around MOVE. once it has landed
-  const showSel=u>0.46;
+  const showSel=t>bt(33);
   s5sel.innerHTML='';
   if(showSel){
     const r=heroLines[3].getBoundingClientRect();
     const pad=22;
     buildHandles(s5sel,r.left-pad,r.top-pad*0.5,r.width+pad*2,r.height+pad*0.6,14,
       'rgba(239,227,204,0.9)');
-    s5sel.style.opacity=easeOut(clamp((u-0.46)/0.12)).toFixed(3);
+    s5sel.style.opacity=easeOut(clamp((t-bt(33))/(BEAT/2))).toFixed(3);
   }
 
   // dot rides the curve, looping — passes over the letters
-  const per=2.2, ph=((t-B5[0])%per)/per;
+  const per=BAR, ph=((t-B5[0])%per)/per;          // the dot runs the curve once a bar
   const pt=s5curve.getPointAtLength(L*fE(clamp(ph/0.78)));
   s5dot.style.left=px(pt.x-13); s5dot.style.top=px(pt.y-13);
-  s5dot.style.opacity=(u>0.12?1:0).toFixed(3);
+  s5dot.style.opacity=(t>bt(28.5)?1:0).toFixed(3);
 }
 
 // =================================================================
@@ -751,7 +769,9 @@ const NAMEFONTS=[
   ["DM Serif Display",400,1.02,'-0.040em'], ["Space Grotesk",700,1.00,'-0.050em'],
   ["Inter",900,1.00,'-0.055em'],
 ];
-const NAMEHOLD=[0.060,0.058,0.062,0.066,0.072,0.080,0.090,0.102,0.116,0.134,0.200];
+// the cycle is played, not drifted: eight sixteenths, then two beats, so the last
+// face — Inter, the one it keeps — arrives exactly on the downbeat of the last bar
+const NAMEHOLD=[0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.12,0.48,0.48,0.60];
 const NAMET=(()=>{let a=[],c=0;for(const d of NAMEHOLD){c+=d;a.push(c);}return a;})();
 const s6pfp=el('div',s6,{position:'absolute',left:px(84),top:px(534),width:'204px',height:'204px',
   borderRadius:'50%',backgroundImage:`url('${TEX}pfp.png')`,backgroundSize:'cover',
@@ -777,17 +797,18 @@ paintBg(s6wipe,'plate_ink.png');
 function renderS6(t,ein){
   const u=loc(t,B6[0],B6[1]);
   s6.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px)`;
-  s6rule.style.width=px(easeOut(clamp(u/0.14))*912);
-  s6kick.style.opacity=clamp(u/0.08).toFixed(3);
-  const items=[[s6name,0.04],[s6l1,0.16],[s6l2,0.22],[s6foot,0.34]];
-  items.forEach(([n,d])=>{
-    const a=easeOut(clamp((u-d)/0.18));
+  s6rule.style.width=px(easeOut(clamp((t-bt(36))/(BEAT/2)))*912);
+  s6kick.style.opacity=clamp((t-bt(36))/0.12).toFixed(3);
+  // the card sets itself on beats 1, 2, 3 and then 5
+  const items=[[s6name,36],[s6l1,37],[s6l2,38],[s6foot,40]];
+  items.forEach(([n,b])=>{
+    const a=easeOut(clamp((t-bt(b))/(BEAT/2)));
     n.style.transform=`translateY(${(1-a)*30}px)`;
     n.style.opacity=a.toFixed(3);
   });
-  s6rule2.style.width=px(easeOut(clamp((u-0.3)/0.25))*912);
+  s6rule2.style.width=px(easeOut(clamp((t-bt(40))/BEAT))*912);
   // --- the name tries on fonts, then becomes the mark --------------------
-  const cyc=t-(B6[0]+0.10);                       // cycle starts just after it lands
+  const cyc=t-B6[0];                              // the cycle starts on the downbeat
   let fi=NAMEFONTS.length-1;
   for(let i=0;i<NAMET.length;i++){ if(cyc<NAMET[i]){ fi=i; break; } }
   if(cyc>=0){
@@ -799,8 +820,8 @@ function renderS6(t,ein){
   }
 
   // it collapses to a point and the mark opens out of it
-  const mo=clamp((u-0.375)/0.10);
-  if(mo>0){
+  const mo=clamp((t-bt(40))/0.53);                // collapses on the last downbeat,
+  if(mo>0){                                       // the mark opens on the next eighth
     const k=easeInOut(mo);
     s6name.style.transform=`scale(${(1-k*0.82).toFixed(3)})`;
     s6name.style.opacity=(1-clamp(mo*1.6)).toFixed(3);
@@ -812,25 +833,26 @@ function renderS6(t,ein){
   }
 
   // --- the joke: it says MOVE, so it moves ------------------------------
-  const j=clamp((u-0.46)/0.42);
-  const q1=clamp((j-0.26)/0.26), q2=clamp((j-0.56)/0.34);
+  const j=clamp((t-bt(41))/(3*BEAT));
+  // out on beat 3, home on beat 4 — the last two hits in the film
+  const q1=clamp((j-0.0833)/0.3876), q2=clamp((j-0.5)/0.604);
   const mx = q2>0 ? 132*(1-backOut6(q2)) : 132*antic(q1);
   s6move.style.transform=`translateX(${mx.toFixed(1)}px)`;
 
   const rr=s6move.getBoundingClientRect();
   const tx=rr.right-30, ty=rr.top+rr.height*0.66;
-  const inn=easeOut(clamp(j/0.18));
+  const inn=easeOut(clamp(j/0.1667));
   s6cursor.style.left=px(lerp(1120,tx,inn));
   s6cursor.style.top =px(lerp(1760,ty,inn));
   s6cursor.style.opacity=(j>0.02?clamp((0.97-j)*12):0).toFixed(3);
 
   s6sel.innerHTML='';
-  if(j>0.14 && j<0.96){
+  if(j>0.1667 && j<0.95){
     buildHandles(s6sel,rr.left-16,rr.top+6,rr.width+32,rr.height-14,13,'rgba(43,16,10,0.8)');
     s6sel.style.opacity=(easeOut(clamp((j-0.14)/0.10))*clamp((0.94-j)*10)).toFixed(3);
   }
 
-  const w=easeInOut(clamp((u-0.855)/0.10));   // finish early: motion blur smears the last edge
+  const w=easeInOut(clamp((t-bt(43.25))/(BEAT/2)));  // finish early: motion blur smears the last edge
   s6wipe.style.transform=`translateY(${((1-w)*H).toFixed(1)}px)`;
 }
 
