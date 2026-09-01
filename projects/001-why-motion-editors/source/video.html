@@ -2,9 +2,10 @@
 <title>Study 001</title>
 <style>
   :root{
-    --signal:#0D22E0;
-    --cream:#F2EFE9;
-    --ink:#0B0B0C;
+    --signal:#8C2A11;   /* oxblood — the bow tie */
+    --field:#B07A3F;    /* ochre — the ground of the painting */
+    --cream:#EFE3CC;    /* parchment — the highlights */
+    --ink:#2B100A;      /* warm near-black — the darkest shadow */
   }
   *{margin:0;padding:0;box-sizing:border-box;}
   html,body{width:1080px;height:1920px;overflow:hidden;background:#000;}
@@ -152,7 +153,7 @@ function buildCursor(parent,scale=1){
   const c=el('div',parent,{position:'absolute',width:'0',height:'0'});
   c.innerHTML=`<svg width="${44*scale}" height="${58*scale}" viewBox="0 0 22 29" style="display:block;overflow:visible">
     <path d="M1 1 L1 24 L7.2 18.2 L11.4 27.6 L15.2 25.9 L11.2 16.8 L19.6 16.4 Z"
-      fill="#fff" stroke="#0B0B0C" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+      fill="#fff" stroke="#2B100A" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
   return c;
 }
 
@@ -162,7 +163,7 @@ function buildCursor(parent,scale=1){
 const s1=scene('s1');
 const s1card=buildCard(s1,700); s1card.root.style.left=px(190); s1card.root.style.top=px(430);
 freezeCard(s1card);
-buildHandles(s1,190,430,700,700,18,'#fff');
+buildHandles(s1,190,430,700,700,18,'#EFE3CC');
 const s1cursor=buildCursor(s1); s1cursor.style.left=px(902); s1cursor.style.top=px(1078);
 const s1still=el('div',s1,{position:'absolute',left:px(84),top:px(1240),
   color:'var(--cream)',fontSize:'232px',fontWeight:'800',letterSpacing:'-0.05em',lineHeight:'1'},'STILL');
@@ -171,7 +172,7 @@ const s1dot=el('div',s1,{position:'absolute',top:px(1240),
 const s1caret=el('div',s1,{position:'absolute',top:px(1268),width:'12px',height:'176px',
   background:'var(--cream)'});
 const s1meta=el('div',s1,{position:'absolute',left:px(88),top:px(1500),
-  color:'rgba(242,239,233,0.5)',fontSize:'30px',fontWeight:'500',letterSpacing:'0.34em'},'MOTION STUDIES — 001');
+  color:'rgba(239,227,204,0.5)',fontSize:'30px',fontWeight:'500',letterSpacing:'0.34em'},'MOTION STUDIES — 001');
 
 function renderS1(t){
   // measure once type is laid out
@@ -203,7 +204,7 @@ const s2motion=el('div',s2,{position:'absolute',left:px(78),color:'var(--signal)
   fontSize:'238px',fontWeight:'900',letterSpacing:'-0.055em',lineHeight:'1'},'MOTION');
 const s2l3=el('div',s2,{position:'absolute',left:px(84),top:px(880),color:'var(--ink)',
   fontSize:'96px',fontWeight:'600',letterSpacing:'-0.035em',lineHeight:'1'},'EDITORS?');
-const s2q=el('div',s2,{position:'absolute',left:px(84),top:px(1520),color:'rgba(11,11,12,0.45)',
+const s2q=el('div',s2,{position:'absolute',left:px(84),top:px(1520),color:'rgba(43,16,10,0.45)',
   fontSize:'30px',fontWeight:'500',letterSpacing:'0.16em',lineHeight:'1.5'},'A STUDY IN WHAT MOVES, AND WHO DECIDES');
 
 const MOTION_Y=596;
@@ -252,11 +253,11 @@ function renderS2(t,ein){
 const s3=scene('s3');
 const BAND_T=700, BAND_H=560;
 const s3band=el('div',s3,{position:'absolute',left:'0',top:px(BAND_T),width:'100%',height:px(BAND_H),
-  background:'var(--signal)'});
+  background:'var(--field)'});
 // dashed construction guides
 const s3guides=el('div',s3,{position:'absolute',inset:'0'});
 [BAND_T+70,BAND_T+BAND_H-70].forEach(y=>el('div',s3guides,{position:'absolute',left:'0',top:px(y),
-  width:'100%',height:'1px',background:'rgba(255,255,255,0.34)'}));
+  width:'100%',height:'1px',background:'rgba(239,227,204,0.34)'}));
 const s3title=el('div',s3,{position:'absolute',left:px(84),top:px(BAND_T-96),color:'var(--cream)',
   fontSize:'34px',fontWeight:'600',letterSpacing:'0.3em'},'THE ANATOMY OF MOTION');
 
@@ -268,12 +269,12 @@ const cells=[];
 for(let i=0;i<N;i++){
   const x=X0+i*(CELL+GAP);
   const g=el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2),
-    width:px(CELL),height:px(CELL),background:'#0B0B0C',overflow:'hidden'});
+    width:px(CELL),height:px(CELL),background:'#2B100A',overflow:'hidden'});
   const lab=el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2-46),
-    color:'rgba(255,255,255,0.92)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.12em'},LABELS[i]);
+    color:'rgba(239,227,204,0.92)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.12em'},LABELS[i]);
   // vertical tick from label to cell
   el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2-14),width:'1px',height:'12px',
-    background:'rgba(255,255,255,0.6)'});
+    background:'rgba(239,227,204,0.6)'});
   cells.push({g,lab,x});
 }
 // bezier scribble under the row
@@ -283,7 +284,7 @@ Object.assign(s3svg.style,{position:'absolute',left:'0',top:'0',overflow:'visibl
 s3.appendChild(s3svg);
 const s3path=document.createElementNS('http://www.w3.org/2000/svg','path');
 s3path.setAttribute('d',`M ${X0} ${CY+CELL/2+58} C ${X0+240} ${CY+CELL/2+150}, ${X0+totalW-240} ${CY+CELL/2-10}, ${X0+totalW} ${CY+CELL/2+72}`);
-s3path.setAttribute('fill','none'); s3path.setAttribute('stroke','rgba(255,255,255,0.85)');
+s3path.setAttribute('fill','none'); s3path.setAttribute('stroke','rgba(239,227,204,0.85)');
 s3path.setAttribute('stroke-width','2');
 s3svg.appendChild(s3path);
 const s3len=400; // set after mount
@@ -295,8 +296,8 @@ for(let i=0;i<N;i++){
   const g=cells[i].g; const parts={};
   if(i===0){ // TIMING — a block travels and stops, with a start/stop tick
     parts.block=el('div',g,{position:'absolute',top:px(CELL/2-18),width:'36px',height:'36px',background:'var(--cream)'});
-    parts.t1=el('div',g,{position:'absolute',left:'22px',top:px(CELL-40),width:'1px',height:'18px',background:'rgba(255,255,255,0.5)'});
-    parts.t2=el('div',g,{position:'absolute',left:px(CELL-24),top:px(CELL-40),width:'1px',height:'18px',background:'rgba(255,255,255,0.5)'});
+    parts.t1=el('div',g,{position:'absolute',left:'22px',top:px(CELL-40),width:'1px',height:'18px',background:'rgba(239,227,204,0.5)'});
+    parts.t2=el('div',g,{position:'absolute',left:px(CELL-24),top:px(CELL-40),width:'1px',height:'18px',background:'rgba(239,227,204,0.5)'});
   }else if(i===1){ // SPACING — dots at eased intervals appear in sequence
     parts.dots=[];
     for(let k=0;k<8;k++){
@@ -310,7 +311,7 @@ for(let i=0;i<N;i++){
     g.appendChild(sv);
     const ax=document.createElementNS('http://www.w3.org/2000/svg','path');
     ax.setAttribute('d',`M 26 ${CELL-26} L ${CELL-22} ${CELL-26} M 26 ${CELL-26} L 26 22`);
-    ax.setAttribute('stroke','rgba(255,255,255,0.28)'); ax.setAttribute('fill','none');
+    ax.setAttribute('stroke','rgba(239,227,204,0.28)'); ax.setAttribute('fill','none');
     sv.appendChild(ax);
     const cv=document.createElementNS('http://www.w3.org/2000/svg','path');
     cv.setAttribute('d',`M 26 ${CELL-26} C 60 ${CELL-26}, 62 26, ${CELL-22} 26`);
@@ -318,12 +319,12 @@ for(let i=0;i<N;i++){
     sv.appendChild(cv);
     parts.cv=cv; parts.len=cv.getTotalLength?300:300;
     parts.dot=el('div',g,{position:'absolute',width:'14px',height:'14px',borderRadius:'50%',background:'var(--signal)',
-      border:'2px solid #fff'});
+      border:'2px solid #EFE3CC'});
   }else if(i===3){ // WEIGHT — ball falls, squashes, small bounce
     parts.ball=el('div',g,{position:'absolute',left:px(CELL/2-22),width:'44px',height:'44px',
       borderRadius:'50%',background:'var(--cream)'});
     parts.floor=el('div',g,{position:'absolute',left:'22px',top:px(CELL-30),width:px(CELL-44),height:'1px',
-      background:'rgba(255,255,255,0.45)'});
+      background:'rgba(239,227,204,0.45)'});
   }else{ // RHYTHM — staggered bars
     parts.bars=[];
     for(let k=0;k<5;k++){
@@ -423,18 +424,18 @@ const s4=scene('s4');
 const s4bg=el('div',s4,{position:'absolute',inset:'0',background:'var(--ink)'});
 const s4body=el('div',s4,{position:'absolute',inset:'0'});
 const s4card=buildCard(s4body,520); s4card.root.style.left=px(280); s4card.root.style.top=px(330);
-const s4handles=buildHandles(s4body,280,330,520,520,14,'#fff');
+const s4handles=buildHandles(s4body,280,330,520,520,14,'#EFE3CC');
 // graph editor panel
 const PX0=90, PY0=1020, PW=900, PH=470;
 const s4panel=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0),width:px(PW),height:px(PH),
-  background:'#141416',border:'1px solid rgba(255,255,255,0.16)'});
+  background:'#1E0C07',border:'1px solid rgba(239,227,204,0.16)'});
 s4.insertBefore(s4panel,s4body);
 const s4head=el('div',s4body,{position:'absolute',left:px(PX0+26),top:px(PY0+22),
-  color:'rgba(255,255,255,0.55)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
+  color:'rgba(239,227,204,0.55)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
 // grid
 for(let i=1;i<6;i++){
   el('div',s4body,{position:'absolute',left:px(PX0+1),top:px(PY0+80+i*54),width:px(PW-2),height:'1px',
-    background:'rgba(255,255,255,0.07)'});
+    background:'rgba(239,227,204,0.07)'});
 }
 const GX0=PX0+70, GY0=PY0+96, GW=PW-140, GH=286;
 const s4svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -447,18 +448,18 @@ function mkPath(stroke,wid,dash){
   if(dash)p.setAttribute('stroke-dasharray',dash);
   s4svg.appendChild(p); return p;
 }
-const s4curve =mkPath('#fff',4);
-const s4hLine =mkPath('rgba(255,255,255,0.5)',2,'6 6');
+const s4curve =mkPath('#EFE3CC',4);
+const s4hLine =mkPath('rgba(239,227,204,0.5)',2,'6 6');
 const s4kf1=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
   transform:'rotate(45deg)'});
 const s4kf2=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
   transform:'rotate(45deg)'});
 const s4hDot=el('div',s4body,{position:'absolute',width:'20px',height:'20px',borderRadius:'50%',
-  background:'var(--signal)',border:'2px solid #fff'});
+  background:'var(--signal)',border:'2px solid #EFE3CC'});
 const s4cursor=buildCursor(s4body);
 const s4note=el('div',s4body,{position:'absolute',color:'var(--cream)',fontSize:'26px',fontWeight:'600',
   letterSpacing:'0.14em'},'');
-const s4tag=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0-58),color:'rgba(255,255,255,0.5)',
+const s4tag=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0-58),color:'rgba(239,227,204,0.5)',
   fontSize:'24px',fontWeight:'500',letterSpacing:'0.2em'},'');
 
 // control points: linear -> ease-out
@@ -472,7 +473,7 @@ function renderS4(t,ein){
   s4panel.style.top   =px(lerp(BAND_T,PY0,m));
   s4panel.style.width =px(lerp(W,PW,m));
   s4panel.style.height=px(lerp(BAND_H,PH,m));
-  s4panel.style.background=`rgb(${Math.round(lerp(13,20,m))},${Math.round(lerp(34,20,m))},${Math.round(lerp(224,22,m))})`;
+  s4panel.style.background=`rgb(${Math.round(lerp(176,30,m))},${Math.round(lerp(122,12,m))},${Math.round(lerp(63,7,m))})`;
   s4body.style.opacity=easeOut(clamp((ein-0.55)/0.45)).toFixed(3);
   if(ein<1) return;
   // sub-phases
@@ -539,7 +540,7 @@ function renderS4(t,ein){
     animateCard(s4card,clamp(ph/0.62),f);
   }
   // a soft glow on the panel as the ease lands
-  s4panel.style.borderColor=`rgba(13,34,224,${(0.16+d*0.7).toFixed(2)})`;
+  s4panel.style.borderColor=`rgba(140,42,17,${(0.16+d*0.7).toFixed(2)})`;
   s4note.style.opacity='0';
 }
 
@@ -567,7 +568,7 @@ const heroLines=HERO.map((h,i)=>el('div',s5,{position:'absolute',left:px(72),top
 const s5sel=el('div',s5,{position:'absolute',inset:'0'});
 // the dot rides the curve IN FRONT of the type: depth without hiding a single letter
 const s5dot=el('div',s5,{position:'absolute',width:'26px',height:'26px',borderRadius:'50%',
-  background:'var(--signal)',border:'3px solid #fff'});
+  background:'var(--signal)',border:'3px solid #EFE3CC'});
 
 function renderS5(t,ein){
   const u=loc(t,B5[0],B5[1]);
@@ -581,7 +582,7 @@ function renderS5(t,ein){
     dd+=(i?' L ':'M ')+X.toFixed(1)+' '+Y.toFixed(1);
   }
   s5curve.setAttribute('d',dd);
-  s5curve.setAttribute('stroke','rgba(255,255,255,'+lerp(1,0.20,m).toFixed(3)+')');
+  s5curve.setAttribute('stroke','rgba(239,227,204,'+lerp(1,0.20,m).toFixed(3)+')');
   s5curve.setAttribute('stroke-width',lerp(4,3,m).toFixed(2));
   s5bg.style.opacity=clamp(ein/0.5).toFixed(3);
   s5.style.transform='scale('+(1+u*0.020).toFixed(4)+')';
@@ -611,7 +612,7 @@ function renderS5(t,ein){
     const r=heroLines[3].getBoundingClientRect();
     const pad=22;
     buildHandles(s5sel,r.left-pad,r.top-pad*0.5,r.width+pad*2,r.height+pad*0.6,14,
-      'rgba(255,255,255,0.9)');
+      'rgba(239,227,204,0.9)');
     s5sel.style.opacity=easeOut(clamp((u-0.46)/0.12)).toFixed(3);
   }
 
@@ -636,8 +637,8 @@ const s6l1=el('div',s6,{position:'absolute',left:px(84),top:px(790),color:'var(-
   fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'},'I DECIDE HOW');
 const s6l2=el('div',s6,{position:'absolute',left:px(84),top:px(902),color:'var(--ink)',
   fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'},'THINGS MOVE.');
-const s6rule2=el('div',s6,{position:'absolute',left:px(84),top:px(1120),height:'1px',background:'rgba(11,11,12,0.3)'});
-const s6foot=el('div',s6,{position:'absolute',left:px(84),top:px(1160),color:'rgba(11,11,12,0.6)',
+const s6rule2=el('div',s6,{position:'absolute',left:px(84),top:px(1120),height:'1px',background:'rgba(43,16,10,0.3)'});
+const s6foot=el('div',s6,{position:'absolute',left:px(84),top:px(1160),color:'rgba(43,16,10,0.6)',
   fontSize:'30px',fontWeight:'500',letterSpacing:'0.28em'},'NEW STUDY WEEKLY');
 function renderS6(t,ein){
   const u=loc(t,B6[0],B6[1]);
