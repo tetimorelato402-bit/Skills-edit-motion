@@ -671,7 +671,24 @@ const s6rule=el('div',s6,{position:'absolute',left:px(84),top:px(392),height:'3p
 const s6kick=el('div',s6,{position:'absolute',left:px(84),top:px(330),color:'var(--ink)',
   fontSize:'32px',fontWeight:'600',letterSpacing:'0.32em'},'MOTION STUDIES — 001');
 const s6name=el('div',s6,{position:'absolute',left:px(78),top:px(560),color:'var(--signal)',
-  fontSize:'186px',fontWeight:'900',letterSpacing:'-0.055em',lineHeight:'1'},'teti.');
+  fontSize:'186px',fontWeight:'900',letterSpacing:'-0.055em',lineHeight:'1',
+  transformOrigin:'left center'},'teti.');
+// the name tries on every voice it could have had, comes home to Inter,
+// then stops being a word and becomes the mark
+const NAMEFONTS=[
+  ["Playfair Display",900,1.00,'-0.045em'], ["Anton",400,0.94,'-0.020em'],
+  ["EB Garamond",700,1.12,'-0.030em'],      ["IBM Plex Mono",700,0.90,'-0.060em'],
+  ["Oswald",700,1.06,'-0.020em'],           ["Caveat",700,1.38,'-0.010em'],
+  ["Bodoni Moda",900,1.04,'-0.040em'],      ["Zilla Slab",700,0.98,'-0.035em'],
+  ["DM Serif Display",400,1.02,'-0.040em'], ["Space Grotesk",700,1.00,'-0.050em'],
+  ["Inter",900,1.00,'-0.055em'],
+];
+const NAMEHOLD=[0.060,0.058,0.062,0.066,0.072,0.080,0.090,0.102,0.116,0.134,0.200];
+const NAMET=(()=>{let a=[],c=0;for(const d of NAMEHOLD){c+=d;a.push(c);}return a;})();
+const s6pfp=el('div',s6,{position:'absolute',left:px(84),top:px(534),width:'204px',height:'204px',
+  borderRadius:'50%',backgroundImage:`url('${TEX}pfp.png')`,backgroundSize:'cover',
+  backgroundPosition:'center',opacity:'0',transformOrigin:'center',
+  boxShadow:'0 0 0 2px rgba(43,16,10,0.22)'});
 const s6l1=el('div',s6,{position:'absolute',left:px(84),top:px(790),color:'var(--ink)',
   fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'},'I DECIDE HOW');
 const s6l2=el('div',s6,{position:'absolute',left:px(84),top:px(902),display:'flex',
@@ -685,7 +702,7 @@ const s6foot=el('div',s6,{position:'absolute',left:px(84),top:px(1160),color:'rg
 // the last word does what it says — the cursor comes back for it
 const s6sel=el('div',s6,{position:'absolute',inset:'0'});
 const s6cursor=buildCursor(s6,1.15);
-const backOut6=bez(0.24,1.52,0.4,1);
+const backOut6=bez(0.24,1.52,0.4,1);   // used by the name morph and the joke
 // the canvas turns back over, so the last frame matches the first and the Reel loops clean
 const s6wipe=el('div',s6,{position:'absolute',inset:'0',background:'var(--ink)'});
 paintBg(s6wipe,'plate_ink.png');
@@ -694,13 +711,38 @@ function renderS6(t,ein){
   s6.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px)`;
   s6rule.style.width=px(easeOut(clamp(u/0.14))*912);
   s6kick.style.opacity=clamp(u/0.08).toFixed(3);
-  const items=[[s6name,0.06],[s6l1,0.16],[s6l2,0.22],[s6foot,0.34]];
+  const items=[[s6name,0.04],[s6l1,0.16],[s6l2,0.22],[s6foot,0.34]];
   items.forEach(([n,d])=>{
     const a=easeOut(clamp((u-d)/0.18));
     n.style.transform=`translateY(${(1-a)*30}px)`;
     n.style.opacity=a.toFixed(3);
   });
   s6rule2.style.width=px(easeOut(clamp((u-0.3)/0.25))*912);
+  // --- the name tries on fonts, then becomes the mark --------------------
+  const cyc=t-(B6[0]+0.10);                       // cycle starts just after it lands
+  let fi=NAMEFONTS.length-1;
+  for(let i=0;i<NAMET.length;i++){ if(cyc<NAMET[i]){ fi=i; break; } }
+  if(cyc>=0){
+    const [fam,wt,sz,ls]=NAMEFONTS[fi];
+    s6name.style.fontFamily=`'${fam}',sans-serif`;
+    s6name.style.fontWeight=String(wt);
+    s6name.style.fontSize=px(Math.round(186*sz));
+    s6name.style.letterSpacing=ls;
+  }
+
+  // it collapses to a point and the mark opens out of it
+  const mo=clamp((u-0.375)/0.10);
+  if(mo>0){
+    const k=easeInOut(mo);
+    s6name.style.transform=`scale(${(1-k*0.82).toFixed(3)})`;
+    s6name.style.opacity=(1-clamp(mo*1.6)).toFixed(3);
+    const g=backOut6(clamp((mo-0.25)/0.75));
+    s6pfp.style.opacity=clamp(mo*2.2).toFixed(3);
+    s6pfp.style.transform=`scale(${lerp(0.42,1,g).toFixed(3)})`;
+  }else{
+    s6pfp.style.opacity='0';
+  }
+
   // --- the joke: it says MOVE, so it moves ------------------------------
   const j=clamp((u-0.46)/0.42);
   const q1=clamp((j-0.26)/0.26), q2=clamp((j-0.56)/0.34);

@@ -32,10 +32,13 @@ copy. Keep oxblood for type and small marks.
 Options rendered in `pfp/` at the sizes Instagram actually uses (110px profile, 32px
 comments) — see `pfp/pfp-options.png`. Regenerate or restyle via `pfp/pfp.html`.
 
-Recommendation: **duotone** (the portrait posterised into the ramp) as primary — it
-keeps the human warmth, is unmistakably from teti's own painting, and still reads as a
-face at 32px. **t-inverted** (parchment `t.` on oxblood) is the alternative if the studio
-should read as a mark rather than a person; it is the most legible option at every size.
+**Chosen: `portrait`** — the painting itself, full colour, circular. It is warm, it is
+unmistakably teti's own, and it still reads as a face at 32px. Study 001's end card now
+resolves into it: `teti.` cycles through ten typefaces, comes home to Inter, then collapses
+and the portrait opens out of it. The wordmark and the mark are the same gesture.
+
+(`duotone` was the earlier recommendation and `t-inverted` the most legible at every size;
+both stay in `pfp/` in case a one-colour or small-format lockup is ever needed.)
 
 `wordmark` and `poster` are documented but not recommended: "teti." turns to mush at
 32px, and the hard posterisation breaks into unreadable patches.

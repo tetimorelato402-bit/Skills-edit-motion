@@ -71,10 +71,21 @@ Preview a few frames instead of the whole film while iterating:
   wide for a Reel. Check work at those sizes before judging it — several designs that looked
   good at full size failed there.
 
+## Fonts
+
+The film needs **Inter** (400–900) plus ten families for the end-card type cycle:
+Playfair Display, Anton, EB Garamond, IBM Plex Mono, Oswald, Caveat, Bodoni Moda,
+Zilla Slab, DM Serif Display, Space Grotesk. They are referenced by family name and
+resolved through fontconfig, so install them system-wide (`/usr/local/share/fonts/`
+then `fc-cache -f`) before rendering. Missing families silently fall back to sans-serif
+and the cycle stops reading as a cycle — check with `fc-list : family`.
+
 ## Open decisions
 
-1. **Profile picture** — eight options rendered in `brand/pfp/`. Recommended: `duotone`.
-   Not yet produced at final size or applied.
+1. ~~Profile picture~~ — **decided: the portrait**, full colour, circular
+   (`brand/pfp/opt1_portrait.png`, live on the account). The end card resolves into it,
+   so the film and the profile now share a mark. The other seven options stay in
+   `brand/pfp/` as a record.
 2. **Hours and deadline** — never pinned down. Assume "ship soon" unless teti says otherwise.
 
 ## What a desktop session unlocks

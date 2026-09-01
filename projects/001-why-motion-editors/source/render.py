@@ -24,7 +24,16 @@ def main():
         pg.goto("file://" + args.html)
         pg.wait_for_function("window.renderFrame !== undefined")
         pg.evaluate("document.fonts.ready")
-        time.sleep(0.6)
+        # background images are not in document.images, so decode the plates
+        # explicitly — otherwise early frames can render before they are ready
+        pg.evaluate("""async () => {
+            const files=['plate_ink.png','plate_paper.png','plate_ochre.png','weave.png','pfp.png'];
+            await Promise.all(files.map(f => {
+                const i = new Image(); i.src = 'tex/' + f;
+                return i.decode().catch(() => {});
+            }));
+        }""")
+        time.sleep(1.0)
         if args.signal:
             pg.evaluate(f"document.documentElement.style.setProperty('--signal','{args.signal}')")
 
