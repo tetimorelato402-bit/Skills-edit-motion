@@ -86,21 +86,30 @@ Tools, weekly hour budget, deadline, and brand color are unconfirmed — see ope
 4. Add beats 3–4 if hours allow; otherwise they become Study 002 material.
 5. Write the caption (first line mirrors the answer line) and schedule the post.
 
-## Sound direction (options on the table)
+## Sound — LOCKED: "Parisienne Walkways" (Gary Moore)
 
-The video is designed sound-off, so music is a reward, not a carrier — and for a motion editor's debut, the sound *design* (ticks, whooshes, UI clicks synced to keyframes) is itself a craft display. Directions:
+The track with the famous high sustained bend. Chosen by teti; the concept fusion is real:
 
-- **A. Minimal glitch / deconstructed electronic** — sparse clicks, sub-bass, one hard hit at the 1.5s snap. Matches the canvas/specimen aesthetic best. *(Recommended.)*
-- **B. Editorial house (fashion-film energy)** — clean filtered 4/4 that opens up at the "editor's hand" beat. Premium, safer, less distinctive.
-- **C. Cinematic pulse** — dark pad + rising pulse, boom on the snap, airy resolve. More drama, less rhythm to cut to.
+**Why it works conceptually.** A guitar bend is an ease made audible — a pitch traveling along a curve instead of jumping. The most famous sustained bend in guitar history, under a video whose thesis is "someone has to decide how things move," is not background music; it's the argument in a second medium. Sync plan (structural, not timestamped — exact times depend on the version/section chosen):
 
-Practical: cut at **120 BPM** — at 0.5s per beat, every planned cut (1.5s / 4s / 8s / 12s / 15s) lands exactly on a downbeat. Build the edit on a 120 BPM click grid first, choose the actual track after; then either pick a matching-tempo track from Instagram's own audio library (better reach, but business accounts have restricted music access) or license one (Artlist, Epidemic Sound, Uppbeat) if the video will also live in a portfolio off-Instagram.
+- Moody intro phrase → **STILL.** + study title. Long holds, almost no cutting.
+- The moment the note **bends up** → the cursor drags the easing curve and the frozen frame comes alive. Motion begins in sound and image on the same frame.
+- The **sustain** (the held scream) → the hero line holds on screen, letters slowly interleaving with the imagery. Don't cut during the sustain — hold with it. Restraint here is itself a craft flex.
+- The phrase resolve → end card.
+
+**What it changes.** The 120 BPM click-grid plan is dead — this is a slow blues ballad (~60 BPM feel, roughly one beat per second). Cut to *phrases*, not a grid: fewer, longer, more confident shots. The video's temperament shifts from clinical/techy to soulful — which is also more distinctive; every motion-design reel uses glitchy electronic, almost none use a 1979 blues ballad. Runtime may want to stretch to ~20–22s so the phrases breathe; that's fine for Reels. The glitch texture pass (beat 4) should soften or go — datamosh fights this mood.
+
+**Practical checks (do these before building the cut):**
+1. The iconic *long* sustain is in the **live versions**; the studio cut's bend is shorter. Pick the exact version and section first — the whole edit hangs on it.
+2. Check it's available in **Instagram's audio library on your account** (availability varies by region and account type — Creator accounts get most library music; Business accounts are restricted to royalty-free). If it's there, using it through IG's library is licensed and helps reach.
+3. Off Instagram (portfolio site, Vimeo, client sends), the track is NOT licensed — keep a alternate scored version (a moody slow-blues royalty-free cue from Artlist/Epidemic) for anywhere outside IG.
+4. If it's not in your library: a high-sustain blues-guitar soundalike cue is the fallback that keeps the concept intact.
 
 ## Decision sheet
 
-Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."** Still open ("I don't know — bring me options" remains a valid answer):
+Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **"Parisienne Walkways"** (version/section TBD — see practical checks above). Still open ("I don't know — bring me options" remains a valid answer):
 
 1. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
 2. **Tools + hours**: cutting in ___ , with about ___ hours over ___ days.
 3. **Deadline / launch moment**: ___
-4. **Sound direction**: A / B / C above, or a track you find at ~120 BPM.
+4. **Track version/section**: studio or live, and which ~20s window (the bend must land where the frame comes alive).
