@@ -1,10 +1,16 @@
 # Study 001 — how to finish and post
 
-**Post `study-001-v4-painted.mp4`** — 19.2s, 1080×1920, H.264, with burnt-in **sound design**
+**Post `study-001-v5.mp4`** — 19.2s, 1080×1920, H.264, with burnt-in **sound design**
 (no music: that still gets added in Instagram). `study-001.mp4` is the earlier silent cut,
 kept for reference, as is the blue-palette v2.
 
-v4 rebuilds the film as a painted object — oil grounds with lit impasto,
+v5 makes the film perform the craft instead of naming it: three principles
+played full-frame (a real spacing chart, a weight study with squash and
+follow-through, a stagger), the dead post coming apart into its layers in 3D and
+rebuilding with overshoot, per-character kinetic type on the payoff line, a
+seamless loop, and the end card's joke — the cursor returns and MOVE. moves.
+
+v4 rebuilt the film as a painted object — oil grounds with lit impasto,
 linen weave through the whole frame, and hand-painted type edges (`source/paint.py`).
 The generic brand post stays crisp and cold on purpose: a digital thing collaged
 onto canvas. Earlier cuts (v2 blue, v3 flat warm) are kept for reference.
@@ -24,7 +30,7 @@ Source of truth is `source/video.html` — the whole film is code; `source/rende
 Instagram licenses "Parisienne Walkways" only when the track is added in the app. Burning it into
 the export risks a mute or a takedown, and kills reach.
 
-1. New Reel → upload `study-001-v4-painted.mp4`.
+1. New Reel → upload `study-001-v5.mp4`.
 2. Add audio → search **Parisienne Walkways (Gary Moore)** → studio version.
 3. Slide the track's start so the **bend lands at 09.6s** — that is the exact frame where the cursor
    drags the ease curve and the dead frame comes alive. This one alignment is the whole point of the
@@ -36,7 +42,7 @@ the export risks a mute or a takedown, and kills reach.
 
 ## 2. Cover
 
-Use `study-001-v4-cover.png` (the first frame — "STILL." with the selection handles). It reads as
+Use `study-001-v5-cover.png` (the first frame — "STILL." with the selection handles). It reads as
 intentional, not broken, and it is the reason someone stops.
 
 ## 3. Caption

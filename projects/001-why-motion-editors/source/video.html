@@ -100,12 +100,17 @@ const PRE=0.26;                      // transition overlap, seconds
 // SHARED: the "generic brand post" card, dead or alive
 // build(parent, size) -> handles for animating
 // =================================================================
-function buildCard(parent,size){
+function buildCard(parent,size,layered){
   const c=el('div',parent,{
     position:'absolute', width:px(size), height:px(size),
-    background:'linear-gradient(150deg,#8E8B86 0%,#6E6B67 55%,#4C4A47 100%)',
-    overflow:'hidden'
+    background: layered?'none':'linear-gradient(150deg,#8E8B86 0%,#6E6B67 55%,#4C4A47 100%)',
+    overflow: layered?'visible':'hidden'
   });
+  if(layered) c.style.transformStyle='preserve-3d';
+  // the ground of the post, its own layer so it can be pulled off the stack
+  const bg=el('div',c,{position:'absolute',inset:'0',
+    background:'linear-gradient(150deg,#8E8B86 0%,#6E6B67 55%,#4C4A47 100%)',
+    display: layered?'block':'none'});
   // bland stock-ish "photo" band
   const band=el('div',c,{
     position:'absolute', left:'0', top:'0', width:'100%', height:px(size*0.58),
@@ -121,24 +126,27 @@ function buildCard(parent,size){
     position:'absolute', left:'0', bottom:'0', width:'100%', height:px(size*0.22),
     background:'linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,0.18) 100%)'
   });
-  const label=el('div',c,{
-    position:'absolute', left:px(size*0.09), top:px(size*0.66),
+  // Each text layer is a wrapper (which carries 3D depth) around the element that
+  // actually animates. Without the split, animateCard's 2D transform would replace
+  // the wrapper's translate3d and Chromium would sort the layer behind the ground.
+  const labelW=el('div',c,{position:'absolute',left:px(size*0.09),top:px(size*0.66)});
+  const label=el('div',labelW,{
     color:'#F4F2EF', fontSize:px(size*0.085), fontWeight:'700',
     letterSpacing:'-0.02em', whiteSpace:'nowrap'
   },'NEW COLLECTION');
-  const sub=el('div',c,{
-    position:'absolute', left:px(size*0.09), top:px(size*0.775),
+  const subW=el('div',c,{position:'absolute',left:px(size*0.09),top:px(size*0.775)});
+  const sub=el('div',subW,{
     color:'rgba(244,242,239,0.72)', fontSize:px(size*0.045), fontWeight:'500',
     letterSpacing:'0.06em', whiteSpace:'nowrap'
   },'AVAILABLE NOW');
-  const btn=el('div',c,{
-    position:'absolute', left:px(size*0.09), top:px(size*0.865),
+  const btnW=el('div',c,{position:'absolute',left:px(size*0.09),top:px(size*0.865)});
+  const btn=el('div',btnW,{
     padding:px(size*0.026)+' '+px(size*0.06),
     border:'2px solid rgba(244,242,239,0.85)', color:'#F4F2EF',
     fontSize:px(size*0.038), fontWeight:'600', letterSpacing:'0.1em',
     display:'inline-block'
   },'SHOP');
-  return {root:c,label,sub,btn,size};
+  return {root:c,bg,band,label,sub,btn,size,layers:[bg,band,labelW,subW,btnW]};
 }
 // phase 0..1 -> animate the card's contents with a given easing fn
 function animateCard(card,phase,ease){
@@ -271,200 +279,185 @@ function renderS2(t,ein){
 }
 
 // =================================================================
-// BEAT 3 — specimen board: five labelled micro-studies
+// BEAT 3 — three studies, each big enough to actually read.
+// The film stops naming the principles and performs them.
 // =================================================================
 const s3=scene('s3');
-const BAND_T=700, BAND_H=560;
+const BAND_T=520, BAND_H=880;
 const s3band=el('div',s3,{position:'absolute',left:'0',top:px(BAND_T),width:'100%',height:px(BAND_H),
   background:'var(--field)'});
 paintBg(s3band,'plate_ochre.png','100% 100%');
-// dashed construction guides
 const s3guides=el('div',s3,{position:'absolute',inset:'0'});
-[BAND_T+70,BAND_T+BAND_H-70].forEach(y=>el('div',s3guides,{position:'absolute',left:'0',top:px(y),
-  width:'100%',height:'1px',background:'rgba(239,227,204,0.34)'}));
-const s3title=el('div',s3,{position:'absolute',left:px(84),top:px(BAND_T-96),color:'var(--cream)',
+[BAND_T+60,BAND_T+BAND_H-60].forEach(y=>el('div',s3guides,{position:'absolute',left:'0',top:px(y),
+  width:'100%',height:'1px',background:'rgba(239,227,204,0.30)'}));
+const s3title=el('div',s3,{position:'absolute',left:px(84),top:px(BAND_T-92),color:'var(--cream)',
   fontSize:'34px',fontWeight:'600',letterSpacing:'0.3em'},'THE ANATOMY OF MOTION');
+const s3lab=el('div',s3,{position:'absolute',left:px(84),top:px(BAND_T+104),color:'var(--cream)',
+  fontSize:'96px',fontWeight:'800',letterSpacing:'-0.035em',lineHeight:'1'},'SPACING');
+const s3num=el('div',s3,{position:'absolute',left:px(88),top:px(BAND_T+66),color:'rgba(239,227,204,0.75)',
+  fontSize:'26px',fontWeight:'600',letterSpacing:'0.24em'},'01 / 03');
+const s3cap=el('div',s3,{position:'absolute',left:px(88),top:px(BAND_T+BAND_H-104),
+  color:'rgba(239,227,204,0.78)',fontSize:'30px',fontWeight:'500',letterSpacing:'0.06em'},'');
+const s3path={style:{}};   // the old scribble is gone; keep the name for the hand-off
 
-const CELL=162, GAP=32, N=5;
-const totalW=N*CELL+(N-1)*GAP;
-const X0=(W-totalW)/2, CY=BAND_T+BAND_H/2+18;
-const LABELS=['TIMING','SPACING','EASING','WEIGHT','RHYTHM'];
-const cells=[];
-for(let i=0;i<N;i++){
-  const x=X0+i*(CELL+GAP);
-  const g=el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2),
-    width:px(CELL),height:px(CELL),background:'#2B100A',overflow:'hidden'});
-  const lab=el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2-46),
-    color:'rgba(239,227,204,0.92)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.12em'},LABELS[i]);
-  // vertical tick from label to cell
-  el('div',s3,{position:'absolute',left:px(x),top:px(CY-CELL/2-14),width:'1px',height:'12px',
-    background:'rgba(239,227,204,0.6)'});
-  cells.push({g,lab,x});
-}
-// bezier scribble under the row
-const s3svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-s3svg.setAttribute('width',W); s3svg.setAttribute('height',H);
-Object.assign(s3svg.style,{position:'absolute',left:'0',top:'0',overflow:'visible'});
-s3.appendChild(s3svg);
-const s3path=document.createElementNS('http://www.w3.org/2000/svg','path');
-s3path.setAttribute('d',`M ${X0} ${CY+CELL/2+58} C ${X0+240} ${CY+CELL/2+150}, ${X0+totalW-240} ${CY+CELL/2-10}, ${X0+totalW} ${CY+CELL/2+72}`);
-s3path.setAttribute('fill','none'); s3path.setAttribute('stroke','rgba(239,227,204,0.85)');
-s3path.setAttribute('stroke-width','2');
-s3svg.appendChild(s3path);
-const s3len=400; // set after mount
+const STG_T=BAND_T+250, STG_B=BAND_T+BAND_H-150;   // the stage each study plays on
 
-// --- micro-study renderers (phase 0..1, box 162x162)
-function cellClear(g){ while(g.firstChild) g.removeChild(g.firstChild); }
-const cellParts=[];
-for(let i=0;i<N;i++){
-  const g=cells[i].g; const parts={};
-  if(i===0){ // TIMING — a block travels and stops, with a start/stop tick
-    parts.block=el('div',g,{position:'absolute',top:px(CELL/2-18),width:'36px',height:'36px',background:'var(--cream)'});
-    parts.t1=el('div',g,{position:'absolute',left:'22px',top:px(CELL-40),width:'1px',height:'18px',background:'rgba(239,227,204,0.5)'});
-    parts.t2=el('div',g,{position:'absolute',left:px(CELL-24),top:px(CELL-40),width:'1px',height:'18px',background:'rgba(239,227,204,0.5)'});
-  }else if(i===1){ // SPACING — dots at eased intervals appear in sequence
-    parts.dots=[];
-    for(let k=0;k<8;k++){
-      parts.dots.push(el('div',g,{position:'absolute',top:px(CELL/2-6),width:'12px',height:'12px',
-        borderRadius:'50%',background:'var(--cream)'}));
-    }
-  }else if(i===2){ // EASING — the curve draws, a dot rides it
-    const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    sv.setAttribute('width',CELL); sv.setAttribute('height',CELL);
-    Object.assign(sv.style,{position:'absolute',left:'0',top:'0'});
-    g.appendChild(sv);
-    const ax=document.createElementNS('http://www.w3.org/2000/svg','path');
-    ax.setAttribute('d',`M 26 ${CELL-26} L ${CELL-22} ${CELL-26} M 26 ${CELL-26} L 26 22`);
-    ax.setAttribute('stroke','rgba(239,227,204,0.28)'); ax.setAttribute('fill','none');
-    sv.appendChild(ax);
-    const cv=document.createElementNS('http://www.w3.org/2000/svg','path');
-    cv.setAttribute('d',`M 26 ${CELL-26} C 60 ${CELL-26}, 62 26, ${CELL-22} 26`);
-    cv.setAttribute('stroke','var(--cream)'); cv.setAttribute('stroke-width','3'); cv.setAttribute('fill','none');
-    sv.appendChild(cv);
-    parts.cv=cv; parts.len=cv.getTotalLength?300:300;
-    parts.dot=el('div',g,{position:'absolute',width:'14px',height:'14px',borderRadius:'50%',background:'var(--signal)',
-      border:'2px solid #EFE3CC'});
-  }else if(i===3){ // WEIGHT — ball falls, squashes, small bounce
-    parts.ball=el('div',g,{position:'absolute',left:px(CELL/2-22),width:'44px',height:'44px',
-      borderRadius:'50%',background:'var(--cream)'});
-    parts.floor=el('div',g,{position:'absolute',left:'22px',top:px(CELL-30),width:px(CELL-44),height:'1px',
-      background:'rgba(239,227,204,0.45)'});
-  }else{ // RHYTHM — staggered bars
-    parts.bars=[];
-    for(let k=0;k<5;k++){
-      parts.bars.push(el('div',g,{position:'absolute',bottom:'30px',width:'16px',background:'var(--cream)',
-        left:px(28+k*22)}));
-    }
-  }
-  cellParts.push(parts);
-}
+// --- 01 SPACING: the classic chart — even time, uneven distance ----------
+const g1=el('div',s3,{position:'absolute',inset:'0'});
+const NG=15, SQ=76;
+const ghosts=[];
+for(let i=0;i<NG;i++)
+  ghosts.push(el('div',g1,{position:'absolute',width:px(SQ),height:px(SQ),
+    border:'2px solid var(--cream)',boxSizing:'border-box'}));
+const s3head=el('div',g1,{position:'absolute',width:px(SQ),height:px(SQ),background:'var(--ink)'});
+const s3rule=el('div',g1,{position:'absolute',left:px(120),top:px(STG_B-6),width:'840px',height:'1px',
+  background:'rgba(239,227,204,0.45)'});
+
+// --- 02 WEIGHT: squash, stretch, follow-through --------------------------
+const g2=el('div',s3,{position:'absolute',inset:'0'});
+const BALL=168, FLOOR=STG_B-10;
+const s3shadow=el('div',g2,{position:'absolute',height:'26px',borderRadius:'50%',
+  background:'rgba(43,16,10,0.42)'});
+const s3ball=el('div',g2,{position:'absolute',width:px(BALL),height:px(BALL),borderRadius:'50%',
+  background:'var(--cream)'});
+el('div',g2,{position:'absolute',left:px(180),top:px(FLOOR),width:'720px',height:'2px',
+  background:'rgba(239,227,204,0.5)'});
+
+// --- 03 RHYTHM: stagger with overshoot -----------------------------------
+const g3=el('div',s3,{position:'absolute',inset:'0'});
+const NB=7, BW=78, BG=34;
+const bars=[];
+const bx0=(W-(NB*BW+(NB-1)*BG))/2;
+for(let i=0;i<NB;i++)
+  bars.push(el('div',g3,{position:'absolute',left:px(bx0+i*(BW+BG)),width:px(BW),
+    background:'var(--cream)'}));
+
+const STUDIES=[
+  ['SPACING','01 / 03','even in time, uneven in space',g1],
+  ['WEIGHT' ,'02 / 03','it squashes because it is heavy',g2],
+  ['RHYTHM' ,'03 / 03','the stagger is the music',g3],
+];
+const antic=bez(0.6,-0.42,0.32,1.5);   // pull back, then launch — anticipation
+const backOut5=bez(0.22,1.36,0.36,1); // the payoff word overshoots its mark
 
 function renderS3(t,ein){
   const u=loc(t,B3[0],B3[1]);
   s3.style.transform=`translateX(${((1-easeOut(ein))*W).toFixed(1)}px)`;
-  s3title.style.opacity=easeOut(clamp(u/0.1)).toFixed(3);
-  // band wipes open
-  const bw=easeOut(clamp(u/0.14));
-  s3band.style.transform=`scaleY(${bw})`;
-  s3band.style.transformOrigin='center';
-  // scribble draws
-  const dl=s3path.getTotalLength();
-  s3path.style.strokeDasharray=dl;
-  s3path.style.strokeDashoffset=(1-easeOut(clamp((u-0.30)/0.35)))*dl;
+  s3title.style.opacity=easeOut(clamp(u/0.08)).toFixed(3);
 
-  const P=1.0; // micro-loop period, seconds
-  for(let i=0;i<N;i++){
-    const inU=easeOut(clamp((u-0.10-i*0.045)/0.22));
-    cells[i].g.style.opacity=inU.toFixed(3);
-    cells[i].g.style.transform=`translateY(${(1-inU)*26}px)`;
-    cells[i].lab.style.opacity=(inU*0.95).toFixed(3);
-    const ph=((t-B3[0]-i*0.06)%P+P)%P/P;
-    const pr=cellParts[i];
-    if(i===0){
-      const m=easeOut(clamp(ph/0.55));
-      pr.block.style.left=px(lerp(22,CELL-58,m));
-      const moving=ph<0.55;
-      pr.t1.style.opacity=moving?'0.5':'1';
-      pr.t2.style.opacity=moving?'0.5':'1';
-    }else if(i===1){
-      // classic spacing chart: dots bunch where motion is slow, spread where fast
-      pr.dots.forEach((d,k)=>{
-        const f=k/(pr.dots.length-1);
-        const xx=lerp(24,CELL-32,easeInOut(f));
-        d.style.left=px(xx);
-        const app=clamp((ph-f*0.42)/0.12);          // they lay down in order, then hold
-        d.style.opacity=(0.25+app*0.75).toFixed(3);
-        d.style.transform=`scale(${lerp(0.55,1,app)})`;
-      });
-    }else if(i===2){
-      const L=pr.cv.getTotalLength();
-      pr.cv.style.strokeDasharray=L;
-      const draw=easeOutSoft(clamp(ph/0.7));
-      pr.cv.style.strokeDashoffset=(1-draw)*L;
-      const pt=pr.cv.getPointAtLength(L*draw);
-      pr.dot.style.left=px(pt.x-7); pr.dot.style.top=px(pt.y-7);
-      pr.dot.style.opacity=ph>0.02?'1':'0';
-    }else if(i===3){
-      const top0=24, floorY=CELL-30-44;
-      let y,sx=1,sy=1;
-      if(ph<0.42){                      // fall, accelerating
-        const f=ph/0.42; y=lerp(top0,floorY,f*f);
-        sx=lerp(1,0.9,f); sy=lerp(1,1.12,f);
-      }else if(ph<0.52){                // squash on impact
-        const f=(ph-0.42)/0.10; const s=Math.sin(f*Math.PI);
-        y=floorY+s*6; sx=1+s*0.34; sy=1-s*0.3;
-      }else if(ph<0.78){                // small bounce
-        const f=(ph-0.52)/0.26; const h=Math.sin(f*Math.PI)*44;
-        y=floorY-h; sx=1; sy=1+Math.sin(f*Math.PI)*0.06;
-      }else{ y=floorY; }
-      pr.ball.style.top=px(y);
-      pr.ball.style.transform=`scale(${sx},${sy})`;
-      pr.ball.style.transformOrigin='center bottom';
-    }else{
-      // a travelling wave — the stagger IS the rhythm
-      pr.bars.forEach((b,k)=>{
-        const w=0.5+0.5*Math.sin(2*Math.PI*(ph-k*0.13));
-        b.style.height=px(20+Math.pow(w,1.6)*68);
-      });
+  // which study is on, and how far through it
+  const k=Math.min(2,Math.floor(u*3));
+  const p=clamp(u*3-k);
+  const [lab,num,cap,grp]=STUDIES[k];
+  s3lab.textContent=lab; s3num.textContent=num; s3cap.textContent=cap;
+  STUDIES.forEach(([,,,g],i)=>g.style.opacity=(i===k?1:0));
+
+  // the label snaps in with anticipation, the caption follows
+  const li=antic(clamp(p/0.20));
+  s3lab.style.transform=`translateX(${((1-li)*-40).toFixed(1)}px)`;
+  s3lab.style.opacity=clamp(p/0.06).toFixed(3);
+  s3num.style.opacity=clamp(p/0.10).toFixed(3);
+  s3cap.style.opacity=easeOut(clamp((p-0.14)/0.20)).toFixed(3);
+
+  if(k===0){
+    // the head travels on an ease; a ghost is dropped at every EVEN slice of time,
+    // so the marks crowd where it is slow — that is what spacing means
+    const e=bez(0.5,0,0.5,1);
+    const trav=clamp(p/0.78), x0=120, x1=884;
+    ghosts.forEach((gh,i)=>{
+      const f=i/(NG-1);
+      gh.style.left=px(lerp(x0,x1,e(f)));
+      gh.style.top=px(STG_T+60);
+      const on=clamp((trav-f)*9);
+      gh.style.opacity=(on*0.55).toFixed(3);
+      gh.style.transform=`scale(${lerp(0.7,1,on)})`;
+    });
+    s3head.style.left=px(lerp(x0,x1,e(trav)));
+    s3head.style.top=px(STG_T+60);
+    s3rule.style.opacity=easeOut(clamp(p/0.2)).toFixed(3);
+  }else if(k===1){
+    // a real weight demo: accelerate, squash on contact, follow through, settle
+    const per=0.92, ph=(p%per)/per;
+    const top0=STG_T-30, rest=FLOOR-BALL;
+    let y,sx=1,sy=1;
+    if(ph<0.34){                       // fall — gravity, so it accelerates
+      const f=ph/0.34; y=lerp(top0,rest,f*f);
+      sx=lerp(1,0.86,f*f); sy=lerp(1,1.18,f*f);          // stretch into the fall
+    }else if(ph<0.42){                 // contact — squash, and it stays low a beat
+      const f=(ph-0.34)/0.08, sN=Math.sin(f*Math.PI);
+      y=rest+sN*10; sx=1+sN*0.42; sy=1-sN*0.34;
+    }else if(ph<0.72){                 // the bounce, much lower than the drop
+      const f=(ph-0.42)/0.30, h=Math.sin(f*Math.PI)*230;
+      y=rest-h; sx=lerp(1,0.94,Math.sin(f*Math.PI)); sy=lerp(1,1.07,Math.sin(f*Math.PI));
+    }else if(ph<0.82){                 // second, small contact
+      const f=(ph-0.72)/0.10, sN=Math.sin(f*Math.PI);
+      y=rest+sN*4; sx=1+sN*0.16; sy=1-sN*0.13;
+    }else{                             // settle
+      const f=(ph-0.82)/0.18, h=Math.sin(f*Math.PI)*54;
+      y=rest-h;
     }
+    s3ball.style.left=px((W-BALL)/2); s3ball.style.top=px(y);
+    s3ball.style.transform=`scale(${sx.toFixed(3)},${sy.toFixed(3)})`;
+    s3ball.style.transformOrigin='center bottom';
+    const prox=clamp((y-top0)/(rest-top0));               // shadow reacts to height
+    const sw=lerp(90,196,prox);
+    s3shadow.style.width=px(sw); s3shadow.style.left=px((W-sw)/2);
+    s3shadow.style.top=px(FLOOR-8); s3shadow.style.opacity=(0.18+prox*0.40).toFixed(3);
+  }else{
+    // stagger with overshoot: the delay between elements is the whole point
+    const per=1.05, ph=(p%per)/per;
+    bars.forEach((b,i)=>{
+      const d=i*0.055;
+      const f=clamp((ph-d)/0.36);
+      const g=antic(f);
+      const h=lerp(26,300,g<0?0:g);
+      b.style.height=px(Math.max(18,h));
+      b.style.top=px(STG_B-Math.max(18,h));
+      b.style.opacity=(0.55+0.45*clamp(f*3)).toFixed(3);
+    });
   }
-  // hand-off: the specimens clear and the band dissolves into beat 4's panel
+
+  // hand-off: the band dissolves into beat 4's panel
   const eout=clamp((t-(B3[1]-PRE))/PRE);
   if(eout>0){
     const o=(1-easeInOut(eout)).toFixed(3);
     s3band.style.opacity=o; s3title.style.opacity=o; s3guides.style.opacity=o;
-    s3path.style.opacity=o;
     const oc=(1-easeOut(clamp(eout*1.5))).toFixed(3);
-    cells.forEach(c=>{c.g.style.opacity=oc; c.lab.style.opacity=oc;});
+    [g1,g2,g3,s3lab,s3num,s3cap].forEach(n=>n.style.opacity=oc);
   }else{
-    s3band.style.opacity='1'; s3guides.style.opacity='1'; s3path.style.opacity='1';
+    s3band.style.opacity='1'; s3guides.style.opacity='1';
   }
 }
 
 // =================================================================
-// BEAT 4 — the editor's hand: keyframes, a curve, the frame wakes up
+// BEAT 4 — the editor's hand. The curve gets dragged, and the dead post
+// comes apart into its layers and is rebuilt with real craft.
 // =================================================================
 const s4=scene('s4');
 const s4bg=el('div',s4,{position:'absolute',inset:'0',background:'var(--ink)'});
 paintBg(s4bg,'plate_ink.png');
 const s4body=el('div',s4,{position:'absolute',inset:'0'});
-const s4card=buildCard(s4body,520); s4card.root.style.left=px(280); s4card.root.style.top=px(330);
-const s4handles=buildHandles(s4body,280,330,520,520,14,'#EFE3CC');
-// graph editor panel
-const PX0=90, PY0=1020, PW=900, PH=470;
+
+const CS=600, CX=240, CY=286;
+const s4wrap=el('div',s4body,{position:'absolute',left:px(CX),top:px(CY),
+  width:px(CS),height:px(CS),perspective:'1500px'});
+const s4card=buildCard(s4wrap,CS,true);
+const s4handles=buildHandles(s4body,CX,CY,CS,CS,16,'#EFE3CC');
+
+const PX0=70, PY0=1090, PW=940, PH=470;
 const s4panel=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0),width:px(PW),height:px(PH),
   background:'#1E0C07',border:'1px solid rgba(239,227,204,0.16)'});
 paintBg(s4panel,'plate_ochre.png','100% 100%');
 const s4dark=el('div',s4panel,{position:'absolute',inset:'0',background:'var(--ink)'});
 s4.insertBefore(s4panel,s4body);
-const s4head=el('div',s4body,{position:'absolute',left:px(PX0+26),top:px(PY0+22),
-  color:'rgba(239,227,204,0.55)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
-// grid
-for(let i=1;i<6;i++){
-  el('div',s4body,{position:'absolute',left:px(PX0+1),top:px(PY0+80+i*54),width:px(PW-2),height:'1px',
+
+const s4head=el('div',s4body,{position:'absolute',left:px(PX0+30),top:px(PY0+26),
+  color:'rgba(239,227,204,0.62)',fontSize:'26px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
+for(let i=1;i<6;i++)
+  el('div',s4body,{position:'absolute',left:px(PX0+1),top:px(PY0+86+i*56),width:px(PW-2),height:'1px',
     background:'rgba(239,227,204,0.07)'});
-}
-const GX0=PX0+70, GY0=PY0+96, GW=PW-140, GH=286;
+
+const GX0=PX0+80, GY0=PY0+104, GW=PW-160, GH=296;
 const s4svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 s4svg.setAttribute('width',W); s4svg.setAttribute('height',H);
 Object.assign(s4svg.style,{position:'absolute',left:'0',top:'0',overflow:'visible'});
@@ -475,100 +468,102 @@ function mkPath(stroke,wid,dash){
   if(dash)p.setAttribute('stroke-dasharray',dash);
   s4svg.appendChild(p); return p;
 }
-const s4curve =mkPath('#EFE3CC',4);
-const s4hLine =mkPath('rgba(239,227,204,0.5)',2,'6 6');
-const s4kf1=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
+const s4curve=mkPath('#EFE3CC',7);
+const s4hLine=mkPath('rgba(239,227,204,0.5)',2,'8 8');
+const s4kf1=el('div',s4body,{position:'absolute',width:'28px',height:'28px',background:'var(--cream)',
   transform:'rotate(45deg)'});
-const s4kf2=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
+const s4kf2=el('div',s4body,{position:'absolute',width:'28px',height:'28px',background:'var(--cream)',
   transform:'rotate(45deg)'});
-const s4hDot=el('div',s4body,{position:'absolute',width:'20px',height:'20px',borderRadius:'50%',
-  background:'var(--signal)',border:'2px solid #EFE3CC'});
-const s4cursor=buildCursor(s4body);
-const s4note=el('div',s4body,{position:'absolute',color:'var(--cream)',fontSize:'26px',fontWeight:'600',
-  letterSpacing:'0.14em'},'');
-const s4tag=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0-58),color:'rgba(239,227,204,0.5)',
-  fontSize:'24px',fontWeight:'500',letterSpacing:'0.2em'},'');
+const s4hDot=el('div',s4body,{position:'absolute',width:'26px',height:'26px',borderRadius:'50%',
+  background:'var(--signal)',border:'3px solid #EFE3CC'});
+const s4cursor=buildCursor(s4body,1.25);
+const s4tag=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0-62),
+  color:'rgba(239,227,204,0.62)',fontSize:'28px',fontWeight:'600',letterSpacing:'0.2em'},'');
 
-// control points: linear -> ease-out
 const LIN=[0.33,0.33,0.66,0.66], EAS=[0.14,0.96,0.32,1.0];
+const backOut=bez(0.28,1.42,0.44,1);      // arrives past the mark, then settles
+
+// pull the post apart into its layers, then rebuild it with stagger + overshoot
+function cardBuild(card,q){
+  const L=card.layers, n=L.length;
+  const sep=easeInOut(clamp(q/0.30));
+  L.forEach((node,i)=>{
+    const c=i-(n-1)/2;
+    const asm=backOut(clamp((q-0.36-i*0.055)/0.40));
+    const k=sep*(1-asm);
+    node.style.transform=
+      `translate3d(${(c*46*k).toFixed(1)}px,${(-c*30*k).toFixed(1)}px,${(c*130*k).toFixed(1)}px)`+
+      ` rotateY(${(c*7*k).toFixed(2)}deg) rotateX(${(-c*3*k).toFixed(2)}deg)`;
+    node.style.opacity=(1-0.30*k).toFixed(3);
+  });
+}
+
 function renderS4(t,ein){
   const u=loc(t,B4[0],B4[1]);
   // MATCH CUT: the specimen band contracts into the graph editor panel
   const m=easeInOut(ein);
-  s4bg.style.opacity=(ein>=0.999?1:0);   // beat 3 hands the band over; nothing covers it
+  s4bg.style.opacity=(ein>=0.999?1:0);
   s4panel.style.left  =px(lerp(0,PX0,m));
   s4panel.style.top   =px(lerp(BAND_T,PY0,m));
   s4panel.style.width =px(lerp(W,PW,m));
   s4panel.style.height=px(lerp(BAND_H,PH,m));
-  s4dark.style.opacity=(0.10+0.86*m).toFixed(3);   // ochre paint darkens into the panel
+  s4dark.style.opacity=(0.10+0.86*m).toFixed(3);
   s4body.style.opacity=easeOut(clamp((ein-0.55)/0.45)).toFixed(3);
   if(ein<1) return;
-  // sub-phases
-  const pMove =clamp(u/0.14);              // cursor arrives at the card
-  const pSel  =clamp((u-0.12)/0.06);       // selection
-  const pKeys =clamp((u-0.20)/0.12);       // keyframes drop
-  const pDrag =clamp((u-0.34)/0.20);       // the drag  <-- the guitar bend
-  const pLoop =clamp((u-0.54)/0.02);       // card lives
 
-  // curve control points during drag
+  const pMove=clamp(u/0.10), pSel=clamp((u-0.09)/0.05);
+  const pKeys=clamp((u-0.16)/0.10);
+  const pDrag=clamp((u-0.28)/0.16);        // the bend lands here, 9.6s
+  const pB   =clamp((u-0.38)/0.42);        // take apart, put back together
+
   const d=easeInOut(pDrag);
   const cp=LIN.map((v,i)=>lerp(v,EAS[i],d));
   const f=bez(cp[0],cp[1],cp[2],cp[3]);
 
-  // draw curve across the graph
   let dd='';
   for(let i=0;i<=60;i++){
-    const x=i/60, y=f(x);
-    const X=GX0+x*GW, Y=GY0+GH-y*GH;
+    const x=i/60, X=GX0+x*GW, Y=GY0+GH-f(x)*GH;
     dd+=(i?' L ':'M ')+X.toFixed(1)+' '+Y.toFixed(1);
   }
   s4curve.setAttribute('d',dd);
   s4curve.style.opacity=pKeys>0.4?'1':'0';
 
-  // keyframes at both ends
-  s4kf1.style.left=px(GX0-11); s4kf1.style.top=px(GY0+GH-11);
-  s4kf2.style.left=px(GX0+GW-11); s4kf2.style.top=px(GY0-11);
-  const k1=easeOut(clamp(pKeys/0.5)), k2=easeOut(clamp((pKeys-0.35)/0.65));
-  s4kf1.style.opacity=k1.toFixed(3); s4kf1.style.transform=`rotate(45deg) scale(${lerp(0.3,1,k1)})`;
-  s4kf2.style.opacity=k2.toFixed(3); s4kf2.style.transform=`rotate(45deg) scale(${lerp(0.3,1,k2)})`;
+  s4kf1.style.left=px(GX0-14); s4kf1.style.top=px(GY0+GH-14);
+  s4kf2.style.left=px(GX0+GW-14); s4kf2.style.top=px(GY0-14);
+  const k1=backOut(clamp(pKeys/0.5)), k2=backOut(clamp((pKeys-0.35)/0.65));
+  s4kf1.style.opacity=k1.toFixed(3); s4kf1.style.transform=`rotate(45deg) scale(${lerp(0.2,1,k1)})`;
+  s4kf2.style.opacity=k2.toFixed(3); s4kf2.style.transform=`rotate(45deg) scale(${lerp(0.2,1,k2)})`;
 
-  // the tangent handle the cursor drags (out-handle of keyframe 1)
   const hx=GX0+cp[0]*GW, hy=GY0+GH-cp[1]*GH;
   s4hLine.setAttribute('d',`M ${GX0} ${GY0+GH} L ${hx.toFixed(1)} ${hy.toFixed(1)}`);
   s4hLine.style.opacity=pKeys>0.6?'1':'0';
-  s4hDot.style.left=px(hx-10); s4hDot.style.top=px(hy-10);
+  s4hDot.style.left=px(hx-13); s4hDot.style.top=px(hy-13);
   s4hDot.style.opacity=pKeys>0.6?'1':'0';
 
-  // cursor: to card, then to handle, then drags it
   let cx,cy;
-  if(u<0.18){ cx=lerp(980,600,easeOut(pMove)); cy=lerp(1560,690,easeOut(pMove)); }
-  else if(u<0.34){ const q=easeOut(clamp((u-0.18)/0.16)); cx=lerp(600,GX0+LIN[0]*GW,q); cy=lerp(690,GY0+GH-LIN[1]*GH,q); }
+  if(u<0.14){ cx=lerp(1000,560,easeOut(pMove)); cy=lerp(1600,620,easeOut(pMove)); }
+  else if(u<0.28){ const q=easeOut(clamp((u-0.14)/0.14));
+                   cx=lerp(560,GX0+LIN[0]*GW,q); cy=lerp(620,GY0+GH-LIN[1]*GH,q); }
   else { cx=hx; cy=hy; }
   s4cursor.style.left=px(cx); s4cursor.style.top=px(cy);
-
-  // selection handles appear on click
   s4handles.style.opacity=(pSel>0?1:0).toFixed(3);
 
-  // annotations
-  if(u<0.20){ s4tag.textContent=''; }
-  else if(u<0.34){ s4tag.textContent='KEYFRAME  ·  KEYFRAME'; }
-  else if(u<0.54){ s4tag.textContent='DRAG THE EASE'; }
-  else { s4tag.textContent='THIS IS THE JOB'; }
-  s4tag.style.opacity=u>0.2?'0.75':'0';
+  s4tag.textContent = u<0.16 ? '' : u<0.28 ? 'TWO KEYFRAMES'
+                    : u<0.38 ? 'DRAG THE EASE' : u<0.80 ? 'IT IS MADE OF LAYERS' : 'THIS IS THE JOB';
+  s4tag.style.opacity=u>0.16?'0.8':'0';
 
-  // the card: dead until the drag, then alive on the curve being built
-  if(pDrag<=0){
-    animateCard(s4card,0,linearF);
-  }else if(pDrag<1){
-    animateCard(s4card,pDrag,f);      // it eases as the curve is dragged
+  if(pB<=0){
+    cardBuild(s4card,0);
+    animateCard(s4card,pDrag>0?pDrag:0,f);
+  }else if(pB<1){
+    cardBuild(s4card,pB);
+    animateCard(s4card,clamp((pB-0.34)/0.5),f);
   }else{
-    const per=1.9;
-    const ph=((t-(B4[0]+0.54*(B4[1]-B4[0])))%per)/per;
+    cardBuild(s4card,1);
+    const per=1.9, ph=((t-(B4[0]+0.80*(B4[1]-B4[0])))%per)/per;
     animateCard(s4card,clamp(ph/0.62),f);
   }
-  // a soft glow on the panel as the ease lands
   s4panel.style.borderColor=`rgba(140,42,17,${(0.16+d*0.7).toFixed(2)})`;
-  s4note.style.opacity='0';
 }
 
 // =================================================================
@@ -589,9 +584,18 @@ const HX=40, HY=566, HW=1020, HH=764;   // where the curve ends up, full frame
 
 const HERO=[['SOMEONE',112],['HAS TO DECIDE',112],['HOW THINGS',112],['MOVE.',196]];
 const HERO_Y=[520,660,800,940];
-const heroLines=HERO.map((h,i)=>el('div',s5,{position:'absolute',left:px(72),top:px(HERO_Y[i]),
-  color:i===3?'var(--signal)':'var(--cream)',fontSize:px(h[1]),fontWeight:i===3?'900':'800',
-  letterSpacing:'-0.045em',lineHeight:'1',whiteSpace:'nowrap'},h[0]));
+// every letter is its own masked layer, so the line can be played rather than faded
+const heroLines=HERO.map((h,i)=>{
+  const line=el('div',s5,{position:'absolute',left:px(72),top:px(HERO_Y[i]),
+    display:'flex',alignItems:'flex-start',whiteSpace:'pre'});
+  line._chars=[...h[0]].map(ch=>{
+    const mask=el('div',line,{overflow:'hidden',display:'block'});
+    return el('div',mask,{color:i===3?'var(--signal)':'var(--cream)',fontSize:px(h[1]),
+      fontWeight:i===3?'900':'800',letterSpacing:'-0.045em',lineHeight:'1.06',
+      whiteSpace:'pre'},ch);
+  });
+  return line;
+});
 // selection handles around MOVE. — the word is an object on the canvas
 const s5sel=el('div',s5,{position:'absolute',inset:'0'});
 // the dot rides the curve IN FRONT of the type: depth without hiding a single letter
@@ -621,15 +625,20 @@ function renderS5(t,ein){
     return;
   }
 
-  heroLines.forEach((el_,i)=>{
-    const a=easeOut(clamp((u-0.06-i*0.05)/0.20));
-    el_.style.opacity=a.toFixed(3);
-    if(i===3 && u>0.42){
+  heroLines.forEach((line,i)=>{
+    const n=line._chars.length;
+    const base=0.05+i*0.055;
+    line._chars.forEach((ch,k)=>{
+      // each letter climbs out from behind its own mask, one after the next
+      const f=clamp((u-base-k*0.016)/0.16);
+      const g=(i===3?backOut5:easeOut)(f);
+      ch.style.transform=`translateY(${((1-g)*104).toFixed(2)}%)`;
+    });
+    line.style.opacity=clamp((u-base+0.04)*20).toFixed(3);
+    if(i===3 && u>0.46){
       // MOVE. is the only word that keeps moving, because it has to
-      const drift=Math.sin((u-0.42)*Math.PI*2.0)*9;
-      el_.style.transform=`translate(${drift.toFixed(2)}px,0)`;
-    }else{
-      el_.style.transform=`translateY(${((1-a)*54).toFixed(2)}px)`;
+      const drift=Math.sin((u-0.46)*Math.PI*2.0)*9;
+      line.style.transform=`translate(${drift.toFixed(2)}px,0)`;
     }
   });
 
@@ -665,11 +674,21 @@ const s6name=el('div',s6,{position:'absolute',left:px(78),top:px(560),color:'var
   fontSize:'186px',fontWeight:'900',letterSpacing:'-0.055em',lineHeight:'1'},'teti.');
 const s6l1=el('div',s6,{position:'absolute',left:px(84),top:px(790),color:'var(--ink)',
   fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'},'I DECIDE HOW');
-const s6l2=el('div',s6,{position:'absolute',left:px(84),top:px(902),color:'var(--ink)',
-  fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'},'THINGS MOVE.');
+const s6l2=el('div',s6,{position:'absolute',left:px(84),top:px(902),display:'flex',
+  whiteSpace:'pre',color:'var(--ink)',
+  fontSize:'104px',fontWeight:'700',letterSpacing:'-0.04em',lineHeight:'1.06'});
+el('div',s6l2,{},'THINGS ');
+const s6move=el('div',s6l2,{},'MOVE.');
 const s6rule2=el('div',s6,{position:'absolute',left:px(84),top:px(1120),height:'1px',background:'rgba(43,16,10,0.3)'});
 const s6foot=el('div',s6,{position:'absolute',left:px(84),top:px(1160),color:'rgba(43,16,10,0.6)',
   fontSize:'30px',fontWeight:'500',letterSpacing:'0.28em'},'NEW STUDY WEEKLY');
+// the last word does what it says — the cursor comes back for it
+const s6sel=el('div',s6,{position:'absolute',inset:'0'});
+const s6cursor=buildCursor(s6,1.15);
+const backOut6=bez(0.24,1.52,0.4,1);
+// the canvas turns back over, so the last frame matches the first and the Reel loops clean
+const s6wipe=el('div',s6,{position:'absolute',inset:'0',background:'var(--ink)'});
+paintBg(s6wipe,'plate_ink.png');
 function renderS6(t,ein){
   const u=loc(t,B6[0],B6[1]);
   s6.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px)`;
@@ -682,17 +701,39 @@ function renderS6(t,ein){
     n.style.opacity=a.toFixed(3);
   });
   s6rule2.style.width=px(easeOut(clamp((u-0.3)/0.25))*912);
+  // --- the joke: it says MOVE, so it moves ------------------------------
+  const j=clamp((u-0.46)/0.42);
+  const q1=clamp((j-0.26)/0.26), q2=clamp((j-0.56)/0.34);
+  const mx = q2>0 ? 132*(1-backOut6(q2)) : 132*antic(q1);
+  s6move.style.transform=`translateX(${mx.toFixed(1)}px)`;
+
+  const rr=s6move.getBoundingClientRect();
+  const tx=rr.right-30, ty=rr.top+rr.height*0.66;
+  const inn=easeOut(clamp(j/0.18));
+  s6cursor.style.left=px(lerp(1120,tx,inn));
+  s6cursor.style.top =px(lerp(1760,ty,inn));
+  s6cursor.style.opacity=(j>0.02?clamp((0.97-j)*12):0).toFixed(3);
+
+  s6sel.innerHTML='';
+  if(j>0.14 && j<0.96){
+    buildHandles(s6sel,rr.left-16,rr.top+6,rr.width+32,rr.height-14,13,'rgba(43,16,10,0.8)');
+    s6sel.style.opacity=(easeOut(clamp((j-0.14)/0.10))*clamp((0.94-j)*10)).toFixed(3);
+  }
+
+  const w=easeInOut(clamp((u-0.855)/0.10));   // finish early: motion blur smears the last edge
+  s6wipe.style.transform=`translateY(${((1-w)*H).toFixed(1)}px)`;
 }
 
 // =================================================================
 // master
 // =================================================================
 // the type is painted, not printed
+s6.appendChild(s6wipe);   // keep the loop wipe on top of everything in beat 6
 [s1still,s1dot,s1meta,s2kicker,s2l1,s2motion,s2l3,s2q,s3title,
  s4head,s4tag,s6kick,s6name,s6l1,s6l2,s6foot]
   .forEach(e=>e.classList.add('pt'));
 heroLines.forEach(e=>e.classList.add('pt'));
-cells.forEach(c=>c.lab.classList.add('pt'));
+[s3lab,s3num,s3cap].forEach(e=>e.classList.add('pt'));
 s2ghosts.forEach(e=>e.classList.add('pt'));
 
 // the canvas the whole film sits on
