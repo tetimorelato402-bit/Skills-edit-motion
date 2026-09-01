@@ -54,8 +54,10 @@ Preview a few frames instead of the whole film while iterating:
   (16.0) and the loop point sit on quarter notes, and every cut lands one sixteenth after a
   quarter, the same push each time. The guitar bend became a **synth glide whose pitch follows
   the exact easeInOut of the drag (9.32→9.96 s)**. Drums sit on the grid; every other cue sits
-  on its motion. If a beat moves in `video.html`, mirror the constant in `sound.py` and re-run
-  it — the cues follow.
+  on its motion. Under it all, very low, a jazz bed: upright bass, Rhodes voicings, a swung
+  ride, with the hats on the swung skip — the V→i resolves on 9.6, so the bend lands on a chord
+  change. If a beat moves in `video.html`, mirror the constant in `sound.py` and re-run it —
+  the cues follow.
 - **The palette is derived, not chosen.** It was extracted from teti's oil portrait
   (`brand/portrait-source.png`) by k-means. Colour may move in *value*; it must not leave
   the warm family.
@@ -99,11 +101,14 @@ Preview a few frames instead of the whole film while iterating:
 - **Re-render a range, not the film.** `render.py --start 438 --end 508` overwrites just those
   frames in place; a transition fix is ~1 minute instead of 40.
 - **A sound change is a remux, not a render.** `python3 sound.py` takes two seconds; then
-  `ffmpeg -i study-001-v7.mp4 -i sound.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k
+  `ffmpeg -i study-001-v8.mp4 -i sound.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k
   -movflags +faststart -shortest out.mp4` swaps the track without touching the picture.
   Check loudness with `ffmpeg -i out.mp4 -af ebur128=peak=true -f null -`: the film sits at
-  **−16.8 LUFS integrated, true peak −0.9 dBFS**. Reels normalise to about −14, so do not
+  **−16.6 LUFS integrated, true peak −1.3 dBFS**. Reels normalise to about −14, so do not
   chase loudness; do keep true peak under −1 dB or the AAC encode clips the kicks.
+- **In `sound.py`, note names must not shadow the beats.** `B2` and `B3` are beat tuples, so
+  B natural is `Bn2`/`Bn3`. (The first jazz pass redefined `B2` as 123.47 Hz and every
+  `B2[0]` downstream became "float is not subscriptable".)
 - **Two transients closer than ~35 ms fuse; 100–250 ms apart they flam.** When a drum hit
   and a motion cue nearly coincide, put the drum exactly on the motion (the bar-3 downbeat
   *is* the ball's second bounce at 6.417) rather than on the grid next to it.

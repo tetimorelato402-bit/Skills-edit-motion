@@ -18,6 +18,13 @@ the sounds move with it. Run it after any timing change:
     python3 sound.py              # writes sound.wav next to this file
     python3 sound.py out.wav
 
+Underneath, very low, there is a jazz bed — teti's ask after hearing v7. An upright
+bass walks the six bars, a Rhodes comps rootless voicings (Dm9, Gm9, C9, Bbmaj9,
+Em7b5, A7b9, Dm6/9) on pushed beats, and a soft ride marks the quarters while the
+hats sit on the swung skip — so the beat swings rather than fights it. The harmony
+is a descending minor line (Dm — Gm — C — Bb — A7) that resolves V→i on the downbeat
+of bar 4, which is 9.6: the bend lands on a chord change, not just a beat.
+
 Instruments are synthesised from noise and sines — there are no samples. The
 palette is deliberately warm and dry (the film is an oil painting, not a screen):
 kicks are round, hats are paper-dry, the "bend" is a saturated sawtooth whose
@@ -98,6 +105,7 @@ def put(sig,t,pan=0.0,gain=1.0):
     """equal-power pan, -1 left … +1 right"""
     a=(pan+1)*np.pi/4
     place(L,sig*gain*np.cos(a),t); place(R,sig*gain*np.sin(a),t)
+def put_st(l,r,t,gain=1.0): place(L,l*gain,t); place(R,r*gain,t)
 
 # ---- instruments -----------------------------------------------------------
 def click(dur=0.035,tau=0.12,k=6,gain=1.0):
@@ -211,6 +219,37 @@ def pad(freqs,dur,gain=1.0,atk=0.9,rel=1.2):
             s+=np.sin(2*np.pi*ff*t+rng.random()*6.28)*(1+0.25*np.sin(2*np.pi*0.27*t+rng.random()*6))
     e=np.clip(np.minimum(t/atk,(dur-t)/rel),0,1)
     return ma(s,3)*e*gain/len(freqs)
+# ---- the jazz bed ----------------------------------------------------------
+def rhodes(freqs,dur,gain=1.0):
+    """an electric piano: sine plus bell partials that die first, a little bark on the
+    attack, and a slow stereo tremolo — returns (left, right)"""
+    n=secs(dur); t=tvec(n); s=np.zeros(n)
+    for f in freqs:
+        ph=2*np.pi*f*t+rng.random()*6.28
+        s+=np.sin(ph)+0.32*np.sin(2*ph)*np.exp(-t*3.2)+0.10*np.sin(3*ph)*np.exp(-t*5)+0.05*np.sin(4*ph)*np.exp(-t*7)
+    e=np.minimum(1,t/0.010)*np.exp(-t/(dur*0.42))
+    s=s*e*gain/len(freqs)
+    lfo=np.sin(2*np.pi*4.3*t+rng.random()*6.28)
+    return s*(1+0.45*lfo)*0.72, s*(1-0.45*lfo)*0.72
+def upright(freq,dur=0.9,gain=1.0):
+    """a plucked upright: a warm fundamental, partials fading fast, the finger on the string"""
+    n=secs(dur); t=tvec(n); ph=2*np.pi*freq*t
+    body=np.sin(ph)+0.5*np.sin(2*ph)*np.exp(-t*4)+0.22*np.sin(3*ph)*np.exp(-t*6)+0.08*np.sin(4*ph)*np.exp(-t*9)
+    e=np.minimum(1,t/0.006)*np.exp(-t/(dur*0.36))
+    finger=hp(rng.standard_normal(secs(0.022)),3)*env_exp(secs(0.022),0.3)*0.22
+    return mix(body*e,finger)*gain
+def ride(gain=1.0):
+    """a ride cymbal, played light: inharmonic partials with a long shimmer"""
+    n=secs(1.0); t=tvec(n); s=np.zeros(n)
+    for f,a,d in [(3050,1.0,1.7),(4620,0.7,2.1),(6280,0.5,2.7),(8870,0.3,3.4),(1740,0.35,1.3),(5510,0.4,2.4)]:
+        s+=np.sin(2*np.pi*f*t+rng.random()*6.28)*a*np.exp(-t*d)
+    s+=hp(rng.standard_normal(n),2)*env_exp(n,0.04)*0.9
+    return s*np.minimum(1,t/0.002)*gain/3.3
+def brush_swirl(dur=0.75,gain=1.0):
+    """brushes circling on a snare head: a soft band of noise that swells and goes"""
+    n=secs(dur); x=hp(ma(rng.standard_normal(n),3),14)
+    return x*np.sin(np.pi*np.linspace(0,1,n))**1.5*gain
+
 def glide(f0,f1,t_glide,sustain,release,gain=1.0,curve=easeInOut,sat=1.8,vib=0.006):
     """THE BEND. Pitch travels f0→f1 along `curve` over t_glide seconds — the exact
     easing the cursor drags the ease curve to — then holds with a slow vibrato and
@@ -239,7 +278,9 @@ def sine_glide(f0,f1,dur,gain=1.0,curve=fE,span=1.0):
     return s*np.clip(e,0,1)*gain
 
 # ---- notes -----------------------------------------------------------------
-D2=73.42; Bb1=58.27; D3=146.83; F3=174.61; A3=220.0; Bb2=116.54; D4=293.66
+A1=55.0; Bb1=58.27; D2=73.42; E2=82.41; F2=87.31; G2=98.0; A2=110.0; Bb2=116.54; Bn2=123.47   # Bn = B natural (B2, B3 are the beats)
+C3=130.81; Cs3=138.59; D3=146.83; E3=164.81; F3=174.61; G3=196.0; A3=220.0; Bb3=233.08; Bn3=246.94
+C4=261.63; Cs4=277.18; D4=293.66; E4=329.63
 F4=349.23; G4=392.0; A4=440.0; C5=523.25; D5=587.33; F5=698.46
 
 # ============================================================================
@@ -260,35 +301,70 @@ drum_kick(2.596,0.95)                                  # MOTION lands (the "e" o
 # bar 2 (3.2–6.4) — the anatomy: the groove fills in
 drum_kick(3.20,0.8)
 drum_kick(4.20)                                        # the paint wipe lands: pushed kick
-for t in [4.4,5.2,5.6,6.8,7.2,7.6]: drum_hat(t)
+# the hats sit on the swung skip (beat + 2/3), the jazz way, so they ride with the bed
+SW=Q*2/3
+for t in [4.0+SW,5.6+SW,7.2+SW]: drum_hat(t)
 drum_snare(4.80); drum_snare(8.00)
-drum_kick(6.417,0.9)                                   # bar 3 downbeat IS the ball's second bounce
+drum_kick(6.417,0.9,Bb1)                               # bar 3 downbeat IS the ball's second bounce
 # bar 3 (6.4–9.6) → the editor's hand: thin it out so the clicks read
-drum_kick(8.20)                                        # the match cut
-drum_kick(8.80,0.55)
+drum_kick(8.20,1.0,A1)                                 # the match cut (over the A7)
+drum_kick(8.80,0.55,A1)
 # bar 4 (9.6–12.8) — the bend on the downbeat, then the layers fly
 drum_kick(9.60,1.0)
-for t in [10.0,10.4,10.8,11.6,12.0]: drum_hat(t)
+for t in [10.4+SW,12.0+SW]: drum_hat(t)
 drum_snare(11.20)
 put(rim(0.35),11.40,-0.2)                              # "THIS IS THE JOB"
 drum_kick(12.20)                                       # the curve fills the frame
 # bar 5 (12.8–16.0) — the hero line
 drum_kick(12.80,0.9,Bb1); drum_kick(13.60,0.55,Bb1); drum_kick(14.80,0.7,Bb1)
-for t in [13.0,13.4,13.8,14.2,15.0]: drum_hat(t)
-drum_hat(14.6,1.0,True); drum_hat(15.4,1.0,True)
+drum_hat(12.8+SW); drum_hat(13.6+SW,1.0,True); drum_hat(14.4+SW)
 drum_snare(14.40)
 drum_kick(15.80,0.9)                                   # the page lands ("a" of 4)
 # bar 6 (16.0–19.2) — the end card; the beat resolves and stops before the loop
 drum_kick(16.00,1.0)
-for t in [16.4,16.8,17.2]: drum_hat(t)
+for t in [16.0+SW,16.8+SW]: drum_hat(t)
 drum_snare(17.60,0.9)                                  # the cursor selects MOVE.
+# the ride marks the quarters where the kick and the film leave room
+RD=0.040
+for t in [4.0,4.8,5.6,7.2,8.0,10.4,12.0,13.6,15.2,16.8,17.6]: put(ride(RD),t,0.45)
 # (18.0 and 18.3 belong to the joke — see beat 6 below)
 
 # the room: a warm, quiet bed so the dry hits have somewhere to land
-put(pad([D3,A3,F4],  8.0, 0.040), 1.6)                 # D minor, bars 1–3
-put(pad([D3,A3,F4],  3.3, 0.055), 9.5)                 # bar 4 — opens a little under the bend
-put(pad([Bb2,F3,D4], 3.3, 0.055), 12.7)                # bar 5 — the lift
-put(pad([D3,A3,F4],  2.9, 0.045,0.6,1.0), 15.9)        # bar 6 — home, gone before the loop
+put(pad([D3,A3,F4],  8.0, 0.024), 1.6)                 # D minor, bars 1–3 (the Rhodes carries the harmony now)
+put(pad([D3,A3,F4],  3.3, 0.034), 9.5)                 # bar 4 — opens a little under the bend
+put(pad([Bb2,F3,D4], 3.3, 0.034), 12.7)                # bar 5 — the lift
+put(pad([D3,A3,F4],  2.9, 0.028,0.6,1.0), 15.9)        # bar 6 — home, gone before the loop
+
+# ---- THE JAZZ BED — very low, under everything -------------------------------
+# harmony, one descending line home: | Dm9 | Gm9  C9 | Bbmaj9  A7b9 | Dm9 | Gm9  Em7b5 A7b9 | Dm6/9 |
+# the V (A7b9, 8.0) resolves to the i (Dm9) on 9.6 — the bend arrives on a chord change.
+KEYS=0.052
+CH={ 'Dm9'  :[F3,A3,C4,E4],  'Dm11' :[A3,C4,E4,G3*2], 'Gm9':[Bb3,D4,F3*2,A3*2],
+     'C9'   :[E3,Bb3,D4,A3*2],'Bbmaj9':[A3,C4,D4,F3*2], 'Em7b5':[G3,Bb3,D4,E4],
+     'A7b9' :[G3,Bb3,Cs4,E4], 'Dm69' :[F3,A3,Bn3,E4],   'Dm9hi':[C4,E4,F3*2,A3*2] }
+for t,name,dur,g in [
+    (1.60,'Dm9',  1.4,1.0),  (3.00,'Gm9',  1.6,0.9),   # pushed into bar 2
+    (4.80,'C9',   1.5,0.9),  (6.40,'Bbmaj9',1.5,0.9),
+    (8.00,'A7b9', 1.5,1.0),  (9.60,'Dm9',  2.0,1.0),   # the resolution, under the bend
+    (11.40,'Dm11',1.2,0.8),  (12.80,'Gm9', 1.5,0.9),
+    (14.40,'Em7b5',0.8,0.9), (15.20,'A7b9',0.8,0.9),
+    (16.00,'Dm69',1.8,1.0),  (17.60,'Dm9hi',1.1,0.7),
+]:
+    l,r=rhodes(CH[name],dur,KEYS*g); put_st(l,r,t)
+
+# the upright walks in quarters, rests where the film wants quiet, and takes
+# three chromatic pickups on the swung skip
+UB=0.15
+WALK=[(1.6,D2,1.0),(2.4,F2,0.8),
+      (3.2,G2,1.0),(4.0,Bb2,0.9),(4.0+SW,Bn2,0.5),(4.8,C3,1.0),(5.6,E2,0.9),
+      (6.4,Bb2,1.0),(7.2,F2,0.9),(8.0,A2,1.0),(8.0+SW,C3,0.5),(8.8,Cs3,0.9),
+      (9.6,D2,1.0),(10.4,A2,0.9),(11.2,F2,0.9),(12.0,E2,0.9),
+      (12.8,G2,1.0),(13.6,Bb2,0.9),(13.6+SW,F2,0.5),(14.4,E2,1.0),(15.2,A2,1.0),
+      (16.0,D2,1.0),(16.8,A2,0.9),(17.6,F2,0.9),(18.298,D2,0.7)]
+for t,f,g in WALK: put(upright(f,0.9 if g>0.6 else 0.3,UB*g),t,-0.15)
+
+# brushes on the snare head through the hero line — the ballad half of the film
+for t in [12.8,14.4,16.0]: put(brush_swirl(0.9,0.030),t-0.05,0.2)
 
 # ============================================================================
 # THE SOUNDS OF MOTION — every cue sits on the frame where the motion happens
@@ -452,7 +528,7 @@ out[:, :fade]*=np.linspace(0,1,fade); out[:,-fade:]*=np.linspace(1,0,fade)
 peak=np.abs(out).max()
 out=out/peak
 out=np.tanh(out*1.25)/np.tanh(1.25)                     # a little glue on the loud hits
-out=out/np.abs(out).max()*0.84                          # ≈ −1 dBTP after the inter-sample peaks
+out=out/np.abs(out).max()*0.80                          # ≈ −1 dBTP after the inter-sample peaks
 pcm=(np.clip(out.T,-1,1)*32767).astype('<i2')
 
 P=sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(os.path.abspath(__file__)),'sound.wav')
