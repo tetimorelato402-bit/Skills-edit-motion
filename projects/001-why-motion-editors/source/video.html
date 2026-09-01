@@ -31,6 +31,17 @@
     <feDisplacementMap in="SourceGraphic" in2="n" scale="6"
                        xChannelSelector="R" yChannelSelector="G"/>
   </filter>
+  <!-- grain dissolve: the frame breaks up through the tooth of the canvas
+       rather than fading. Sweeping `intercept` thresholds the noise. -->
+  <filter id="dissolve" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.14" numOctaves="3" seed="17" result="n"/>
+    <feColorMatrix in="n" type="matrix" result="a"
+      values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  1 0 0 0 0"/>
+    <feComponentTransfer in="a" result="m">
+      <feFuncA id="dissolveFn" type="linear" slope="12" intercept="-12"/>
+    </feComponentTransfer>
+    <feComposite in="SourceGraphic" in2="m" operator="in"/>
+  </filter>
 </defs></svg>
 <div id="stage"></div>
 <script>
@@ -94,7 +105,10 @@ const B4=[8.2 ,12.2];    // the editor's hand   <- guitar bend lands ~9.4s
 const B5=[12.2,15.8];    // hero line
 const B6=[15.8,19.2];    // end card
 const DUR=19.2;
-const PRE=0.26;                      // transition overlap, seconds
+const PRE=0.26;                      // default transition overlap, seconds
+// per-scene overlap: the dissolve and the paint wipe need room to be read
+const PRES=[0, 0.40, 0.44, PRE, PRE, PRE];
+const dissolveFn=document.getElementById('dissolveFn');
 
 // =================================================================
 // SHARED: the "generic brand post" card, dead or alive
@@ -241,8 +255,17 @@ const s2q=el('div',s2,{position:'absolute',left:px(84),top:px(1520),color:'rgba(
 const MOTION_Y=596;
 function renderS2(t,ein){
   const u=loc(t,B2[0],B2[1]);
-  // the cream page pushes up over STILL. — then breathes in very slowly
-  s2.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px) scale(${(1+u*0.018).toFixed(4)})`;
+  // GRAIN DISSOLVE: the still frame breaks up through the tooth of the canvas
+  s2.style.transform=`scale(${(1+u*0.018).toFixed(4)})`;
+  if(ein<1){
+    // the noise lives between ~0.15 and ~0.85, so sweep the threshold across exactly
+    // that band (measured: coverage 0→1 over intercept −9.8→−1.2); a wider sweep
+    // spends most of the window invisible and the dissolve collapses into a cut
+    dissolveFn.setAttribute('intercept', lerp(-9.8,-1.2,ein).toFixed(3));
+    s2.style.filter='url(#dissolve)';
+  }else if(s2.style.filter!=='none'){
+    s2.style.filter='none';            // drop the full-frame filter once it has landed
+  }
   // rule draws in
   s2rule.style.width=px(easeOut(clamp(u/0.18))*912);
   s2kicker.style.opacity=clamp(u/0.06).toFixed(3);
@@ -332,6 +355,45 @@ for(let i=0;i<NB;i++)
   bars.push(el('div',g3,{position:'absolute',left:px(bx0+i*(BW+BG)),width:px(BW),
     background:'var(--cream)'}));
 
+// PAINT WIPE. The whole beat-3 frame — its own ground included, so the wipe
+// reveals a painting, not a band floating over the cream page — sits in a wrapper
+// that is clipped by a polygon whose right edge is a bristled brush front.
+// (An image mask would be the obvious tool; headless Chromium will not paint an
+// element masked with a url() image, and a displacement filter bends the content
+// as well as the edge. A clip-path polygon keeps the type crisp.)
+const s3inner=el('div',null,{position:'absolute',inset:'0',background:'var(--ink)'});
+paintBg(s3inner,'plate_ink.png');
+while(s3.firstChild) s3inner.appendChild(s3.firstChild);
+s3.appendChild(s3inner);
+
+// the brush front, as x-offsets down the frame: long waves, fine bristle noise,
+// and a few rows where the paint drags much further than its neighbours
+const WIPE_STEP=6;
+const WIPE_EDGE=(()=>{
+  let seed=23; const rnd=()=>{ seed=(seed*1103515245+12345)&0x7fffffff; return seed/0x7fffffff; };
+  const n=Math.floor(H/WIPE_STEP)+1, raw=[], fine=[], tips=[];
+  for(let i=0;i<n;i++) raw.push(rnd()*2-1);
+  for(let i=0;i<n;i++){ let a=0,c=0; for(let k=-4;k<=4;k++){ const j=i+k; if(j>=0&&j<n){a+=raw[j];c++;} } fine.push(a/c*3); }
+  for(let i=0;i<n;i++) tips.push(rnd()*2-1);
+  const out=[];
+  for(let i=0;i<n;i++){
+    const y=i*WIPE_STEP;
+    let x= 74*Math.sin(y*0.0122+1.1) + 42*Math.sin(y*0.0339+0.4) + 19*Math.sin(y*0.0871+2.7);
+    x+= fine[i]*46;
+    const tp=(tips[i]+ (tips[i-1]||0) + (tips[i+1]||0))/3;
+    if(tp>0.55) x+=(tp-0.55)*420;                       // long dragged tips
+    out.push(x);
+  }
+  return out;
+})();
+const WIPE_MIN=Math.min(...WIPE_EDGE), WIPE_MAX=Math.max(...WIPE_EDGE);
+function wipeClip(front){
+  const pts=['0px 0px'];
+  for(let i=0;i<WIPE_EDGE.length;i++) pts.push(`${(front+WIPE_EDGE[i]).toFixed(1)}px ${i*WIPE_STEP}px`);
+  pts.push(`${(front+WIPE_EDGE[WIPE_EDGE.length-1]).toFixed(1)}px ${H}px`, `0px ${H}px`);
+  return `polygon(${pts.join(',')})`;
+}
+
 const STUDIES=[
   ['SPACING','01 / 03','even in time, uneven in space',g1],
   ['WEIGHT' ,'02 / 03','it squashes because it is heavy',g2],
@@ -342,7 +404,13 @@ const backOut5=bez(0.22,1.36,0.36,1); // the payoff word overshoots its mark
 
 function renderS3(t,ein){
   const u=loc(t,B3[0],B3[1]);
-  s3.style.transform=`translateX(${((1-easeOut(ein))*W).toFixed(1)}px)`;
+  // a loaded brush is dragged across and beat 3 is revealed in its wake
+  if(ein<1){
+    const front=lerp(-WIPE_MAX-4, W-WIPE_MIN+4, easeInOut(ein));
+    s3inner.style.clipPath=wipeClip(front);
+  }else if(s3inner.style.clipPath!=='none'){
+    s3inner.style.clipPath='none';
+  }
   s3title.style.opacity=easeOut(clamp(u/0.08)).toFixed(3);
 
   // which study is on, and how far through it
@@ -788,7 +856,7 @@ const SCENES=[[B1,s1,renderS1],[B2,s2,renderS2],[B3,s3,renderS3],
 window.renderFrame=function(t){
   t=Math.max(0,Math.min(DUR-0.001,t));
   SCENES.forEach(([b,node,fn],i)=>{
-    const pre = i>0 ? PRE : 0;
+    const pre = PRES[i];
     const on = t>=b[0]-pre && t<b[1];
     node.classList.toggle('on',on);
     if(on) fn(t, clamp((t-(b[0]-pre))/(pre||1)));

@@ -107,3 +107,42 @@ s.paste(I.open(f"{OUT}/weave.png").resize((236,236)),(502,186))
 s.paste(I.open(f"{OUT}/plate_ink.png").crop((300,600,540,840)),(748,10))
 s.paste(I.open(f"{OUT}/plate_paper.png").crop((300,600,540,840)),(748,254))
 s.save(f"{OUT}/preview.png"); print("plates rebuilt")
+
+# --- the paint wipe matte ---------------------------------------------------
+# A mask whose left half is opaque and right half clear, with a ragged, bristled
+# boundary. Sliding it across an element reveals that element as if a loaded brush
+# were dragged over it.
+# NOT used by video.html: headless Chromium will not paint an element masked with a
+# url() image (see CLAUDE.md gotchas), so the film builds the same edge procedurally
+# from a gradient mask + displacement filter. Kept because it is a ready-made matte
+# for the same wipe in Resolve/Fusion.
+def wipe_mask(w, h, seed=23):
+    rng = np.random.default_rng(seed)
+    y = np.arange(h)
+    edge = (w/2
+            + 74*np.sin(y*0.0122 + 1.1)
+            + 42*np.sin(y*0.0339 + 0.4)
+            + 19*np.sin(y*0.0871 + 2.7))
+    # bristles: some rows carry paint much further than their neighbours
+    fine = rng.normal(0, 1, h)
+    fine = np.convolve(fine, np.ones(9)/9, mode='same')
+    edge += fine * 46
+    tips = rng.normal(0, 1, h)
+    tips = np.convolve(tips, np.ones(3)/3, mode='same')
+    edge += np.where(tips > 1.05, (tips - 1.05) * 150, 0)      # long dragged tips
+    # feather varies per row: a real edge is crisp in places, dry-brushed in others
+    feather = 14 + 30*(0.5 + 0.5*np.sin(y*0.0207 + 0.9)) + np.abs(fine)*16
+    x = np.arange(w)[None, :]
+    a = np.clip((edge[:, None] - x) / feather[:, None], 0, 1)
+    # break up the trailing edge so it reads as bristle, not a gradient
+    tex = rng.normal(0, 1, (h, w))
+    tex = np.asarray(Image.fromarray(((tex - tex.min())/np.ptp(tex)*255).astype(np.uint8))
+                     .filter(ImageFilter.GaussianBlur(1.1))).astype(float)/255.0
+    band = 1 - np.abs(a - 0.5)*2                                # strongest mid-edge
+    a = np.clip(a + (tex - 0.5) * 0.85 * band, 0, 1)
+    alpha = (a*255).astype(np.uint8)
+    rgb = np.full((h, w, 3), 255, np.uint8)
+    Image.fromarray(np.dstack([rgb, alpha]), 'RGBA').save(f"{OUT}/wipe_mask.png")
+
+wipe_mask(2160, 1920)
+print("wipe mask written")

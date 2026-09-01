@@ -44,10 +44,21 @@ The fix, now in place:
 - **The end card jokes**: the cursor returns, handles snap around MOVE., and it slides out of
   the sentence and springs home.
 
+Two later passes, both at teti's request:
+- **The signature resolves into the mark.** "teti." cycles through eleven typefaces — serif,
+  grotesk, mono, script, slab — each hold a little longer than the last, settles on Inter, then
+  shrinks into the circular portrait that is live as the profile picture. Film and profile now
+  share one mark.
+- **Two transitions that belong to a painting, not a slideshow.** STILL. breaks up through the
+  tooth of the canvas into the study title (a grain dissolve — thresholded noise, not a fade),
+  and the ochre band is revealed by a loaded brush dragged across the frame (a paint wipe —
+  gradient mask displaced into bristles). Every other cut is still a match cut or a hard cut.
+
 ## Still open
 
-- **The profile picture.** Eight options in `brand/pfp/`, rendered at Instagram's real display
-  sizes. Recommended: `duotone`. Not produced at final size, not applied.
+- ~~The profile picture~~ — **decided and live: the full-colour circular portrait**
+  (`brand/pfp/opt1_portrait.png`). teti chose it over the recommended duotone; the end card
+  was then rebuilt to resolve into it. The other seven options stay as a record.
 - **Beat 4 is simulated UI.** A real screen recording of teti dragging a real curve in Resolve's
   Spline editor would be more honest and more impressive. Highest-value upgrade available and
   only teti can shoot it — help set up the exact comp worth recording.
@@ -59,22 +70,19 @@ The fix, now in place:
 
 Ranked by value per hour.
 
-**1. Ship the pfp.** It is one export and it is blocking a coherent profile. The film and the
-profile picture should land together.
-
-**2. Swap in a real Resolve capture for beat 4.** Build the comp for teti to record (a simple
+**1. Swap in a real Resolve capture for beat 4.** Build the comp for teti to record (a simple
 solid with two position keyframes and a visible Spline editor), then cut the capture in place
 of the simulated panel. The rest of the film needs no changes.
 
-**3. Multi-format exports.** The film is 9:16 only. A 4:5 feed crop and a 1:1 need safe-zone
+**2. Multi-format exports.** The film is 9:16 only. A 4:5 feed crop and a 1:1 need safe-zone
 adjustments, not a re-render from scratch — `video.html` is parametric, so add a size mode
 rather than hand-cropping. Worth doing once and reusing for every study.
 
-**4. Cheaper iteration.** At ~0.8 s/frame a full pass is ~30 minutes, almost all of it the
+**3. Cheaper iteration.** At ~0.8 s/frame a full pass is ~30 minutes, almost all of it the
 brush-edge displacement filter. Bake the type-edge treatment into pre-rendered PNGs for static
 strings and the render drops by roughly half. Worth it before Study 002, not before shipping 001.
 
-**5. Sound design in Fairlight.** The current bed is synthesised by `sound.py` — clean, frame-exact,
+**4. Sound design in Fairlight.** The current bed is synthesised by `sound.py` — clean, frame-exact,
 and deliberately sparse. With Resolve connected it could be re-voiced with real sampled
 material and properly mixed.
 

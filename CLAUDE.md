@@ -70,6 +70,32 @@ Preview a few frames instead of the whole film while iterating:
 - **Instagram render sizes are the real test.** 110 px on profile, 32 px in comments, ~390 px
   wide for a Reel. Check work at those sizes before judging it — several designs that looked
   good at full size failed there.
+- **Image-based CSS masks do not render in headless Chromium.** `mask-image: url(x.png)`
+  hides the element entirely, at every position, even though the PNG decodes and its alpha is
+  valid. Gradient masks work. `paint.py` still writes `wipe_mask.png` — it is a usable matte
+  in Resolve, just not here.
+- **The paint wipe is a `clip-path: polygon()`, not a filter.** Two approaches were built and
+  rejected first: a gradient mask displaced by `feDisplacementMap` bends the *content* as well
+  as the edge (the band's edges wobble, then snap crisp when the filter drops), and a filter
+  plus a mask on the same element runs the filter first, so it never reaches the mask edge.
+  The bristled front is a fixed profile (`WIPE_EDGE`) slid across as a polygon — type stays
+  crisp, no filter cost. The wrapper `s3inner` carries beat 3's own ground so the wipe
+  reveals a whole painting, not a band floating over the cream page.
+- **A thresholded-noise dissolve has a narrow live band.** `feTurbulence` values sit between
+  ~0.15 and ~0.85, so with `slope=12` the `intercept` sweep that actually does anything is
+  −9.8 → −1.2 (measured: coverage 0 → 1). The first version swept −12 → 1 and 60% of the
+  window was spent invisible — the dissolve collapsed into a two-frame cut. Grain frequency
+  0.14 was chosen at phone size: 0.34 read as a noisy crossfade, 0.07 as camouflage.
+- **Transition overlaps are per scene.** `PRES[i]` — the grain dissolve (0.40 s) and the
+  paint wipe (0.44 s) need longer than the default 0.26 s to be read as what they are.
+  `renderFrame` passes each scene its entry progress `ein`; the scene decides what to do.
+- **Full-frame filters cost ~0.4 s/frame while active.** Switch them to `none` the moment a
+  transition lands (`s2.style.filter='none'`).
+- **Re-render a range, not the film.** `render.py --start 438 --end 508` overwrites just those
+  frames in place; a transition fix is ~1 minute instead of 40.
+- **Big background images must be decoded before the first screenshot.** `render.py`
+  decodes every texture in `tex/` explicitly; without that the 2 MB portrait rendered as an
+  empty circle in the first frames it appeared.
 
 ## Fonts
 

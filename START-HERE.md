@@ -36,9 +36,9 @@ matches the repo, so every path in the docs resolves. You lose git history, noth
 | `projects/001-why-motion-editors/source/` | **The film itself** — `video.html` is the whole thing, `render.py` renders it, `paint.py` makes the oil-paint textures |
 | `projects/001-why-motion-editors/sound.py` + `.wav` | The sound design, synthesised frame-exact |
 | `projects/001-why-motion-editors/resolve/` | Resolve scripting setup + a timeline builder (untested against a live Resolve) |
-| `projects/001-why-motion-editors/study-001-v5.mp4` | **The finished film** — this is the one to post |
+| `projects/001-why-motion-editors/study-001-v6.mp4` | **The finished film** — this is the one to post |
 | `brand/PALETTE.md` | The colour system, extracted from the portrait |
-| `brand/pfp/` | Eight profile-picture options at real Instagram sizes; `duotone` recommended |
+| `brand/pfp/` | The eight profile-picture options; `opt1_portrait.png` is the one chosen and live |
 
 ## To rebuild the film
 
@@ -56,10 +56,9 @@ ffmpeg -framerate 120 -i frames120/f%05d.png -i sound.wav \
 While iterating, render a few frames instead of all 2304:
 `python3 source/render.py --out pv --times 4.9,9.7,14.6`
 
-## The two things still open
+## The one thing still open
 
-1. **Pick the profile picture.** `brand/pfp/pfp-options.png` shows all eight at the sizes
-   Instagram actually renders. Recommended: `duotone`.
-2. **Shoot the real Resolve capture for beat 4.** The curve editor at 8.2–12.2s is currently
-   simulated. A real screen recording of the Spline editor being dragged is the highest-value
-   upgrade left, and the only one that needs a human.
+**Shoot the real Resolve capture for beat 4.** The curve editor at 8.2–12.2s is currently
+simulated. A real screen recording of the Spline editor being dragged is the highest-value
+upgrade left, and the only one that needs a human. (The profile picture is decided and live —
+the portrait — and the film's end card resolves into it.)
