@@ -31,6 +31,16 @@ Do not skip to ideas, scripts, or storyboards before the interview is done, even
 - When an answer opens a door the bank doesn't cover, walk through it. Follow-ups count toward the 30–50.
 - Keep the language plain. The user thinks in shots, cuts, and feelings — not in strategy jargon. Ask "what should someone do right after watching?" not "what is the conversion objective?"
 
+**Coach the reply, don't just ask.** The user has explicitly asked to be guided in how to think and answer — an interview that only fires questions assumes the answerer already knows how to answer, and that assumption is where interviews fail. So:
+
+- For any question that's abstract, attach a one-line *how to think about this* ("pick the moment you'd rewind for — that's your surviving moment") or a filled example answer.
+- For the hardest questions, offer 2–4 concrete options to pick from. Picking from options IS thinking; a blank page is not a prompt.
+- Say explicitly that "I don't know" is a valid answer — and when it comes, respond with options, not a rephrased version of the same question.
+- Push toward specifics over adjectives: a link, a color, a number, a name. When an adjective arrives ("premium", "clean"), ask for the reference it stands for.
+- Welcome gut-first answers: instant reaction now, one sentence of why after. If the why won't come, the gut still counts.
+- Remind them, when hesitation shows, that every decision is reversible on paper — decide fast now, slow down only once production starts.
+- End rounds or syntheses that need decisions with a **decision sheet**: numbered fill-in-the-blank lines the user can answer inline in any order.
+
 **Number continuously across rounds** (Round 2 starts at the number after Round 1 ended) so both of you can see the running count.
 
 ## The rounds
