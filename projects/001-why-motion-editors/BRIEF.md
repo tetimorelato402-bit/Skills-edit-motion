@@ -99,17 +99,20 @@ The track with the famous high sustained bend. Chosen by teti; the concept fusio
 
 **What it changes.** The 120 BPM click-grid plan is dead — this is a slow blues ballad (~60 BPM feel, roughly one beat per second). Cut to *phrases*, not a grid: fewer, longer, more confident shots. The video's temperament shifts from clinical/techy to soulful — which is also more distinctive; every motion-design reel uses glitchy electronic, almost none use a 1979 blues ballad. Runtime may want to stretch to ~20–22s so the phrases breathe; that's fine for Reels. The glitch texture pass (beat 4) should soften or go — datamosh fights this mood.
 
+**Version — LOCKED: studio (1979 original).** Consequences:
+- The bend/sustain is short (~1–2s), so the payoff hold is tight, not luxurious: hero line lands ON the bend-up, holds through the sustain, cuts on its release. Punchy beats languid — runtime comes back to ~18–20s.
+- Clean recording, no crowd noise — matches the clean specimen aesthetic. No decision needed there.
+- Window: pick the ~20s around the main solo bend (the guitar phrase everyone recognizes), not the vocal verse — the edit needs the instrumental emotion, and the type carries the words.
+
 **Practical checks (do these before building the cut):**
-1. The iconic *long* sustain is in the **live versions**; the studio cut's bend is shorter. Pick the exact version and section first — the whole edit hangs on it.
-2. Check it's available in **Instagram's audio library on your account** (availability varies by region and account type — Creator accounts get most library music; Business accounts are restricted to royalty-free). If it's there, using it through IG's library is licensed and helps reach.
-3. Off Instagram (portfolio site, Vimeo, client sends), the track is NOT licensed — keep a alternate scored version (a moody slow-blues royalty-free cue from Artlist/Epidemic) for anywhere outside IG.
-4. If it's not in your library: a high-sustain blues-guitar soundalike cue is the fallback that keeps the concept intact.
+1. Check it's available in **Instagram's audio library on your account** (availability varies by region and account type — Creator accounts get most library music; Business accounts are restricted to royalty-free). If it's there, using it through IG's library is licensed and helps reach.
+2. Off Instagram (portfolio site, Vimeo, client sends), the track is NOT licensed — keep an alternate scored version (a moody slow-blues royalty-free cue from Artlist/Epidemic) for anywhere outside IG.
+3. If it's not in your library: a high-sustain blues-guitar soundalike cue is the fallback that keeps the concept intact.
 
 ## Decision sheet
 
-Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **"Parisienne Walkways"** (version/section TBD — see practical checks above). Still open ("I don't know — bring me options" remains a valid answer):
+Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **"Parisienne Walkways", studio version**, ~20s window around the main solo bend. Still open ("I don't know — bring me options" remains a valid answer):
 
 1. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
 2. **Tools + hours**: cutting in ___ , with about ___ hours over ___ days.
 3. **Deadline / launch moment**: ___
-4. **Track version/section**: studio or live, and which ~20s window (the bend must land where the frame comes alive).
