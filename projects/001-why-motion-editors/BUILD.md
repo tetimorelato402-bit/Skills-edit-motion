@@ -5,7 +5,7 @@ Companion to `BRIEF.md`. Tool: DaVinci Resolve Studio. Everything below uses onl
 ## Project setup
 
 - Timeline: **1080 × 1920** (9:16), **30 fps** (Reels standard; 60 only if the micro-loops need it), sRGB/Rec.709.
-- Bring in a muted reference copy of the track ONLY for timing the cut (see "Music & export" — the song itself gets added inside Instagram).
+- The soundtrack is finished and synthesised: `../sound.wav` (the mp4 already carries it). Import it as the audio bed — there is no music to add, in Resolve or in Instagram.
 - Build the **end card first** (Beat 6). It forces the palette, typeface, and layout system that every other beat inherits.
 
 ## Palette & type (pending the color decision)
@@ -36,7 +36,7 @@ Companion to `BRIEF.md`. Tool: DaVinci Resolve Studio. Everything below uses onl
 ### Beat 4 — The editor's hand (8–12s) ← the signature beat
 - **Don't fake it: screen-record the real thing.** Put the Beat-1 frame in its own Fusion comp, open the Spline editor, and screen-record yourself (macOS: Cmd+Shift+5 / Windows: Game Bar or OBS) selecting the layer, dropping two keyframes, and dragging the ease handle — while the viewer shows the frame coming alive.
 - Cut the recording tight: cursor selects → keyframes appear → curve bends → frame moves. Punch in (scale up the capture) so the curve and the viewer are both readable on a phone.
-- The bend-up in the song lands exactly where the curve gets dragged. This sync is the whole video; place this beat on the timeline first and cut everything else around it.
+- The synthesised bend in `sound.wav` glides from 9.32 to 9.96s — exactly the drag, on the same easing. If you re-time this beat, re-run `sound.py` so the glide follows; the sync is the whole video.
 - Fallback if the capture looks messy: rebuild the UI elements (keyframe diamonds, curve) as Fusion shapes — but try the real capture first; authenticity is the flex.
 
 ### Beat 5 — Hero line (12–15s, on the sustain)
@@ -48,11 +48,11 @@ Companion to `BRIEF.md`. Tool: DaVinci Resolve Studio. Everything below uses onl
 - Journal-cover layout: "I'M TETI. I DECIDE HOW THINGS MOVE." / MOTION STUDIES — 001 / new study weekly / @handle. Lowercase "teti." wordmark against the caps.
 - Elements settle in with small, quick eases (6–8 frames, ease out) as the phrase resolves. Then hold a full second — people screenshot end cards.
 
-## Music & export (important)
+## Sound & export
 
-- **Do not burn the song into the export.** Instagram licenses the track only when you add it inside the app. Workflow: cut against the muted reference locally → export the video with sound design only (or silent) → in the Reel editor, add "Parisienne Walkways" (studio version) and slide its start point until the bend lands on Beat 4. Verify sync on your phone before posting.
-- Sound design (optional but on-brand, and it survives even for sound-off viewers who tap in): cursor click, keyframe tick, soft whoosh on the Beat 5 reveal. Fairlight page, keep it -18dB-ish under where the track will sit.
-- Export: H.264, 1080×1920, high bitrate (30–50 Mbps), upload the cover still separately.
+- **There is no music.** The soundtrack is `../sound.py` → `sound.wav`: a 75 BPM beat (the film is exactly six bars) and a synthesised sound for every motion, every cue derived from the film's own timings. Burn it in; add nothing in Instagram.
+- If you re-voice it in Fairlight with sampled material, keep the cue times — `sound.py` is the cue sheet, with the reason for every hit in the comments — and keep the mix around −16 LUFS, true peak under −1 dB.
+- Export: H.264, 1080×1920, high bitrate (30–50 Mbps), AAC 192k, upload the cover still separately.
 
 ## Build order (not timeline order)
 

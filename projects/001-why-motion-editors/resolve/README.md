@@ -43,12 +43,12 @@ It should print your current project's name. If it prints `None` or raises, step
 ## Then run this
 
 ```sh
-python3 build_timeline.py --media ../study-001-v2.mp4
+python3 build_timeline.py --media ../study-001-v7.mp4
 ```
 
 It creates the project, sets 1080×1920 @ 30p, imports the render, builds the timeline and
-drops a named marker on every beat — including a red one at **9.6s where the guitar bend
-lands**. From there Claude (running locally) can keep going: cut alternates, rebuild a beat
+drops a named marker on every beat — including a red one at **9.6s, the downbeat of bar 4,
+where the ease is dragged and the bend lands** (the film runs at 75 BPM, six bars exactly). From there Claude (running locally) can keep going: cut alternates, rebuild a beat
 in Fusion, set up the render queue.
 
 **Untested against a live Resolve** — it was written in a cloud session with no Resolve to

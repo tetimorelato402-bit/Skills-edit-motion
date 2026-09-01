@@ -26,7 +26,7 @@ BEATS = [                      # (seconds, marker name, colour)
     (1.6,  "B2 Study title — MOTION drops",     "Cyan"),
     (4.2,  "B3 The anatomy of motion",          "Green"),
     (8.2,  "B4 The editor's hand",              "Yellow"),
-    (9.6,  "*** GUITAR BEND LANDS HERE ***",    "Red"),
+    (9.6,  "*** THE BEND — the ease is dragged ***", "Red"),
     (12.2, "B5 Someone has to decide",          "Purple"),
     (15.8, "B6 teti. — end card",               "Pink"),
 ]
@@ -93,7 +93,7 @@ def main():
 
     print(f"Project  : {a.project}")
     print(f"Timeline : {a.timeline}  ({tl.GetStartFrame()}–{tl.GetEndFrame()} @ {FPS}p)")
-    print(f"Markers  : {len(BEATS)} beats, red one at 9.6s is the guitar bend")
+    print(f"Markers  : {len(BEATS)} beats, red one at 9.6s is the bend")
     print("\nOpen the Edit page — the markers are on the timeline ruler.")
 
 if __name__ == "__main__":

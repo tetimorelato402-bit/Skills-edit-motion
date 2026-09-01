@@ -31,12 +31,12 @@ matches the repo, so every path in the docs resolves. You lose git history, noth
 | `CLAUDE.md` | Auto-loaded context: how to rebuild the film, load-bearing rules, bugs already solved |
 | `HANDOFF.md` | The story, what's still open, and a ranked roadmap of what to improve and create |
 | `projects/001-why-motion-editors/BRIEF.md` | The creative brief, with rejected alternatives and why |
-| `projects/001-why-motion-editors/POSTING.md` | How to post it: music alignment, cover, caption, hashtags |
+| `projects/001-why-motion-editors/POSTING.md` | How to post it: cover, caption, hashtags — and why nothing gets added for sound |
 | `projects/001-why-motion-editors/BUILD.md` | Beat-by-beat build notes in DaVinci Resolve terms |
 | `projects/001-why-motion-editors/source/` | **The film itself** — `video.html` is the whole thing, `render.py` renders it, `paint.py` makes the oil-paint textures |
-| `projects/001-why-motion-editors/sound.py` + `.wav` | The sound design, synthesised frame-exact |
+| `projects/001-why-motion-editors/sound.py` + `.wav` | **The whole soundtrack** — a 75 BPM beat and a sound for every motion, synthesised from the film's own timings |
 | `projects/001-why-motion-editors/resolve/` | Resolve scripting setup + a timeline builder (untested against a live Resolve) |
-| `projects/001-why-motion-editors/study-001-v6.mp4` | **The finished film** — this is the one to post |
+| `projects/001-why-motion-editors/study-001-v7.mp4` | **The finished film** — this is the one to post; its soundtrack is complete, add no music |
 | `brand/PALETTE.md` | The colour system, extracted from the portrait |
 | `brand/pfp/` | The eight profile-picture options; `opt1_portrait.png` is the one chosen and live |
 

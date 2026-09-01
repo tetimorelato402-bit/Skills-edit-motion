@@ -88,9 +88,21 @@ Dissect motion the way LILIUM dissected a lily: put a dead-static frame on the t
 4. Add beats 3–4 if hours allow; otherwise they become Study 002 material.
 5. Write the caption (first line mirrors the answer line) and schedule the post.
 
-## Sound — LOCKED: "Parisienne Walkways" (Gary Moore)
+## Sound — LOCKED (revised after v6): no music; the film carries its own score
 
-The track with the famous high sustained bend. Chosen by teti; the concept fusion is real:
+**teti's revision: "I don't like any music."** No licensed track, in Instagram or anywhere.
+The soundtrack is synthesised in `sound.py` — a beat and a sound for every motion — and burnt
+into the export. What survives from the earlier plan is its idea, not its record: *a bend is
+an ease made audible*. The bend is now a synth glide whose pitch follows the exact easing the
+cursor drags (09.32→09.96), so the sync is not an alignment — it is the same curve. The beat
+runs at 75 BPM from frame 0, which makes the film exactly six bars; the cuts land a pushed
+sixteenth after the quarter, consistently, which is what turns them into a groove. Nothing is
+licensed, so the same file plays on a portfolio site or in a client send.
+
+### The earlier plan, kept as the record of why (retired)
+
+"Parisienne Walkways" (Gary Moore) — the track with the famous high sustained bend. Chosen by
+teti at the time; the concept fusion was real:
 
 **Why it works conceptually.** A guitar bend is an ease made audible — a pitch traveling along a curve instead of jumping. The most famous sustained bend in guitar history, under a video whose thesis is "someone has to decide how things move," is not background music; it's the argument in a second medium. Sync plan (structural, not timestamped — exact times depend on the version/section chosen):
 
@@ -113,7 +125,7 @@ The track with the famous high sustained bend. Chosen by teti; the concept fusio
 
 ## Decision sheet
 
-Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **"Parisienne Walkways", studio version**, ~20s window around the main solo bend. Still open ("I don't know — bring me options" remains a valid answer):
+Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **no music — a synthesised score, beat plus a sound for every motion** (the Parisienne Walkways plan is retired, see above). Still open ("I don't know — bring me options" remains a valid answer):
 
 1. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
 2. **Hours**: about ___ hours over ___ days — or "default" (~10–15h across a week).

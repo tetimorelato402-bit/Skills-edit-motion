@@ -23,7 +23,7 @@ There is no NLE project. **The film is code.** `projects/001-why-motion-editors/
 | `video.html` | The whole film. One deterministic `window.renderFrame(t)` positions every element for time `t`. No CSS animations — they are wall-clock based and would not render reproducibly. |
 | `render.py` | Drives headless Chromium via Playwright, calling `renderFrame(i/fps)` and screenshotting each frame. |
 | `paint.py` | Generates the oil-paint plates and canvas weave in `tex/`. |
-| `../sound.py` | Synthesises the sound design as a WAV. Every hit is frame-exact. |
+| `../sound.py` | **The whole soundtrack**, synthesised: a 75 BPM beat and a sound for every motion. Cue times are derived from the film's own constants and easing curves, so they are frame-exact by construction. |
 
 **Rebuild the film:**
 ```sh
@@ -47,10 +47,15 @@ Preview a few frames instead of the whole film while iterating:
 - **The specimen band is ochre, not oxblood.** A full-frame saturated red field is the most
   recognisable thing about the reference (yuk.aji's *LILIUM*). Same grammar, different
   voice — that is the line between homage and copy. See `brand/PALETTE.md`.
-- **Never burn the music in.** Instagram only licenses "Parisienne Walkways" when the track
-  is added inside the app. The export carries sound design only. The guitar bend must land
-  at **9.6 s**, where the ease curve is dragged. If a beat moves, that number moves with it —
-  update `POSTING.md`.
+- **There is no music. The film carries its own score; nothing is added in Instagram.**
+  teti retired "Parisienne Walkways" after v6 ("I don't like any music"). The soundtrack is
+  synthesised in `sound.py`: a beat, and a sound for every motion. The beat is **75 BPM from
+  frame 0** — the film is exactly six bars of 4/4, the snap (1.6), the drag (9.6), the name
+  (16.0) and the loop point sit on quarter notes, and every cut lands one sixteenth after a
+  quarter, the same push each time. The guitar bend became a **synth glide whose pitch follows
+  the exact easeInOut of the drag (9.32→9.96 s)**. Drums sit on the grid; every other cue sits
+  on its motion. If a beat moves in `video.html`, mirror the constant in `sound.py` and re-run
+  it — the cues follow.
 - **The palette is derived, not chosen.** It was extracted from teti's oil portrait
   (`brand/portrait-source.png`) by k-means. Colour may move in *value*; it must not leave
   the warm family.
@@ -93,6 +98,15 @@ Preview a few frames instead of the whole film while iterating:
   transition lands (`s2.style.filter='none'`).
 - **Re-render a range, not the film.** `render.py --start 438 --end 508` overwrites just those
   frames in place; a transition fix is ~1 minute instead of 40.
+- **A sound change is a remux, not a render.** `python3 sound.py` takes two seconds; then
+  `ffmpeg -i study-001-v7.mp4 -i sound.wav -map 0:v -map 1:a -c:v copy -c:a aac -b:a 192k
+  -movflags +faststart -shortest out.mp4` swaps the track without touching the picture.
+  Check loudness with `ffmpeg -i out.mp4 -af ebur128=peak=true -f null -`: the film sits at
+  **−16.8 LUFS integrated, true peak −0.9 dBFS**. Reels normalise to about −14, so do not
+  chase loudness; do keep true peak under −1 dB or the AAC encode clips the kicks.
+- **Two transients closer than ~35 ms fuse; 100–250 ms apart they flam.** When a drum hit
+  and a motion cue nearly coincide, put the drum exactly on the motion (the bar-3 downbeat
+  *is* the ball's second bounce at 6.417) rather than on the grid next to it.
 - **Big background images must be decoded before the first screenshot.** `render.py`
   decodes every texture in `tex/` explicitly; without that the 2 MB portrait rendered as an
   empty circle in the first frames it appeared.

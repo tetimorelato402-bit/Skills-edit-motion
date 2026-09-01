@@ -44,7 +44,7 @@ The fix, now in place:
 - **The end card jokes**: the cursor returns, handles snap around MOVE., and it slides out of
   the sentence and springs home.
 
-Two later passes, both at teti's request:
+Three later passes, all at teti's request:
 - **The signature resolves into the mark.** "teti." cycles through eleven typefaces — serif,
   grotesk, mono, script, slab — each hold a little longer than the last, settles on Inter, then
   shrinks into the circular portrait that is live as the profile picture. Film and profile now
@@ -52,7 +52,15 @@ Two later passes, both at teti's request:
 - **Two transitions that belong to a painting, not a slideshow.** STILL. breaks up through the
   tooth of the canvas into the study title (a grain dissolve — thresholded noise, not a fade),
   and the ochre band is revealed by a loaded brush dragged across the frame (a paint wipe —
-  gradient mask displaced into bristles). Every other cut is still a match cut or a hard cut.
+  a clip-path polygon with a bristled front; see `CLAUDE.md` for why not a mask or a filter).
+  Every other cut is still a match cut or a hard cut.
+- **The soundtrack is the film's own.** teti retired the licensed track — "I don't like any
+  music" — so `sound.py` now synthesises the whole score: a beat and a sound for every motion.
+  Counted at 75 BPM from frame 0 the film turned out to be exactly six bars, with every cut a
+  pushed sixteenth after the quarter, so the beat was found rather than imposed. The guitar bend
+  became a synth glide that rides the drag's exact easeInOut. Cue times are derived from the
+  same constants as `video.html`, so a re-timed beat re-scores itself. v7 is the v6 picture
+  with this soundtrack; a sound change is a two-second remux, never a re-render.
 
 ## Still open
 
@@ -82,9 +90,10 @@ rather than hand-cropping. Worth doing once and reusing for every study.
 brush-edge displacement filter. Bake the type-edge treatment into pre-rendered PNGs for static
 strings and the render drops by roughly half. Worth it before Study 002, not before shipping 001.
 
-**4. Sound design in Fairlight.** The current bed is synthesised by `sound.py` — clean, frame-exact,
-and deliberately sparse. With Resolve connected it could be re-voiced with real sampled
-material and properly mixed.
+**4. Re-voice the soundtrack in Fairlight.** `sound.py` is the whole score — beat, bass, a sound
+for every motion — built from sines and noise, frame-exact, −16.8 LUFS. It works and it is
+teti's. With Resolve connected it could be re-voiced with sampled drums and real foley while
+keeping every cue time (the file is the cue sheet, with the reason for each hit in the comments).
 
 # What to create
 

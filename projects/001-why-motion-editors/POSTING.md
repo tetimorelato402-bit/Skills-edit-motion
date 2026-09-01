@@ -1,10 +1,20 @@
 # Study 001 — how to finish and post
 
-**Post `study-001-v6.mp4`** — 19.2s, 1080×1920, H.264, with burnt-in **sound design**
-(no music: that still gets added in Instagram). `study-001-v4-painted.mp4` is kept as the
-earlier painted cut; older versions are in git history.
+**Post `study-001-v7.mp4`** — 19.2s, 1080×1920, H.264, with its **complete soundtrack**
+burnt in: a beat and a sound for every motion. There is no music to add in Instagram.
+`study-001-v4-painted.mp4` is kept as the earlier painted cut; older versions are in git history.
 
-v6 adds the signature and the transitions: "teti." cycles through eleven typefaces and
+v7 is the v6 picture with a new soundtrack. teti retired the licensed track, so the film now
+carries its own score, synthesised in `sound.py`: a 75 BPM beat (the film turned out to be
+exactly six bars — the cuts land a pushed sixteenth after the quarter, the same push every
+time) and a sound for every motion — the caret, the grain of the dissolve, the brush of the
+wipe, fifteen spacing ticks pitched by the head's speed, the ball's squash, the seven-note
+stagger, the keyframes dropping, the layers snapping home, a felt hammer for every letter of
+the hero line, a shutter for every typeface the name tries on, and a synth bend whose pitch
+follows the exact ease being dragged from 09.32 to 09.96. Nothing is licensed, so the file
+plays the same everywhere — Instagram, a portfolio site, a client send.
+
+v6 added the signature and the transitions: "teti." cycles through eleven typefaces and
 resolves into the circular portrait that is the profile picture, so film and profile share
 one mark; STILL. breaks up into the study title through the tooth of the canvas (a grain
 dissolve, not a fade); and the ochre band is revealed by a loaded brush dragged across the
@@ -31,24 +41,23 @@ the specimen band folds into the graph panel at 8.2s, and the ease curve you dra
 of the editor to fill the frame at 12.2s.
 Source of truth is `source/video.html` — the whole film is code; `source/render.py` turns it into frames.
 
-## 1. Add the music inside Instagram (do not burn it in)
+## 1. Sound — there is nothing to add
 
-Instagram licenses "Parisienne Walkways" only when the track is added in the app. Burning it into
-the export risks a mute or a takedown, and kills reach.
+The soundtrack is in the file. Do **not** add a track in the Reel editor: the film's beat is
+its own, and anything Instagram lays over it will fight the 75 BPM grid.
 
-1. New Reel → upload `study-001-v6.mp4`.
-2. Add audio → search **Parisienne Walkways (Gary Moore)** → studio version.
-3. Slide the track's start so the **bend lands at 09.6s** — that is the exact frame where the cursor
-   drags the ease curve and the dead frame comes alive. This one alignment is the whole point of the
-   sound choice; everything else can be slightly off and it still works.
-4. In the audio mixer, keep **original audio** up — that is the sound design (clicks,
-   keyframe ticks, whooshes). Music around 70–80%, original around 40–50% is a good start.
-5. Check on the phone before posting. If the bend can't reach 09.6s inside the app's trimmer, tell
-   Claude and the beat can be re-timed to the track instead of the other way round.
+1. New Reel → upload `study-001-v7.mp4`.
+2. If the editor suggests audio, decline it. In the mixer, **original audio at 100%**, no music.
+3. Leave the volume alone — the mix sits at −16.8 LUFS, and Instagram normalises to about −14.
+4. Check on the phone speaker before posting: the snap at 01.6, the squash at 05.95 and the
+   bend at 09.3–10.0 should all read without headphones. If the intro (00.0–01.6) sounds like
+   silence, that is correct — the caret ticks are meant to be barely there.
+5. If a beat is ever re-timed, re-run `sound.py` (cue times follow the film) and remux — see
+   `../../CLAUDE.md`. The picture does not need re-rendering for a sound change.
 
 ## 2. Cover
 
-Use `study-001-v6-cover.png` (the first frame — "STILL." with the selection handles). It reads as
+Use `study-001-v7-cover.png` (the first frame — "STILL." with the selection handles). It reads as
 intentional, not broken, and it is the reason someone stops.
 
 ## 3. Caption
@@ -75,6 +84,7 @@ Everything is parametric — say the word and it re-renders in ~3 minutes:
 | Any wording | the `el(...)` text argument for that beat |
 | Beat lengths | the `B1…B6` arrays at the top of the script |
 | Runtime | change the beat arrays; frames = 30 × duration |
+| Any sound | `sound.py` — instruments at the top, the beat and every motion cue below; re-run and remux, no re-render |
 
 Re-render: the exact commands are in `../../CLAUDE.md` (render at 120 fps, shutter-average
 down to 30 — that is where the motion blur comes from, so do not shortcut it).
@@ -83,7 +93,7 @@ down to 30 — that is where the motion blur comes from, so do not shortcut it).
 
 The MP4 is post-ready as is. If you'd rather finish it yourself in Resolve:
 
-- Import `study-001-v6.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
+- Import `study-001-v7.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
 - Or rebuild any single beat in Fusion following `BUILD.md`, and cut it against the rendered version.
 - The beat most worth re-shooting yourself is **beat 4 (08.2–12.2s)**: a real screen recording of you
   dragging a real ease curve in Resolve's Spline editor is more honest than the simulated UI here,
@@ -96,6 +106,9 @@ The MP4 is post-ready as is. If you'd rather finish it yourself in Resolve:
 | 1 | 00.0 | 01.6 | STILL. — the frozen post (cover frame); grain-dissolves out |
 | 2 | 01.6 | 04.2 | Study title, MOTION drops in; paint wipe out |
 | 3 | 04.2 | 08.2 | The anatomy: timing, spacing, easing, weight, rhythm |
-| 4 | 08.2 | 12.2 | The editor's hand — **bend lands 09.6** |
+| 4 | 08.2 | 12.2 | The editor's hand — **the bend glides 09.32→09.96**, bar 4 downbeat at 09.6 |
 | 5 | 12.2 | 15.8 | Someone has to decide how things move. |
 | 6 | 15.8 | 19.2 | teti. — type cycle → portrait mark, then MOVE. moves |
+
+The beat is 75 BPM counted from 00.0, so the bar lines fall at 00.0, 03.2, 06.4, 09.6, 12.8
+and 16.0 — six bars exactly. Every cut sits one sixteenth (0.2 s) after a quarter note.
