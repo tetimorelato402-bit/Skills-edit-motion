@@ -1,11 +1,20 @@
 # Study 001 — how to finish and post
 
-**Post `study-001-v8.mp4`** — 19.2s, 1080×1920, H.264, with its **complete soundtrack**
-burnt in: a beat, a sound for every motion, and a jazz bed very low underneath. There is no
-music to add in Instagram.
+**Post `study-001-v9.mp4`** — 19.2s, 1080×1920, H.264, with its **complete soundtrack**
+burnt in: a beat, a sound for every motion, a jazz bed very low underneath, and one hook that
+answers every landing. There is no music to add in Instagram.
 `study-001-v4-painted.mp4` is kept as the earlier painted cut; older versions are in git history.
 
-v8 adds the jazz bed teti asked for after hearing v7, kept very low: an upright bass walking
+v9 makes the hook. The five-note run when the layers snap home after the bend (10.56) — five
+plucks climbing a D minor arpeggio at 92 ms steps, sweeping left to right — is the sound teti
+picked out as the catchy one, so it now answers every major landing: the snap into the title,
+MOTION landing, the ball's second bounce, the match cut, the curve filling the frame, the
+handles snapping around MOVE., the portrait arriving, and MOVE. landing in the joke. Same
+shape and timing every time, transposed to the chord of the moment (Dm, Bb, A7, Gm). The
+pitched "felt hammer" ticks on the hero-line letters and the spacing marks, which read as a
+hammer on bells, are dry noise ticks now, and the soft chord under the portrait is gone.
+
+v8 added the jazz bed teti asked for after hearing v7, kept very low: an upright bass walking
 the six bars in quarter notes with three chromatic pickups, a Rhodes comping rootless jazz
 voicings (Dm9, Gm9, C9, Bbmaj9, Em7b5, A7b9, Dm6/9) on pushed beats, brushes through the hero
 line, and a soft ride marking the quarters while the hats moved onto the swung skip — so the
@@ -55,9 +64,9 @@ Source of truth is `source/video.html` — the whole film is code; `source/rende
 The soundtrack is in the file. Do **not** add a track in the Reel editor: the film's beat is
 its own, and anything Instagram lays over it will fight the 75 BPM grid.
 
-1. New Reel → upload `study-001-v8.mp4`.
+1. New Reel → upload `study-001-v9.mp4`.
 2. If the editor suggests audio, decline it. In the mixer, **original audio at 100%**, no music.
-3. Leave the volume alone — the mix sits at −16.6 LUFS, and Instagram normalises to about −14.
+3. Leave the volume alone — the mix sits at −16.1 LUFS, and Instagram normalises to about −14.
 4. Check on the phone speaker before posting: the snap at 01.6, the squash at 05.95 and the
    bend at 09.3–10.0 should all read without headphones. If the intro (00.0–01.6) sounds like
    silence, that is correct — the caret ticks are meant to be barely there.
@@ -66,7 +75,7 @@ its own, and anything Instagram lays over it will fight the 75 BPM grid.
 
 ## 2. Cover
 
-Use `study-001-v8-cover.png` (the first frame — "STILL." with the selection handles). It reads as
+Use `study-001-v9-cover.png` (the first frame — "STILL." with the selection handles). It reads as
 intentional, not broken, and it is the reason someone stops.
 
 ## 3. Caption
@@ -102,7 +111,7 @@ down to 30 — that is where the motion blur comes from, so do not shortcut it).
 
 The MP4 is post-ready as is. If you'd rather finish it yourself in Resolve:
 
-- Import `study-001-v8.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
+- Import `study-001-v9.mp4` as a base layer and work on top — it's a clean 1080×1920 30p H.264.
 - Or rebuild any single beat in Fusion following `BUILD.md`, and cut it against the rendered version.
 - The beat most worth re-shooting yourself is **beat 4 (08.2–12.2s)**: a real screen recording of you
   dragging a real ease curve in Resolve's Spline editor is more honest than the simulated UI here,

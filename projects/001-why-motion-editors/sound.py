@@ -25,6 +25,18 @@ hats sit on the swung skip — so the beat swings rather than fights it. The har
 is a descending minor line (Dm — Gm — C — Bb — A7) that resolves V→i on the downbeat
 of bar 4, which is 9.6: the bend lands on a chord change, not just a beat.
 
+The hook. When the layers snap home after the bend (10.56 s) five plucks climb a D minor
+arpeggio at 92 ms steps, sweeping left to right. teti heard it once and asked for it
+everywhere, so it is the film's motif: it answers every major landing — the title snap,
+MOTION, the ball's second bounce, the match cut, the curve filling the frame, the handles
+around MOVE., the portrait, the joke — always the same shape and timing, transposed to
+the chord of the moment. Repetition is what makes a hook a hook; the only things that
+change are the key and the volume.
+
+Nothing rings like a bell. An earlier pass gave every hero-line letter and every spacing
+mark a pitched "felt hammer" tick, and the portrait a soft chord — heard back, that read
+as a hammer on bells, so those are dry noise ticks now and the chord is gone.
+
 Instruments are synthesised from noise and sines — there are no samples. The
 palette is deliberately warm and dry (the film is an oil painting, not a screen):
 kicks are round, hats are paper-dry, the "bend" is a saturated sawtooth whose
@@ -145,11 +157,13 @@ def pluck(freq,dur=0.55,gain=1.0,bright=0.55):
     for h in range(1,7):                                  # upper partials die first
         s+=np.sin(2*np.pi*freq*h*t+rng.random()*6.28)*(bright**(h-1))*np.exp(-t*(2.2+h*2.4))
     return s*np.minimum(1,t/0.0025)*gain
-def type_tick(freq,gain=1.0):
-    """a felt hammer on paper: click plus a short resonant body"""
-    n=secs(0.07); t=tvec(n)
-    body=np.sin(2*np.pi*freq*t)*env_exp(n,0.11)
-    return (click(0.07,0.05,5,0.55)[:n]+body*0.9)*gain
+HOOK_STEP=0.055*0.42*(B4[1]-B4[0])           # 92.4 ms — the layers' stagger in beat 4
+def hook(t0,notes,g=1.0):
+    """THE HOOK: five plucks climbing an arpeggio, 92 ms apart, sweeping left to right —
+    the sound of the layers snapping home, transposed to wherever the harmony is"""
+    for i,f in enumerate(notes):
+        put(click(0.03,0.08,4,0.36*g), t0+i*HOOK_STEP, -0.4+0.8*i/4)
+        put(pluck(f,0.35,0.22*g),      t0+i*HOOK_STEP, -0.4+0.8*i/4)
 def shutter(gain=1.0,firm=False):
     """two tiny clicks 9 ms apart — a carriage return, a camera shutter"""
     a=click(0.012,0.10,3,1.0); b=click(0.014,0.12,4,0.8)
@@ -193,13 +207,6 @@ def suck(dur,gain=1.0):
 def pop(gain=1.0):
     n=secs(0.09); f=np.linspace(980,360,n); ph=2*np.pi*np.cumsum(f)/SR
     return np.sin(ph)*env_exp(n,0.17)*gain
-def bloom(freqs,dur=1.4,gain=1.0):
-    """a soft warm chord — the mark arriving"""
-    n=secs(dur); t=tvec(n); s=np.zeros(n)
-    for f in freqs:
-        s+=np.sin(2*np.pi*f*t+rng.random()*6.28)+0.25*np.sin(2*np.pi*2*f*t)
-    e=np.minimum(1,t/0.05)*env_exp(n,0.36)
-    return ma(s,2)*e*gain/len(freqs)
 def squash(gain=1.0):
     """the ball lands: a deep thud and a pitch-dropping squelch"""
     n=secs(0.5); t=tvec(n)
@@ -226,7 +233,7 @@ def rhodes(freqs,dur,gain=1.0):
     n=secs(dur); t=tvec(n); s=np.zeros(n)
     for f in freqs:
         ph=2*np.pi*f*t+rng.random()*6.28
-        s+=np.sin(ph)+0.32*np.sin(2*ph)*np.exp(-t*3.2)+0.10*np.sin(3*ph)*np.exp(-t*5)+0.05*np.sin(4*ph)*np.exp(-t*7)
+        s+=np.sin(ph)+0.22*np.sin(2*ph)*np.exp(-t*3.2)+0.06*np.sin(3*ph)*np.exp(-t*5)+0.03*np.sin(4*ph)*np.exp(-t*7)
     e=np.minimum(1,t/0.010)*np.exp(-t/(dur*0.42))
     s=s*e*gain/len(freqs)
     lfo=np.sin(2*np.pi*4.3*t+rng.random()*6.28)
@@ -280,7 +287,7 @@ def sine_glide(f0,f1,dur,gain=1.0,curve=fE,span=1.0):
 # ---- notes -----------------------------------------------------------------
 A1=55.0; Bb1=58.27; D2=73.42; E2=82.41; F2=87.31; G2=98.0; A2=110.0; Bb2=116.54; Bn2=123.47   # Bn = B natural (B2, B3 are the beats)
 C3=130.81; Cs3=138.59; D3=146.83; E3=164.81; F3=174.61; G3=196.0; A3=220.0; Bb3=233.08; Bn3=246.94
-C4=261.63; Cs4=277.18; D4=293.66; E4=329.63
+C4=261.63; Cs4=277.18; D4=293.66; E4=329.63; G4=392.0; Bb4=466.16; Cs5=554.37; G5=783.99; Bb5=932.33
 F4=349.23; G4=392.0; A4=440.0; C5=523.25; D5=587.33; F5=698.46
 
 # ============================================================================
@@ -399,14 +406,14 @@ for k in range(3):                                     # each label: pull back, 
     put(tick(0.10),                      s0+0.14*STUDY,                    -0.4)   # the caption
 
 # 01 SPACING: a mark is dropped at every even slice of time; the marks crowd where the
-# head is slow. The ticks are even in time and pitched by the head's speed —
-# low where the marks are close, high where they are far apart. The chart, heard.
+# head is slow. The ticks are even in time and their brightness follows the head's
+# speed — dull where the marks are close, bright where they are far apart. Dry, no ring.
 eS=bez(0.5,0,0.5,1); NG=15
 pos=[eS(i/(NG-1)) for i in range(NG)]
 for i in range(NG):
     dx=(pos[i]-pos[i-1]) if i>0 else (pos[1]-pos[0])
-    f=520*2**(dx/0.14*1.6)                             # 0.007→0.14 spans ~1.6 octaves
-    put(type_tick(f,0.20), study_t(0,0)+ (i/(NG-1))*0.78*STUDY, -0.6+1.2*i/(NG-1))
+    k=int(round(9-6*dx/0.14))                          # slow = dull (k 9), fast = bright (k 3)
+    put(click(0.012,0.10,k,0.17), study_t(0,0)+ (i/(NG-1))*0.78*STUDY, -0.6+1.2*i/(NG-1))
 
 # 02 WEIGHT: it accelerates, squashes, bounces lower, taps, settles
 per=0.92*STUDY; w0=study_t(1,0)
@@ -447,10 +454,8 @@ put(whoosh(0.7,True,0.08,(120,14)), DRAG0-0.05, 0.4)   # air under it
 
 # the post comes apart into its layers (9.72→10.22), then they snap home one by one
 put(suck(0.50,0.22), u4(0.38), -0.2)
-for i in range(5):
-    home=u4(0.38)+(0.36+i*0.055+0.40*BACK_HIT)*0.42*(B4[1]-B4[0])
-    put(click(0.03,0.08,4,0.36), home, -0.4+0.8*i/4)
-    put(pluck([D4,F4,A4,D5,F5][i],0.35,0.22), home, -0.4+0.8*i/4)
+HOME0=u4(0.38)+(0.36+0.40*BACK_HIT)*0.42*(B4[1]-B4[0])   # 10.558 — the first layer lands
+hook(HOME0,[D4,F4,A4,D5,F5])                               # the original: the hook is born here
 put(tick(0.12),u4(0.38))                               # "IT IS MADE OF LAYERS"
 put(tick(0.16),u4(0.80))                               # "THIS IS THE JOB" (with the rim)
 
@@ -460,14 +465,13 @@ put(click(0.04,0.09,5,0.24), B5[0], 0.2)
 # ---- beat 5 (12.2–15.8): the hero line --------------------------------------
 u5=lambda u:B5[0]+u*(B5[1]-B5[0])
 HERO=['SOMEONE','HAS TO DECIDE','HOW THINGS','MOVE.']
-LINEF=[1180,1040,920]                                  # each line a little lower
 for i,h in enumerate(HERO):
     base=0.05+i*0.055
     for k,ch in enumerate(h):
         if ch==' ': continue
         on=u5(base+k*0.016)
         if i<3:
-            put(type_tick(LINEF[i]*(1+0.04*(k%3)),0.18), on, -0.5+1.0*k/max(1,len(h)-1))
+            put(click(0.010,0.08,4+(i%2),0.09), on, -0.5+1.0*k/max(1,len(h)-1))
         else:                                          # MOVE. overshoots — the hit is the landing
             land=on+0.16*(B5[1]-B5[0])*BACK5_HIT
             put(thud(110,58,0.30,0.16,0.34), land, -0.3+0.6*k/4)
@@ -497,7 +501,6 @@ for i,d in enumerate(NAMEHOLD[:-1]):
 # it collapses to a point and the mark opens out of it
 put(suck(0.16,0.26), u6(0.375), -0.1)
 put(pop(0.30), u6(0.40+0.075*BACK6_HIT), -0.1)
-put(bloom([D4,F4,A4],1.3,0.09), u6(0.40+0.075*BACK6_HIT), 0.0)
 
 # the joke: the cursor comes back, selects MOVE., and it moves
 J0=u6(0.46); JD=0.42*(B6[1]-B6[0])
@@ -517,6 +520,21 @@ put(slide(0.12,0.05), jt(0.90), -0.3)                                       # th
 put(whoosh(0.34,False,0.22,(80,10)), u6(0.855), 0.0)
 put(thud(80,44,0.15,0.2,0.40), u6(0.955))
 # silence to 19.2 — and beat 1 opens in silence, so the loop point is inaudible
+
+# ============================================================================
+# THE HOOK, THROUGHOUT — it answers every landing, in the key of the moment
+# ============================================================================
+RUN={'Dm':[D4,F4,A4,D5,F5], 'Gm':[G4,Bb4,D5,G5,Bb5], 'Bb':[Bb3,D4,F4,Bb4,D5], 'A7':[A3,Cs4,E4,A4,Cs5]}
+AFTER=0.03                                         # a breath after the hit, then the run
+hook(1.60+AFTER,            RUN['Dm'],0.7)         # the snap into the title: the hook, announced
+hook(2.596+AFTER,           RUN['Dm'])             # MOTION lands
+hook(6.417+AFTER,           RUN['Bb'])             # the ball's second bounce, bar 3, Bbmaj9
+hook(B4[0]+AFTER,           RUN['A7'],0.8)         # the match cut into the editor, over the A7
+#    10.558                                        # (the original — the layers snap home)
+hook(B5[0]+AFTER,           RUN['Dm'])             # the curve fills the frame
+hook(u5(0.46)+AFTER,        RUN['Gm'])             # handles snap around MOVE., bar 5, Gm9
+hook(u6(0.40+0.075*BACK6_HIT)+AFTER, RUN['Dm'])    # the portrait arrives
+hook(jt(0.26+0.26*ANTIC_HIT)+AFTER,  RUN['Dm'])    # MOVE. lands — the joke gets the hook
 
 # ============================================================================
 # master
