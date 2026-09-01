@@ -16,12 +16,34 @@
   .abs{position:absolute;}
   .caps{text-transform:uppercase;}
   .mono{font-family:'Inter',sans-serif;font-variant-numeric:tabular-nums;}
+  /* everything teti draws is painted; only the generic post stays crisp */
+  .pt{filter:url(#paint);}
+  #weave{position:absolute;inset:0;pointer-events:none;
+         background-image:url('tex/weave.png');background-repeat:repeat;
+         mix-blend-mode:multiply;opacity:.30;}
+  #tooth{position:absolute;inset:0;pointer-events:none;
+         background-image:url('tex/weave.png');background-repeat:repeat;
+         mix-blend-mode:overlay;opacity:.14;}
 </style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <filter id="paint" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+    <feTurbulence type="fractalNoise" baseFrequency="0.024 0.031" numOctaves="3" seed="9" result="n"/>
+    <feDisplacementMap in="SourceGraphic" in2="n" scale="6"
+                       xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</defs></svg>
 <div id="stage"></div>
 <script>
 // ---------------------------------------------------------------- utilities
 const W = 1080, H = 1920;
 const stage = document.getElementById('stage');
+const TEX='tex/';
+function paintBg(node,file,mode){
+  node.style.backgroundImage=`url('${TEX}${file}')`;
+  node.style.backgroundSize = mode || 'cover';
+  node.style.backgroundRepeat='no-repeat';
+}
+paintBg(stage,'plate_ink.png');
 
 const clamp = (v,a=0,b=1)=>Math.min(b,Math.max(a,v));
 const lerp  = (a,b,u)=>a+(b-a)*u;
@@ -189,7 +211,8 @@ function renderS1(t){
 // BEAT 2 — study title on cream, MOTION misbehaves
 // =================================================================
 const s2=scene('s2');
-el('div',s2,{position:'absolute',inset:'0',background:'var(--cream)'});
+const s2bg=el('div',s2,{position:'absolute',inset:'0',background:'var(--cream)'});
+paintBg(s2bg,'plate_paper.png');
 const s2rule=el('div',s2,{position:'absolute',left:px(84),top:px(392),height:'3px',background:'var(--ink)'});
 const s2kicker=el('div',s2,{position:'absolute',left:px(84),top:px(330),color:'var(--ink)',
   fontSize:'32px',fontWeight:'600',letterSpacing:'0.32em'},'STUDY 001');
@@ -254,6 +277,7 @@ const s3=scene('s3');
 const BAND_T=700, BAND_H=560;
 const s3band=el('div',s3,{position:'absolute',left:'0',top:px(BAND_T),width:'100%',height:px(BAND_H),
   background:'var(--field)'});
+paintBg(s3band,'plate_ochre.png','100% 100%');
 // dashed construction guides
 const s3guides=el('div',s3,{position:'absolute',inset:'0'});
 [BAND_T+70,BAND_T+BAND_H-70].forEach(y=>el('div',s3guides,{position:'absolute',left:'0',top:px(y),
@@ -422,6 +446,7 @@ function renderS3(t,ein){
 // =================================================================
 const s4=scene('s4');
 const s4bg=el('div',s4,{position:'absolute',inset:'0',background:'var(--ink)'});
+paintBg(s4bg,'plate_ink.png');
 const s4body=el('div',s4,{position:'absolute',inset:'0'});
 const s4card=buildCard(s4body,520); s4card.root.style.left=px(280); s4card.root.style.top=px(330);
 const s4handles=buildHandles(s4body,280,330,520,520,14,'#EFE3CC');
@@ -429,6 +454,8 @@ const s4handles=buildHandles(s4body,280,330,520,520,14,'#EFE3CC');
 const PX0=90, PY0=1020, PW=900, PH=470;
 const s4panel=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0),width:px(PW),height:px(PH),
   background:'#1E0C07',border:'1px solid rgba(239,227,204,0.16)'});
+paintBg(s4panel,'plate_ochre.png','100% 100%');
+const s4dark=el('div',s4panel,{position:'absolute',inset:'0',background:'var(--ink)'});
 s4.insertBefore(s4panel,s4body);
 const s4head=el('div',s4body,{position:'absolute',left:px(PX0+26),top:px(PY0+22),
   color:'rgba(239,227,204,0.55)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
@@ -473,7 +500,7 @@ function renderS4(t,ein){
   s4panel.style.top   =px(lerp(BAND_T,PY0,m));
   s4panel.style.width =px(lerp(W,PW,m));
   s4panel.style.height=px(lerp(BAND_H,PH,m));
-  s4panel.style.background=`rgb(${Math.round(lerp(176,30,m))},${Math.round(lerp(122,12,m))},${Math.round(lerp(63,7,m))})`;
+  s4dark.style.opacity=(0.10+0.86*m).toFixed(3);   // ochre paint darkens into the panel
   s4body.style.opacity=easeOut(clamp((ein-0.55)/0.45)).toFixed(3);
   if(ein<1) return;
   // sub-phases
@@ -549,6 +576,7 @@ function renderS4(t,ein){
 // =================================================================
 const s5=scene('s5');
 const s5bg=el('div',s5,{position:'absolute',inset:'0',background:'var(--ink)'});
+paintBg(s5bg,'plate_ink.png');
 // the ease curve from beat 4, drawn large — it lives BEHIND the type
 const s5svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 s5svg.setAttribute('width',W); s5svg.setAttribute('height',H);
@@ -627,7 +655,9 @@ function renderS5(t,ein){
 // BEAT 6 — end card
 // =================================================================
 const s6=scene('s6');
-el('div',s6,{position:'absolute',inset:'0',background:'var(--cream)'});
+const s6bg=el('div',s6,{position:'absolute',inset:'0',background:'var(--cream)'});
+paintBg(s6bg,'plate_paper.png');
+s6bg.style.backgroundPosition='0 -260px';   // a different part of the same canvas
 const s6rule=el('div',s6,{position:'absolute',left:px(84),top:px(392),height:'3px',background:'var(--ink)'});
 const s6kick=el('div',s6,{position:'absolute',left:px(84),top:px(330),color:'var(--ink)',
   fontSize:'32px',fontWeight:'600',letterSpacing:'0.32em'},'MOTION STUDIES — 001');
@@ -657,6 +687,18 @@ function renderS6(t,ein){
 // =================================================================
 // master
 // =================================================================
+// the type is painted, not printed
+[s1still,s1dot,s1meta,s2kicker,s2l1,s2motion,s2l3,s2q,s3title,
+ s4head,s4tag,s6kick,s6name,s6l1,s6l2,s6foot]
+  .forEach(e=>e.classList.add('pt'));
+heroLines.forEach(e=>e.classList.add('pt'));
+cells.forEach(c=>c.lab.classList.add('pt'));
+s2ghosts.forEach(e=>e.classList.add('pt'));
+
+// the canvas the whole film sits on
+el('div',stage,{}).id='weave';
+el('div',stage,{}).id='tooth';
+
 const SCENES=[[B1,s1,renderS1],[B2,s2,renderS2],[B3,s3,renderS3],
               [B4,s4,renderS4],[B5,s5,renderS5],[B6,s6,renderS6]];
 // scenes overlap slightly so one can physically push, wipe or morph into the next
