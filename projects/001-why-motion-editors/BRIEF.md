@@ -57,9 +57,11 @@ Dissect motion the way LILIUM dissected a lily: put a dead-static frame on the t
 - Mix: ~90% motion graphics / screen-canvas language, 10% found or shot footage inside the "specimen" frames.
 - Textures: one glitch pass (beat 4 only), one annotation/canvas system (beats 1, 3). Never stacked.
 
-## Constraints (to confirm)
+## Constraints
 
-Tools, weekly hour budget, deadline, and brand color are unconfirmed — see open questions.
+- Tool — **LOCKED: DaVinci Resolve Studio** (Edit page for assembly, Fusion for motion graphics). Full beat-by-beat build plan in `BUILD.md`.
+- Hours and deadline: unconfirmed — proposed defaults: ~10–15 hours across a week; post within two weeks of starting.
+- Brand color: unconfirmed — see decision sheet.
 
 ## Success criteria & non-goals
 
@@ -114,5 +116,5 @@ The track with the famous high sustained bend. Chosen by teti; the concept fusio
 Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."**; sound: **"Parisienne Walkways", studio version**, ~20s window around the main solo bend. Still open ("I don't know — bring me options" remains a valid answer):
 
 1. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
-2. **Tools + hours**: cutting in ___ , with about ___ hours over ___ days.
-3. **Deadline / launch moment**: ___
+2. **Hours**: about ___ hours over ___ days — or "default" (~10–15h across a week).
+3. **Deadline / launch moment**: ___ — or "default" (post within two weeks of starting).
