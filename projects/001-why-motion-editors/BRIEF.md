@@ -34,11 +34,10 @@ Dissect motion the way LILIUM dissected a lily: put a dead-static frame on the t
 ## The message
 
 - Takeaway: *motion is authored — someone decides how things move — and this account is where that work happens.*
-- Answer line (the payoff, pick one — see Decision sheet):
-  - A. **"BECAUSE NOTHING MOVES ON ITS OWN."** — quiet, craft-forward.
-  - B. **"SOMEONE HAS TO DECIDE HOW THINGS MOVE."** — recommended: answers the question, defines the job title implicitly, and converts into the identity end card ("I decide how things move").
-  - C. **"BECAUSE ATTENTION MOVES."** — the feed/attention thesis; stronger as an ad than as a debut. Keep for a later study.
-- CTA (end card + caption): "Motion Studies — 001. New study every week." + handle.
+- Answer line — **LOCKED**: **"SOMEONE HAS TO DECIDE HOW THINGS MOVE."**
+  (Alternatives retired: "Because nothing moves on its own" — bank for a later study; "Because attention moves" — bank as an ad-style study.)
+- End card — **LOCKED**: **"I'M TETI. I DECIDE HOW THINGS MOVE."** Consider the wordmark as lowercase "teti." against the all-caps type — the case contrast is ownable and grid-friendly.
+- CTA (end card + caption): "Motion Studies — 001. New study every week." + handle. Caption first line mirrors the answer line.
 
 ## Beat sheet (~18s)
 
@@ -48,8 +47,8 @@ Dissect motion the way LILIUM dissected a lily: put a dead-static frame on the t
 | 1.5–4s | Study-title treatment on cream, set like a journal cover; the question is asked coolly, as a specimen label, not shouted. The word MOTION misbehaves — drops, bounces, drags blur behind it. | STUDY 001 — WHY DO WE NEED **MOTION** EDITORS? | First hit lands on the snap; track starts |
 | 4–8s | Letterboxed canvas band on the brand color: five small clips with selection handles, dashed guides, bezier scribbles. Each thumbnail is a 0.5s micro-loop demonstrating its own label — these are literal work samples, the portfolio hidden inside the style. | Labels: TIMING · SPACING · EASING · WEIGHT · RHYTHM | Tick per label, quantized to the grid |
 | 8–12s | **The editor's hand.** The cursor selects the frozen beat-1 frame, keyframe diamonds drop onto a visible timeline, an easing curve gets dragged — and the frame eases into life *as the work is done on screen*. The viewer watches the job happen. This beat IS "what I do." | (annotation labels only: keyframe · ease · done) | Track opens up as the frame comes alive |
-| 12–15s | Full-bleed hero: the now-alive frame in front of oversized type, interleaved in depth (imagery in front of letters, LILIUM-style). | The chosen answer line, e.g. SOMEONE HAS TO DECIDE HOW THINGS **MOVE.** | Payoff moment of the track |
-| 15–18s | Editorial end card, journal-cover layout — the answer converts into the introduction. | I'M [NAME]. I DECIDE HOW THINGS MOVE. · MOTION STUDIES 001 · new study weekly · @handle | Track resolves; UI tick on the "001" |
+| 12–15s | Full-bleed hero: the now-alive frame in front of oversized type, interleaved in depth (imagery in front of letters, LILIUM-style). | SOMEONE HAS TO DECIDE HOW THINGS **MOVE.** | Payoff moment of the track |
+| 15–18s | Editorial end card, journal-cover layout — the answer converts into the introduction. | I'M TETI. I DECIDE HOW THINGS MOVE. · MOTION STUDIES 001 · new study weekly · @handle | Track resolves; UI tick on the "001" |
 
 ## Style DNA
 
@@ -87,13 +86,21 @@ Tools, weekly hour budget, deadline, and brand color are unconfirmed — see ope
 4. Add beats 3–4 if hours allow; otherwise they become Study 002 material.
 5. Write the caption (first line mirrors the answer line) and schedule the post.
 
+## Sound direction (options on the table)
+
+The video is designed sound-off, so music is a reward, not a carrier — and for a motion editor's debut, the sound *design* (ticks, whooshes, UI clicks synced to keyframes) is itself a craft display. Directions:
+
+- **A. Minimal glitch / deconstructed electronic** — sparse clicks, sub-bass, one hard hit at the 1.5s snap. Matches the canvas/specimen aesthetic best. *(Recommended.)*
+- **B. Editorial house (fashion-film energy)** — clean filtered 4/4 that opens up at the "editor's hand" beat. Premium, safer, less distinctive.
+- **C. Cinematic pulse** — dark pad + rising pulse, boom on the snap, airy resolve. More drama, less rhythm to cut to.
+
+Practical: cut at **120 BPM** — at 0.5s per beat, every planned cut (1.5s / 4s / 8s / 12s / 15s) lands exactly on a downbeat. Build the edit on a 120 BPM click grid first, choose the actual track after; then either pick a matching-tempo track from Instagram's own audio library (better reach, but business accounts have restricted music access) or license one (Artlist, Epidemic Sound, Uppbeat) if the video will also live in a portfolio off-Instagram.
+
 ## Decision sheet
 
-Answer these in any order, however roughly. "I don't know — bring me options" is a valid answer to every one.
+Locked so far — framing: study-title (confirmed); answer line: **B — "Someone has to decide how things move"**; end card: **"I'M TETI."** Still open ("I don't know — bring me options" remains a valid answer):
 
-1. **Answer line**: A ("Because nothing moves on its own"), B ("Someone has to decide how things move" — recommended), C ("Because attention moves"), or write your own: ___
-2. **End-card identity**: personal name / studio name / handle only → the card reads "I'M ___."
-3. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
-4. **Tools + hours**: cutting in ___ , with about ___ hours over ___ days.
-5. **Deadline / launch moment**: ___
-6. **Sound**: track already chosen (which?) / cut first and score after / need suggestions.
+1. **Your signal color**: ___ (a hex, a brand, or an object — "taxi yellow", "Yves Klein blue")
+2. **Tools + hours**: cutting in ___ , with about ___ hours over ___ days.
+3. **Deadline / launch moment**: ___
+4. **Sound direction**: A / B / C above, or a track you find at ~120 BPM.
