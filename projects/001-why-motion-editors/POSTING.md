@@ -1,6 +1,13 @@
 # Study 001 — how to finish and post
 
-The rendered video is `study-001.mp4` (19.2s, 1080×1920, H.264, **silent by design**).
+**Post `study-001-v2.mp4`** — 19.2s, 1080×1920, H.264, with burnt-in **sound design**
+(no music: that still gets added in Instagram). `study-001.mp4` is the earlier silent cut,
+kept for reference.
+
+v2 adds: synthesised sound design (`sound.py` — every hit is frame-exact), real 270° motion
+blur (rendered at 120fps, shutter-averaged down to 30), light film grain, and two match cuts —
+the specimen band folds into the graph panel at 8.2s, and the ease curve you drag grows out
+of the editor to fill the frame at 12.2s.
 Source of truth is `source/video.html` — the whole film is code; `source/render.py` turns it into frames.
 
 ## 1. Add the music inside Instagram (do not burn it in)
@@ -8,12 +15,14 @@ Source of truth is `source/video.html` — the whole film is code; `source/rende
 Instagram licenses "Parisienne Walkways" only when the track is added in the app. Burning it into
 the export risks a mute or a takedown, and kills reach.
 
-1. New Reel → upload `study-001.mp4`.
+1. New Reel → upload `study-001-v2.mp4`.
 2. Add audio → search **Parisienne Walkways (Gary Moore)** → studio version.
 3. Slide the track's start so the **bend lands at 09.6s** — that is the exact frame where the cursor
    drags the ease curve and the dead frame comes alive. This one alignment is the whole point of the
    sound choice; everything else can be slightly off and it still works.
-4. Check on the phone before posting. If the bend can't reach 09.6s inside the app's trimmer, tell
+4. In the audio mixer, keep **original audio** up — that is the sound design (clicks,
+   keyframe ticks, whooshes). Music around 70–80%, original around 40–50% is a good start.
+5. Check on the phone before posting. If the bend can't reach 09.6s inside the app's trimmer, tell
    Claude and the beat can be re-timed to the track instead of the other way round.
 
 ## 2. Cover

@@ -71,6 +71,7 @@ const B4=[8.2 ,12.2];    // the editor's hand   <- guitar bend lands ~9.4s
 const B5=[12.2,15.8];    // hero line
 const B6=[15.8,19.2];    // end card
 const DUR=19.2;
+const PRE=0.26;                      // transition overlap, seconds
 
 // =================================================================
 // SHARED: the "generic brand post" card, dead or alive
@@ -206,8 +207,10 @@ const s2q=el('div',s2,{position:'absolute',left:px(84),top:px(1520),color:'rgba(
   fontSize:'30px',fontWeight:'500',letterSpacing:'0.16em',lineHeight:'1.5'},'A STUDY IN WHAT MOVES, AND WHO DECIDES');
 
 const MOTION_Y=596;
-function renderS2(t){
+function renderS2(t,ein){
   const u=loc(t,B2[0],B2[1]);
+  // the cream page pushes up over STILL. — then breathes in very slowly
+  s2.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px) scale(${(1+u*0.018).toFixed(4)})`;
   // rule draws in
   s2rule.style.width=px(easeOut(clamp(u/0.18))*912);
   s2kicker.style.opacity=clamp(u/0.06).toFixed(3);
@@ -248,7 +251,7 @@ function renderS2(t){
 // =================================================================
 const s3=scene('s3');
 const BAND_T=700, BAND_H=560;
-el('div',s3,{position:'absolute',left:'0',top:px(BAND_T),width:'100%',height:px(BAND_H),
+const s3band=el('div',s3,{position:'absolute',left:'0',top:px(BAND_T),width:'100%',height:px(BAND_H),
   background:'var(--signal)'});
 // dashed construction guides
 const s3guides=el('div',s3,{position:'absolute',inset:'0'});
@@ -331,13 +334,14 @@ for(let i=0;i<N;i++){
   cellParts.push(parts);
 }
 
-function renderS3(t){
+function renderS3(t,ein){
   const u=loc(t,B3[0],B3[1]);
+  s3.style.transform=`translateX(${((1-easeOut(ein))*W).toFixed(1)}px)`;
   s3title.style.opacity=easeOut(clamp(u/0.1)).toFixed(3);
   // band wipes open
   const bw=easeOut(clamp(u/0.14));
-  s3.querySelector('div').style.transform=`scaleY(${bw})`;
-  s3.querySelector('div').style.transformOrigin='center';
+  s3band.style.transform=`scaleY(${bw})`;
+  s3band.style.transformOrigin='center';
   // scribble draws
   const dl=s3path.getTotalLength();
   s3path.style.strokeDasharray=dl;
@@ -399,30 +403,44 @@ function renderS3(t){
       });
     }
   }
+  // hand-off: the specimens clear and the band dissolves into beat 4's panel
+  const eout=clamp((t-(B3[1]-PRE))/PRE);
+  if(eout>0){
+    const o=(1-easeInOut(eout)).toFixed(3);
+    s3band.style.opacity=o; s3title.style.opacity=o; s3guides.style.opacity=o;
+    s3path.style.opacity=o;
+    const oc=(1-easeOut(clamp(eout*1.5))).toFixed(3);
+    cells.forEach(c=>{c.g.style.opacity=oc; c.lab.style.opacity=oc;});
+  }else{
+    s3band.style.opacity='1'; s3guides.style.opacity='1'; s3path.style.opacity='1';
+  }
 }
 
 // =================================================================
 // BEAT 4 — the editor's hand: keyframes, a curve, the frame wakes up
 // =================================================================
 const s4=scene('s4');
-const s4card=buildCard(s4,520); s4card.root.style.left=px(280); s4card.root.style.top=px(330);
-const s4handles=buildHandles(s4,280,330,520,520,14,'#fff');
+const s4bg=el('div',s4,{position:'absolute',inset:'0',background:'var(--ink)'});
+const s4body=el('div',s4,{position:'absolute',inset:'0'});
+const s4card=buildCard(s4body,520); s4card.root.style.left=px(280); s4card.root.style.top=px(330);
+const s4handles=buildHandles(s4body,280,330,520,520,14,'#fff');
 // graph editor panel
 const PX0=90, PY0=1020, PW=900, PH=470;
-const s4panel=el('div',s4,{position:'absolute',left:px(PX0),top:px(PY0),width:px(PW),height:px(PH),
+const s4panel=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0),width:px(PW),height:px(PH),
   background:'#141416',border:'1px solid rgba(255,255,255,0.16)'});
-const s4head=el('div',s4,{position:'absolute',left:px(PX0+26),top:px(PY0+22),
+s4.insertBefore(s4panel,s4body);
+const s4head=el('div',s4body,{position:'absolute',left:px(PX0+26),top:px(PY0+22),
   color:'rgba(255,255,255,0.55)',fontSize:'22px',fontWeight:'600',letterSpacing:'0.22em'},'EASE — POSITION Y');
 // grid
 for(let i=1;i<6;i++){
-  el('div',s4,{position:'absolute',left:px(PX0+1),top:px(PY0+80+i*54),width:px(PW-2),height:'1px',
+  el('div',s4body,{position:'absolute',left:px(PX0+1),top:px(PY0+80+i*54),width:px(PW-2),height:'1px',
     background:'rgba(255,255,255,0.07)'});
 }
 const GX0=PX0+70, GY0=PY0+96, GW=PW-140, GH=286;
 const s4svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 s4svg.setAttribute('width',W); s4svg.setAttribute('height',H);
 Object.assign(s4svg.style,{position:'absolute',left:'0',top:'0',overflow:'visible'});
-s4.appendChild(s4svg);
+s4body.appendChild(s4svg);
 function mkPath(stroke,wid,dash){
   const p=document.createElementNS('http://www.w3.org/2000/svg','path');
   p.setAttribute('fill','none'); p.setAttribute('stroke',stroke); p.setAttribute('stroke-width',wid);
@@ -431,22 +449,32 @@ function mkPath(stroke,wid,dash){
 }
 const s4curve =mkPath('#fff',4);
 const s4hLine =mkPath('rgba(255,255,255,0.5)',2,'6 6');
-const s4kf1=el('div',s4,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
+const s4kf1=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
   transform:'rotate(45deg)'});
-const s4kf2=el('div',s4,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
+const s4kf2=el('div',s4body,{position:'absolute',width:'22px',height:'22px',background:'var(--cream)',
   transform:'rotate(45deg)'});
-const s4hDot=el('div',s4,{position:'absolute',width:'20px',height:'20px',borderRadius:'50%',
+const s4hDot=el('div',s4body,{position:'absolute',width:'20px',height:'20px',borderRadius:'50%',
   background:'var(--signal)',border:'2px solid #fff'});
-const s4cursor=buildCursor(s4);
-const s4note=el('div',s4,{position:'absolute',color:'var(--cream)',fontSize:'26px',fontWeight:'600',
+const s4cursor=buildCursor(s4body);
+const s4note=el('div',s4body,{position:'absolute',color:'var(--cream)',fontSize:'26px',fontWeight:'600',
   letterSpacing:'0.14em'},'');
-const s4tag=el('div',s4,{position:'absolute',left:px(PX0),top:px(PY0-58),color:'rgba(255,255,255,0.5)',
+const s4tag=el('div',s4body,{position:'absolute',left:px(PX0),top:px(PY0-58),color:'rgba(255,255,255,0.5)',
   fontSize:'24px',fontWeight:'500',letterSpacing:'0.2em'},'');
 
 // control points: linear -> ease-out
 const LIN=[0.33,0.33,0.66,0.66], EAS=[0.14,0.96,0.32,1.0];
-function renderS4(t){
+function renderS4(t,ein){
   const u=loc(t,B4[0],B4[1]);
+  // MATCH CUT: the specimen band contracts into the graph editor panel
+  const m=easeInOut(ein);
+  s4bg.style.opacity=(ein>=0.999?1:0);   // beat 3 hands the band over; nothing covers it
+  s4panel.style.left  =px(lerp(0,PX0,m));
+  s4panel.style.top   =px(lerp(BAND_T,PY0,m));
+  s4panel.style.width =px(lerp(W,PW,m));
+  s4panel.style.height=px(lerp(BAND_H,PH,m));
+  s4panel.style.background=`rgb(${Math.round(lerp(13,20,m))},${Math.round(lerp(34,20,m))},${Math.round(lerp(224,22,m))})`;
+  s4body.style.opacity=easeOut(clamp((ein-0.55)/0.45)).toFixed(3);
+  if(ein<1) return;
   // sub-phases
   const pMove =clamp(u/0.14);              // cursor arrives at the card
   const pSel  =clamp((u-0.12)/0.06);       // selection
@@ -519,17 +547,16 @@ function renderS4(t){
 // BEAT 5 — hero line, type and image interleaved in depth
 // =================================================================
 const s5=scene('s5');
+const s5bg=el('div',s5,{position:'absolute',inset:'0',background:'var(--ink)'});
 // the ease curve from beat 4, drawn large — it lives BEHIND the type
 const s5svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 s5svg.setAttribute('width',W); s5svg.setAttribute('height',H);
 Object.assign(s5svg.style,{position:'absolute',left:'0',top:'0',overflow:'visible'});
 s5.appendChild(s5svg);
 const s5curve=document.createElementNS('http://www.w3.org/2000/svg','path');
-s5curve.setAttribute('d','M 40 1330 C 210 690, 400 600, 1060 566');
 s5curve.setAttribute('fill','none');
-s5curve.setAttribute('stroke','rgba(255,255,255,0.20)');
-s5curve.setAttribute('stroke-width','3');
 s5svg.appendChild(s5curve);
+const HX=40, HY=566, HW=1020, HH=764;   // where the curve ends up, full frame
 
 const HERO=[['SOMEONE',112],['HAS TO DECIDE',112],['HOW THINGS',112],['MOVE.',196]];
 const HERO_Y=[520,660,800,940];
@@ -542,12 +569,28 @@ const s5sel=el('div',s5,{position:'absolute',inset:'0'});
 const s5dot=el('div',s5,{position:'absolute',width:'26px',height:'26px',borderRadius:'50%',
   background:'var(--signal)',border:'3px solid #fff'});
 
-function renderS5(t){
+function renderS5(t,ein){
   const u=loc(t,B5[0],B5[1]);
-  // curve draws itself in first
+  const fE=bez(EAS[0],EAS[1],EAS[2],EAS[3]);
+  // MATCH CUT: the curve he just dragged grows out of the graph editor and fills the frame
+  const m=easeInOut(ein);
+  const rx=lerp(GX0,HX,m), ry=lerp(GY0,HY,m), rw=lerp(GW,HW,m), rh=lerp(GH,HH,m);
+  let dd='';
+  for(let i=0;i<=64;i++){
+    const x=i/64, X=rx+x*rw, Y=ry+rh-fE(x)*rh;
+    dd+=(i?' L ':'M ')+X.toFixed(1)+' '+Y.toFixed(1);
+  }
+  s5curve.setAttribute('d',dd);
+  s5curve.setAttribute('stroke','rgba(255,255,255,'+lerp(1,0.20,m).toFixed(3)+')');
+  s5curve.setAttribute('stroke-width',lerp(4,3,m).toFixed(2));
+  s5bg.style.opacity=clamp(ein/0.5).toFixed(3);
+  s5.style.transform='scale('+(1+u*0.020).toFixed(4)+')';
   const L=s5curve.getTotalLength();
-  s5curve.style.strokeDasharray=L;
-  s5curve.style.strokeDashoffset=(1-easeOutSoft(clamp(u/0.34)))*L;
+  if(ein<1){                       // during the cut only the curve exists
+    heroLines.forEach(l=>l.style.opacity='0');
+    s5sel.innerHTML=''; s5dot.style.opacity='0';
+    return;
+  }
 
   heroLines.forEach((el_,i)=>{
     const a=easeOut(clamp((u-0.06-i*0.05)/0.20));
@@ -574,8 +617,7 @@ function renderS5(t){
 
   // dot rides the curve, looping — passes over the letters
   const per=2.2, ph=((t-B5[0])%per)/per;
-  const f=bez(EAS[0],EAS[1],EAS[2],EAS[3]);
-  const pt=s5curve.getPointAtLength(L*f(clamp(ph/0.78)));
+  const pt=s5curve.getPointAtLength(L*fE(clamp(ph/0.78)));
   s5dot.style.left=px(pt.x-13); s5dot.style.top=px(pt.y-13);
   s5dot.style.opacity=(u>0.12?1:0).toFixed(3);
 }
@@ -597,8 +639,9 @@ const s6l2=el('div',s6,{position:'absolute',left:px(84),top:px(902),color:'var(-
 const s6rule2=el('div',s6,{position:'absolute',left:px(84),top:px(1120),height:'1px',background:'rgba(11,11,12,0.3)'});
 const s6foot=el('div',s6,{position:'absolute',left:px(84),top:px(1160),color:'rgba(11,11,12,0.6)',
   fontSize:'30px',fontWeight:'500',letterSpacing:'0.28em'},'NEW STUDY WEEKLY');
-function renderS6(t){
+function renderS6(t,ein){
   const u=loc(t,B6[0],B6[1]);
+  s6.style.transform=`translateY(${((1-easeOut(ein))*H).toFixed(1)}px)`;
   s6rule.style.width=px(easeOut(clamp(u/0.14))*912);
   s6kick.style.opacity=clamp(u/0.08).toFixed(3);
   const items=[[s6name,0.06],[s6l1,0.16],[s6l2,0.22],[s6foot,0.34]];
@@ -615,12 +658,14 @@ function renderS6(t){
 // =================================================================
 const SCENES=[[B1,s1,renderS1],[B2,s2,renderS2],[B3,s3,renderS3],
               [B4,s4,renderS4],[B5,s5,renderS5],[B6,s6,renderS6]];
+// scenes overlap slightly so one can physically push, wipe or morph into the next
 window.renderFrame=function(t){
   t=Math.max(0,Math.min(DUR-0.001,t));
-  SCENES.forEach(([b,node,fn])=>{
-    const on = t>=b[0] && t<b[1];
+  SCENES.forEach(([b,node,fn],i)=>{
+    const pre = i>0 ? PRE : 0;
+    const on = t>=b[0]-pre && t<b[1];
     node.classList.toggle('on',on);
-    if(on) fn(t);
+    if(on) fn(t, clamp((t-(b[0]-pre))/(pre||1)));
   });
   return true;
 };
