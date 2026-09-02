@@ -108,11 +108,14 @@ el('div',ground,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.p
 const act1 = el('div',stage,{position:'absolute',inset:'0',
   backgroundImage:"url('tex/act1_last.png')",backgroundSize:'1080px 1920px'});
 
-// The flower head, projected through Act I's actual camera by
-// scripts/handoff.py — never measured off a screenshot. Move the Blender
+// The flower's centre, projected through Act I's actual camera by
+// scripts/handoff.py — never measured off a screenshot. Since Act I now ends
+// looking straight down the flower's throat, it lands dead centre of frame,
+// and the black boss the petals radiate from is literally the hole the paint
+// comes out of. Move the Blender
 // camera and this number is silently wrong, and the paint starts somewhere
 // that is not the flower.
-const HEAD_X = 540.0, HEAD_Y = 449.7;
+const HEAD_X = 540.0, HEAD_Y = 963.0;
 
 // ===========================================================================
 //  THE BLOOM.
@@ -149,8 +152,8 @@ const NPROF=96;
 // in value, it must not leave the warm family. The paint is the flower's
 // colour because it came from the flower, not because two swatches were
 // matched by eye. Re-run handoff.py after any change to the Blender lighting.
-const WARM=['#F51A21','#DB6D15','#C14616','#AA6913',
-            '#952510','#6E3F1D','#733405','#5F1909'];
+const WARM=['#F52F1A','#E77A0A','#CE3309','#B66E08',
+            '#9E1A07','#6C451F','#734205','#641C04'];
 // The cools are the five techniques' own accents, seeded into the bloom so
 // that the detonation contains the colours of everything that follows it.
 const COOL=['#1F5F6B','#2C5FA8','#3F7A3A','#7A2E52','#E8B25C','#D9C08A'];
@@ -268,7 +271,7 @@ petals.forEach((p,i)=>{
 // guarantees the frame is covered by the end without any small petal having to
 // be big enough to show a straight edge. Drawn first, so it is the GROUND of
 // the bloom rather than a disc competing with it.
-const wash={c:'#5F1909', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
+const wash={c:'#641C04', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
             rad:REACH*1.15, elong:1.15, op:1, lag:0.10, dur:1.05, prof:profile()};
 
 // Every petal is drawn twice: a translucent HALO a few percent larger, then the

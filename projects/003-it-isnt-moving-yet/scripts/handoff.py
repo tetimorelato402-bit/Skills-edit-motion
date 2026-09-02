@@ -31,7 +31,7 @@ from bpy_extras.object_utils import world_to_camera_view
 HERE = os.path.dirname(os.path.abspath(__file__))
 BLEND = os.path.join(HERE, "..", "source", "blender")
 sys.path.insert(0, BLEND)
-from plant import ACT_I_END, Scene           # noqa: E402
+from plant import SHUTTER, Scene             # noqa: E402
 from render_plant import configure           # noqa: E402
 
 W, H = 1080, 1920
@@ -58,7 +58,9 @@ def kmeans(px, k, iters=40, seed=7):
 def main():
     scene = Scene()
     configure(W, 128)
-    scene.set_time(ACT_I_END)
+    # The LAST LIT FRAME, not ACT_I_END — the act now ends on a sixteenth of
+    # black, and sampling a palette out of a black frame returns black.
+    scene.set_time(SHUTTER[0] - 1 / 120.0)
 
     # --- 1. where -----------------------------------------------------------
     dg = bpy.context.evaluated_depsgraph_get()
@@ -79,10 +81,9 @@ def main():
         bpy.ops.render.render(write_still=True)
 
     im = np.asarray(Image.open(still).convert("RGB"), dtype=float)
-    r = 210
-    x0, x1 = max(0, int(px - r)), min(W, int(px + r))
-    y0, y1 = max(0, int(py - r)), min(H, int(py + r))
-    box = im[y0:y1, x0:x1].reshape(-1, 3)
+    # The camera now ends inside the flower, so the petals ARE the frame —
+    # there is no head-box to find any more. Sample the whole image.
+    box = im.reshape(-1, 3)
 
     # Filter on SATURATION, not brightness. Act I is a near-monochrome dark
     # scene, so a luminance threshold keeps every shadow brown and every

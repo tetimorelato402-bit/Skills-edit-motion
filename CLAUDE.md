@@ -191,7 +191,7 @@ Load-bearing for it, if it gets built:
   above — bone and umber stay constant under all five, as do the oil-plate surface and the
   125 BPM grid. That is what stops five palettes reading as five different films.
 - **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
-  **17 bars = 32.64s**, and the bloom is five beats (`bt(2)`–`bt(7)`, 2.4s).
+  **18 bars = 34.56s**. Act I is eight bars; the bloom is five beats.
 - **Act I is a dead POPPY in a mason jar, in the dark, growing and blooming** — seven
   bars, `bt(0)`–`bt(28)`. The poppy is chosen for camera reasons, not botanical ones: its
   bud reads as dead, its head lifts before it opens (anticipation performed by the plant),
@@ -199,6 +199,12 @@ Load-bearing for it, if it gets built:
   overlapping petals, not four — four gives a front-on camera two blades instead of a bowl. It makes the film's question literal rather than metaphorical.
   **The chat box was cut entirely**; there is no interface anywhere in the film, which is
   what disposes of the "I asked AI to..." risk. The question appears as pure type.
+- **The transition is a camera arc, and it is the best structural idea in the film.**
+  After the poppy opens, the camera rises over it to a birds-eye and comes down into the
+  petals until they cover the screen. A poppy from above is petals radiating from a dark
+  centre — the same image as the paint detonation — so the two worlds are one picture in
+  two media and the cut becomes a SUBSTITUTION rather than a transition. Two distances:
+  stop at the rosette, then push in. Then one sixteenth of black, and the paint.
 - **The paint bloom erupts out of the flower head, and the join is extracted, never typed.**
   `scripts/handoff.py` projects the head through Act I's real camera and k-means clusters
   the rendered poppy for the palette, lifting it **in value only** — the same method that

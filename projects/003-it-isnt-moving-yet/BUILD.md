@@ -1,12 +1,14 @@
 # "It isn't moving yet" — build notes
 
-**Status: at gate 1.** Two pieces exist. Runtime is **17 bars = 32.64s**.
+**Status: at gate 1.** Two pieces exist. Runtime is **18 bars = 34.56s**.
 
-- **Act I, the jar** — `source/blender/`, Blender 4.5 via `bpy`, Cycles on CPU. Seven
-  bars of a dead plant in a mason jar growing in the dark and blooming. Stills and a
+- **Act I, the jar** — `source/blender/`, Blender 4.5 via `bpy`, Cycles on CPU. Eight
+  bars: a dead poppy in a mason jar under a shaft of light, growing, blooming, and then
+  the camera arcing over it and coming down into the petals until they own the screen. Stills and a
   low-res motion test render here; a full-resolution sequence does not (see below).
-- **The bloom** — `source/video.html`, five beats of paint. Built with its origin at a
-  send button that no longer exists; **its origin must move to the flower head.**
+- **The bloom** — `source/video.html`, five beats of paint, erupting from the flower's
+  black centre at (540, 963) — dead frame centre, because Act I now ends looking straight
+  down the flower's throat. Origin and palette both come from `scripts/handoff.py`.
 
 The chat-box opening was cut when the jar replaced it. `frame 0` as built is retired. `BRIEF.md` is the spec — read the REVISED section
 at the top first, the premise changed after the interview.
@@ -192,6 +194,21 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   (118°, 0, −141°) and lit nothing whatsoever, which is indistinguishable from an energy
   that is too low. `aim_at(ob, target)` builds the rotation from a direction vector, and a
   direction vector cannot be wrong that way.
+- **A poppy sheds its sepals, and the birds-eye is why that matters.** Kept at full size
+  they lie across the flower's face — invisible from the side, and from overhead a 6cm
+  green blade covers the centre of the shot the whole act is building to. `scale *= (1 −
+  opening)` is both botanically right and the fix.
+- **Arcing overhead is not the same as getting a plan view.** The head is tilted 20°
+  toward the lens, so a camera at 86° above it still yields a three-quarter. The flower
+  has to straighten to meet the camera as it comes over — motivated (flowers turn to
+  light) and it is what makes the shot read as looking down the throat.
+- **The push needs two distances, not one.** Going straight to the final radius puts the
+  lens INSIDE the flower, framing one sepal. Stop first at the distance where the whole
+  bloom fills the frame — the rosette, which is the entire reason for going overhead — and
+  only then come down into it.
+- **Tilting the shaft has to be toward the camera.** Tilted away from the lens for the
+  birds-eye, the poppy is backlit and goes dark at exactly the moment it should be at its
+  brightest — correctly lit, and unusable.
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a
