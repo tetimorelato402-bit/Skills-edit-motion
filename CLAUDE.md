@@ -62,12 +62,21 @@ Preview a few frames instead of the whole film while iterating:
   eighths, the drag arriving on `bt(24)` (the drop), the five layers on the eighths after it,
   one hero line per beat with MOVE. home on `bt(32)`, the type cycle on sixteenths landing on
   Inter at `bt(40)`, MOVE. out on `bt(43)` and home on `bt(44)`.
-- **`sound.py` mirrors that grid and must be re-run after any timing change.** Four on the
-  floor, clap on 2 and 4, offbeat open hats, an A-minor i–VI bass vamp, a two-bar pluck riff,
-  risers into the drop and the end card. The bend is still a glide on the drag's exact
-  easeInOut — it now runs `bt(23)→bt(24)` and lands with the drop. Arrangement: bar 1 intro,
-  bar 2 the beat lands, 3–5 the groove, 6 the build (bass and hats pull out), 7 THE DROP,
-  8–9 the hero, 10–11 the end card thinning to the last hit.
+- **`sound.py` mirrors that grid and must be re-run after any timing change.** Arrangement,
+  both styles: bar 1 intro, bar 2 the beat lands, 3–5 the groove, 6 the build (parts pull
+  out, a fill runs in), 7 THE DROP, 8–9 the hero, 10–11 the end card thinning to the last
+  hit. The bend is a glide on the drag's exact easeInOut, `bt(23)→bt(24)`, landing with the
+  drop.
+- **Two styles share the grid; the motion cues are the same in both.** `python3 sound.py`
+  writes the house cut (`sound.wav`) and `python3 sound.py --afro` the Afro House one
+  (`sound_afro.wav`) — `groove_house()` and `groove_afro()` are the only difference, because
+  the cues come from the film, not the genre. House: four on the floor, clap on 2 and 4,
+  offbeat open hats, A-minor i–VI bass, a two-bar pluck riff. Afro (after HUGEL & SOLTO's
+  *Jamaican (Bam Bam)*, 122 BPM in the original — the genre lives at 120–126, so it is built
+  at the film's 125 and nothing in the picture moves): a conga tumbao rolling between the
+  kicks, shaker on every sixteenth, a 3-2 son clave, a bass bouncing off the beat, a marimba
+  hook in A Dorian, and two toms answering every second bar. **A style swap is a remux, never
+  a re-render.**
 - **The palette is derived, not chosen.** It was extracted from teti's oil portrait
   (`brand/portrait-source.png`) by k-means. Colour may move in *value*; it must not leave
   the warm family.

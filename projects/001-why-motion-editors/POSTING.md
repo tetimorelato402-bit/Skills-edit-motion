@@ -3,7 +3,11 @@
 **Post `study-001-v10.mp4`** — 21.2s, 1080×1920, H.264, with its **complete soundtrack**
 burnt in: a house beat, and every motion in the film cut to it. There is no music to add in
 Instagram. **Note the runtime: 21.2s, not 19.2** — the film was re-cut to whole bars.
-`study-001-v4-painted.mp4` is kept as the earlier painted cut; older versions are in git history.
+`study-001-v10-afro.mp4` is the same picture with an Afro House beat instead — an alternate
+take, teti's call which one ships. `study-001-v4-painted.mp4` is kept as the earlier painted
+cut; older versions are in git history.
+
+Swap the beat without re-rendering: `python3 sound.py --afro`, then remux (see `../../CLAUDE.md`).
 
 v10 is the film re-cut to a house beat, in the temperament of Kungs' "I Feel So Bad" feat.
 Ephemerals (123 BPM, A minor) — teti's reference. It runs at 125 BPM, the same room, because
