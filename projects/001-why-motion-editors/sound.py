@@ -2,7 +2,9 @@
 """Sound for Study 001 — a house beat, and the film cut to it.
 
 There is no licensed music. This file IS the soundtrack: nothing gets added in
-Instagram. It is synthesised from sines and noise; there are no samples.
+Instagram. It is synthesised from sines and noise; there are no samples — unless
+`--texture` is passed, which layers six recorded objects under six of the cues
+(see texture.py). The default build is still sample-free.
 
 THE BEAT. Written in the temperament of Kungs' "I Feel So Bad" (feat. Ephemerals)
 — 123 BPM, A minor, four-on-the-floor with the offbeat open hat and a plucked
@@ -50,8 +52,9 @@ from the film, not from the genre.
 """
 import numpy as np, wave, os, sys
 
-STYLE = 'afro' if '--afro' in sys.argv else 'house'
-ARGS  = [a for a in sys.argv[1:] if not a.startswith('--')]
+ARGV    = [a for a in sys.argv[1:] if not a.startswith('--')]
+STYLE   = 'afro' if '--afro' in sys.argv else 'house'
+TEXTURE = '--texture' in sys.argv or os.environ.get('TEXTURE') == '1'
 
 SR   = 48000
 BPM  = 125.0
@@ -580,6 +583,20 @@ put(whoosh(0.30,False,0.20,(80,10)), bt(43.25), 0.0)
 put(thud(80,44,0.15,0.2,0.34), bt(43.75))
 # silence into the loop point — and bar 1 opens quiet, so the seam is inaudible
 
+# ---- the texture layer -----------------------------------------------------
+# Six recorded objects under the synthesised cues (see texture.py). Off by
+# default: `python3 sound.py --texture out.wav` turns it on. Every time below
+# is an existing cue time, so nothing is re-timed and the grid is untouched.
+if TEXTURE:
+    import texture as TX
+    put(TX.tex('dissolve'), bt(3),        0.0)   # under crackle()
+    put(TX.tex('wipe'),     bt(7),       -0.6)   # under brush(), same pan
+    put(TX.tex('ball_1'),   w0+0.25*STUDY, 0.1)  # under squash()
+    put(TX.tex('ball_2'),   w0+0.75*STUDY, 0.1)  # under the second thud()
+    put(TX.tex('drag'),     bt(23),      -0.2)   # under the two glide()s
+    put(TX.tex('page'),     B6[0]-PRE,    0.0)   # under the whoosh() page turn
+    put(TX.tex('mark'),     bt(40)+0.24, -0.1)   # under pop()
+
 # ============================================================================
 # master
 # ============================================================================
@@ -593,8 +610,9 @@ out=out/np.abs(out).max()*0.80                            # ≈ −1 dBTP after 
 pcm=(np.clip(out.T,-1,1)*32767).astype('<i2')
 
 DEFAULT='sound.wav' if STYLE=='house' else 'sound_afro.wav'
-P=ARGS[0] if ARGS else os.path.join(os.path.dirname(os.path.abspath(__file__)),DEFAULT)
+P=ARGV[0] if ARGV else os.path.join(os.path.dirname(os.path.abspath(__file__)),DEFAULT)
 with wave.open(P,'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes(pcm.tobytes())
 print("wrote", P, round(os.path.getsize(P)/1024), "KB   ", STYLE, BPM, "BPM  ", BARS, "bars  ", round(DUR,3), "s")
+if TEXTURE: print(TX.report())
