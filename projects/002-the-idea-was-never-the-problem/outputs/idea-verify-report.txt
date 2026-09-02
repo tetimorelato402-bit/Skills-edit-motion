@@ -1,0 +1,19 @@
+STILL. — "The idea was never the problem"
+verification report — Act I stop gate
+
+  PASS  the film is 1440 frames / 24.000s                        1440 @ 60fps
+  PASS  Act I events are all OFF the grid (inverted on purpose)  37, 113, 189, 266, 344
+  PASS  Act I spans exactly three bars                           settles at 356, holds 80 frames
+  PASS  Act I word spacing is uniform (no rhythm)                gaps 76/77/78 frames
+  PASS  no type between 14px and 179px                           13px and 180px, nothing between
+  PASS  exactly two faces in the whole film                      'Inter' + 'IBM Plex Mono'
+  PASS  Act I uses no easing but linear                          linear only
+  PASS  Act I animates opacity and nothing else                  opacity only
+  PASS  RUST never appears in Act I                              accent unspent
+  PASS  both acts share one layout source                        LAYOUT is the only source of position
+  PEND  every Act II / The Line event on a multiple of 5         Act II not built — stop gate
+  PEND  RUST on at most one word per frame                       the RUST word lives in Act II
+  PEND  audio RMS is exactly zero, frames 480–560                audio not built
+  PEND  frame 400 and frame 1000 are the same image              Act II not built
+
+10 passed, 0 failed, 4 pending

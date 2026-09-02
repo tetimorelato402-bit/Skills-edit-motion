@@ -134,6 +134,23 @@ Preview a few frames instead of the whole film while iterating:
   decodes every texture in `tex/` explicitly; without that the 2 MB portrait rendered as an
   empty circle in the first frames it appeared.
 
+## Study 002 — STILL., "The idea was never the problem"
+
+`projects/002-the-idea-was-never-the-problem/` is a second, separate film and a
+**different stack**: Remotion + TypeScript at 60fps, not the HTML/Playwright pipeline
+above. Its own `BRIEF.md` is the spec and its `BUILD.md` has the commands and the bugs
+already paid for. Nothing in it shares code with study 001 — read those two files, not
+this section, before working on it.
+
+It shows the same sentence and the same grey square twice: once with dead template
+motion, once with real motion, and nothing added in between. **It is at a stop gate** —
+Act I (frames 0–480) is built and rendered and must be approved as *lifeless* before
+anything past frame 480 is written. `npm run verify` reports the unbuilt sections as
+PENDING rather than PASS, on purpose.
+
+(`HANDOFF.md` proposed ARC-in-Blender as study 002. This took the slot because it is
+what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
+
 ## Fonts
 
 The film needs **Inter** (400–900) plus ten families for the end-card type cycle:

@@ -107,7 +107,9 @@ keeping every cue time (the file is the cue sheet, with the reason for each hit 
 
 # What to create
 
-**Study 002 — ARC, in Blender.** The strongest next move. Arcs are the one principle that is
+**ARC, in Blender.** The strongest next move in 3D. (Written here as "Study 002"; the
+002 slot went to the STILL. positioning film, which got briefed first — see
+`projects/002-the-idea-was-never-the-problem/BRIEF.md`. Nothing else about this changes.) Arcs are the one principle that is
 genuinely hard to prove in flat 2D and trivial to prove with a camera in space, so using 3D
 becomes a real flex instead of decoration. Render with a toon/NPR shader and composite the same
 canvas weave over it, so it stays inside the visual system. `bpy` is fully scriptable and headless.
