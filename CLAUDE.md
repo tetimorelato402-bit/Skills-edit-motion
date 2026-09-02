@@ -158,9 +158,12 @@ rendered on the 001 engine, nothing past `bt(5)` exists. It is **not a numbered 
 the directory is numbered for ordering only; the studies are the craft, this is the offer.
 Read its `BRIEF.md` first.
 
-It deliberately reverses 001's framing: 001 is a debut of craft and explicitly *not* an ad,
-this one leads with the viewer's problem and asks for the work ("send me your idea"). Both
-framings are correct for their own film; do not "fix" either to match the other.
+**It is the master** — teti's current skill level on display, with no post date, no
+deadline and no call to action. An earlier brief had it as a conversion ad; that was
+withdrawn, and `BRIEF.md` records what was pulled and why so it does not creep back.
+
+The question is **"how do you make ideas that aren't alive, alive?"** and it is never
+answered on screen.
 
 Load-bearing for it, if it gets built:
 
@@ -169,11 +172,17 @@ Load-bearing for it, if it gets built:
   above — bone and umber stay constant under all five, as do the oil-plate surface and the
   125 BPM grid. That is what stops five palettes reading as five different films.
 - **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
-  13 bars = 24.96s.
+  **17 bars = 32.64s**, and the bloom is five beats (`bt(2)`–`bt(7)`, 2.4s).
 - **The chat box is on screen for under a second, unbranded, in Inter display.** Its named
   failure mode is looking like "I asked AI to..." content, and the cold open is the risk.
-- **The question is never answered on screen.** It returns unchanged at the end and the
-  viewer supplies the answer. Putting a line under it is the one edit that breaks the film.
+- **The question returns unchanged at the end and the viewer supplies the answer.**
+  Putting a line under it is the one edit that breaks the film.
+- **Every bloom petal has its own fixed duration**, rather than all of them ending when
+  the bloom does. Otherwise the earliest petals take the longest to grow and lengthening
+  the bloom makes the impact softer instead of bigger.
+- **Throw distance is a fraction of the room available along each petal's heading**, not
+  a fixed fraction of the frame. The button sits low and right; a uniform cap meant
+  nothing ever travelled into the top third and it stayed a flat field for half the bloom.
 - **No `will-change`, and one paint skin over the whole bloom, never one per petal.**
   Past a layer budget Chromium stops applying style updates *silently* — no error, no
   warning — and screenshots come back showing arbitrary earlier states.

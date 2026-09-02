@@ -1,7 +1,8 @@
 # "It isn't moving yet" — build notes
 
 **Status: at gate 1.** Frame 0 (the cover) and the bloom (the hero) are built and
-rendered. Nothing past `bt(5)` exists. `BRIEF.md` is the spec — read the REVISED section
+rendered — 3.83s at 1080×1920. Nothing past `bt(8)` exists. Runtime is **17 bars =
+32.64s** and the bloom is **five beats, `bt(2)`–`bt(7)`, 2.4s**. `BRIEF.md` is the spec — read the REVISED section
 at the top first, the premise changed after the interview.
 
 ## The stack
@@ -108,3 +109,13 @@ $FF -y -framerate 120 -i source/frames120/f%05d.png \
   of a button is that no single petal covers the frame.
 - **Late petals are deliberately smaller** (`rad × (1 − 0.55·lag)`). The bloom used to own
   the frame by 1.50s and then had nine tenths of a second with nothing left to do.
+- **Every petal has its own fixed duration** (`dur`, 0.45–0.90s), rather than all of them
+  ending when the bloom ends. This is what let the bloom stretch from 1.44s to 2.4s
+  without going soft: with a shared end time, the earliest petals have the LONGEST window
+  and so lengthening the bloom slows the initial impact instead of increasing it. A fixed
+  throw per petal keeps every one snapping out at the same speed, and length then buys
+  more waves rather than slower ones.
+- **Throw distance is a fraction of the room available along each petal's own heading**
+  (`roomAlong(ang)`), not a fixed fraction of the frame. The button sits low and right, so
+  a uniform cap meant nothing ever travelled into the top third — it stayed a flat field
+  of wash for the entire second half of the bloom.

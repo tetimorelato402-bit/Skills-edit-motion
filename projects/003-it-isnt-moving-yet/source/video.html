@@ -49,8 +49,8 @@ const bt=n=>n*BEAT;
 const SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 
 const CLICK   = bt(2);          // 0.96 — the cursor presses send. This IS the drop.
-const BLOOM   = [bt(2), bt(5)]; // 0.96 -> 2.40, the detonation
-const DUR     = bt(6);          // the gate render is one and a half bars
+const BLOOM   = [bt(2), bt(7)]; // 0.96 -> 3.36. Five beats exactly: 2.4s of detonation.
+const DUR     = bt(8);          // the gate render is two bars
 window.DUR = DUR;
 
 // ---- easing ---------------------------------------------------------------
@@ -214,6 +214,19 @@ function profile(){
 const CX=BTNX+BTN/2, CY=BTNY+BTN/2;
 const REACH=Math.hypot(Math.max(CX,1080-CX), Math.max(CY,1920-CY))*1.15;
 
+// How far the frame extends from the button in a given direction. The button
+// sits low and right, so there is almost no room down-right and a great deal
+// up-left — and throwing every petal the same capped distance regardless meant
+// nothing ever travelled into the top third, which stayed a flat field of wash
+// for the entire second half of the bloom. Distance is now a fraction of the
+// room actually available along each petal's own heading.
+function roomAlong(ang){
+  const dx=Math.cos(ang), dy=Math.sin(ang);
+  const tx = dx>0 ? (1080-CX)/dx : (dx<0 ? -CX/dx : Infinity);
+  const ty = dy>0 ? (1920-CY)/dy : (dy<0 ? -CY/dy : Infinity);
+  return Math.min(tx,ty);
+}
+
 // THE SPRAY.
 //
 // The first build of this was nine concentric discs, each big enough to fill
@@ -236,21 +249,29 @@ for(let i=0;i<NP;i++){
   // reads as a fan instead of a detonation.
   const ang = (i/NP)*Math.PI*2 + rng(-0.10,0.10);
   // The bloom used to own the frame by 1.50s and then had nine tenths of a
-  // second with nothing left to do. Spreading the launches out to 0.82 of the
-  // window, and shrinking every late petal, keeps paint arriving ON TOP of
-  // paint right to the end — a second wave instead of a plateau.
-  const lag = rng(0, 0.82);
+  // second with nothing left to do. Spreading the launches out, and shrinking
+  // every late petal, keeps paint arriving ON TOP of paint right to the end —
+  // successive waves instead of a plateau.
+  const lag = rng(0, 0.72);
   petals.push({
     ang,
     // dist must stay well under rad's reach. Thrown 0.88 of the way to the far
     // corner while only growing to 0.42, a petal ends the bloom OUTSIDE the
     // frame — so the paint peaked halfway through and then visibly receded,
     // and the ones still crossing the border drew straight edges along it.
-    dist:  rng(0.04,0.45)*REACH,   // how far it is thrown
+    dist:  rng(0.10,0.78)*roomAlong(ang),   // how far it is thrown
     rad:   rng(0.12,0.30)*REACH*(1-0.55*lag),  // late arrivals are small
     lag,
     elong: rng(1.0,2.3),           // stretched along its own travel — a tendril
     op:    rng(0.86,1.0),
+    // EVERY PETAL HAS ITS OWN DURATION, and this is what keeps a 2.4s bloom
+    // from turning into a slow swell. Ending every petal's window at the
+    // bloom's end means the earliest petals take the LONGEST to grow, so
+    // stretching the bloom makes the initial impact softer rather than bigger.
+    // A fixed ~half-second throw per petal keeps each one snapping out at the
+    // same speed however long the bloom runs; length then buys more waves
+    // instead of slower ones.
+    dur:   rng(0.45,0.90),
     prof:  profile(),
   });
 }
@@ -271,7 +292,7 @@ petals.forEach((p,i)=>{
 // be big enough to show a straight edge. Drawn first, so it is the GROUND of
 // the bloom rather than a disc competing with it.
 const wash={c:'#8E3218', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
-            rad:REACH*1.15, elong:1.15, op:1, lag:0.18, prof:profile()};
+            rad:REACH*1.15, elong:1.15, op:1, lag:0.10, dur:1.05, prof:profile()};
 
 // Every petal is drawn twice: a translucent HALO a few percent larger, then the
 // petal itself. Real paint does not have a hard edge, and a blur cannot be used
@@ -353,7 +374,8 @@ window.renderFrame = function(t){
   // --- the bloom -----------------------------------------------------------
   const span = BLOOM[1]-BLOOM[0];
   for(const p of [wash,...petals]){
-    const u = seg(t, BLOOM[0]+p.lag*span, BLOOM[1]);
+    const from = BLOOM[0] + p.lag*span;
+    const u = seg(t, from, Math.min(from + p.dur, BLOOM[1]));
     if(u<=0){ p.node.style.opacity='0'; p.halo.style.opacity='0'; continue; }
     p.halo.style.clipPath = petalPath(p, u, 1.04);
     p.halo.style.opacity  = String(p.op*0.28);
@@ -362,7 +384,7 @@ window.renderFrame = function(t){
   }
 
   // the paint skin rides the bloom's own progress
-  const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.55);
+  const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.40);
   skinPlate.style.opacity = String(0.50*bp);
   skinWeave.style.opacity = String(0.22*bp);
 

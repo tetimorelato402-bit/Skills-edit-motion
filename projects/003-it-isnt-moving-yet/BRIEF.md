@@ -1,6 +1,6 @@
 # "It isn't moving yet" — Creative Brief
 
-teti studio · **the master** · 9:16 · 125 BPM · no post date
+teti studio · **the master** · 9:16 · **17 bars = 32.64s** · 125 BPM · no post date
 
 Produced from a full `big-video-project` interview (36 questions), then **substantially
 re-briefed** when teti corrected the premise. Read the revision note below before
@@ -114,10 +114,12 @@ Synthesised, never licensed — the house rule since 001, and `sound.py` already
 
 - **125 BPM, and the film is cut to it.** Beat 0.48s, bar 1.92s. Same grid and same
   engine as 001, so cue times stay frame-exact by construction rather than by hand.
-- **Runtime is now an open decision.** 13 bars (24.96s) was sized for a cold-Explore
-  Reel. With no post date, a bloom that wants 1.44s, five techniques that each want a
-  full bar, and the question returning at the end, 13 is tight. **17 bars = 32.64s** is
-  the honest number for what is described here. Teti decides; the grid does not care.
+- **Runtime: 17 bars = 32.64s.** Decided. 13 bars was sized for a cold-Explore Reel;
+  with no post date it was simply too tight for a 2.4s bloom, five techniques and a
+  question that has to come back and sit there. The four extra bars go to the techniques
+  and to the silence at the end — **never to new content.**
+- **The bloom is 5 beats — `bt(2)` to `bt(7)`, 2.4 seconds.** Decided, and it is the
+  longest single gesture in the film by a wide margin.
 - **Designed both ways, deliberately.** Burned-in type carries the argument muted; the
   synthesised house track carries the rip when someone taps.
 - **The drop is the click.** No long build — the film opens *on* the drop at 0.96s. Bar 1
@@ -154,32 +156,30 @@ Synthesised, never licensed — the house rule since 001, and `sound.py` already
 
 ---
 
-## Beat sheet — 13 bars at 125 BPM
+## Beat sheet — 17 bars at 125 BPM
 
 Bar = 1.92s. Beat = 0.48s. `bt(n)` = beat n from frame 0, as in `video.html`.
+Total 68 beats = **32.64s**.
 
 | Bar | Time | Screen | Type | Sound |
 |---|---|---|---|---|
-| **1** | 0.00–1.92 | **The cover frame.** The question already sits finished; the cursor hovers the send button. Parchment ground, canvas weave, no chrome beyond a hairline rule and the button. Held dead still for two beats — the only stillness in the film, and it earns the pause. Click on `bt(2)`. | **how do you make ideas that aren't alive, alive?** — the second `alive` in signal | Room tone. Two dry key ticks. The click *is* the drop. |
-| **2** | 1.92–3.84 | **THE BLOOM.** Colour detonates out of the button and eats the frame — the one moment the film leaves the palette entirely. Peaks by `bt(5)`, drains back to bone by `bt(7)`. `teti.` strobes once on `bt(7)` and is gone. | `teti.` — one frame group, lowercase | Drop lands on the ignition. Full arrangement in at once. |
-| **3** | 3.84–5.76 | **T5 — white space editorial.** One word at enormous scale on near-empty bone. Motion enters from the left, exits right. | question pinned, MICRO, top left | Groove. Hit on the word landing. |
-| **4** | 5.76–7.68 | **T6 — modular grid.** The frame becomes tiles; blocks slide in and out of cells, one passing across and briefly occluding the mark. Everything snaps, nothing floats. | question pinned | Tighter hats, hit per snap. |
-| **5** | 7.68–9.60 | **T3 — torn collage.** Tape labels at 6–14°, torn edges, colour blocks wiping the whole frame between beats. The loudest bar. | question pinned | Peak energy, clap on 2 and 4. |
-| **6** | 9.60–11.52 | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. The breather. | question pinned | Bass and hats pull out. Pen-scratch foley on the strokes. |
-| **7** | 11.52–13.44 | **T7 — painted frame.** Brush-drawn, frame-to-frame, painted lettering. The film resolves into teti's own hand. | question pinned | Riser under it. |
-| **8** | 13.44–15.36 | **All five at once.** Tiled, moving left and right, "showing everywhere" — the range stated in one image. | question pinned | Peak. |
-| **9** | 15.36–17.28 | Everything drains off. The question returns **alone**, in exactly the position, size and colour it held in bar 1. | the question, unchanged | Breakdown. Near-silence by the last beat. |
-| **10** | 17.28–19.20 | **Nothing is added.** The question simply sits there while the viewer supplies the answer. This bar is the whole film's argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. | — | One low tone, then room tone. |
-| **11** | 19.20–21.12 | `teti.` resolves out of the paint — the same mark as the profile picture, so the film and the account share a face. | `teti.` | Warm low tone. |
-| **12** | 21.12–23.04 | Hold on the mark. No offer, no handle, no link. | — | Last full bar of the track. |
-| **13** | 23.04–24.96 | Cut back to the untouched cover frame on the final frame, so the film loops into itself and the question is the first and last thing seen. | the question | Thins to the last hit on the loop point. |
+| Bar | Beats | Screen | Type | Sound |
+|---|---|---|---|---|
+| **1–2** | `bt(0)`–`bt(8)` | **The cover, then THE BLOOM.** The question sits finished; the cursor hovers the send button; parchment ground, canvas weave, a hairline rule and nothing else. Dead still for two beats — the only stillness in the film. Click on `bt(2)`, and the paint detonates out of the button for five beats. The question is never faded: the paint **swallows** it. | **how do you make ideas that aren't alive, alive?** — the second `alive` in signal | Room tone, two dry key ticks, then the click *is* the drop. Full arrangement in at once. |
+| **3** | `bt(8)`–`bt(12)` | The bloom settles and `teti.` strobes once out of the paint, on `bt(8)`, and is gone before the bar ends. | `teti.` — lowercase | The drop rides out. |
+| **4–5** | `bt(12)`–`bt(20)` | **T5 — white space editorial.** One word at enormous scale on near-empty ground. Motion enters left, exits right. | question pinned, MICRO, top left | Groove. Hit on the word landing. |
+| **6–7** | `bt(20)`–`bt(28)` | **T6 — modular grid.** The frame becomes tiles; blocks slide through cells, one passing across and briefly occluding the mark. Everything snaps, nothing floats. | question pinned | Tighter hats, hit per snap. |
+| **8–9** | `bt(28)`–`bt(36)` | **T3 — torn collage.** Tape at 6–14°, torn edges, colour blocks wiping the frame between beats. The loudest bars. | question pinned | Peak energy, clap on 2 and 4. |
+| **10–11** | `bt(36)`–`bt(44)` | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. The breather. | question pinned | Bass and hats pull out. Pen-scratch foley. |
+| **12–13** | `bt(44)`–`bt(52)` | **T7 — painted frame.** Brush-drawn, frame to frame, painted lettering. The film resolves into teti's own hand. | question pinned | Riser under it. |
+| **14** | `bt(52)`–`bt(56)` | **All five at once.** Tiled, moving left and right — "showing everywhere", the range stated in one image. | question pinned | Peak. |
+| **15** | `bt(56)`–`bt(60)` | Everything drains off. The question returns **alone**, in exactly the position, size and colour it held in bar 1. | the question, unchanged | Breakdown to near-silence. |
+| **16** | `bt(60)`–`bt(64)` | **Nothing is added.** The question sits there while the viewer supplies the answer. This bar is the film's whole argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. Then `teti.` resolves out of the paint, the same mark as the profile picture. | `teti.` | One low tone, then room tone. |
+| **17** | `bt(64)`–`bt(68)` | Hold on the mark — no offer, no handle, no link — then cut back to the untouched cover on the final frame, so the film loops into itself and the question is the first and last thing seen. | the question | Thins to the last hit on the loop point. |
 
-*(Bars are given at 13. If the runtime opens to 17, the extra four go to the five
-techniques and to bar 10's silence — never to new content.)*
-
-**Ratio check.** Bloom = 1.44s. Five techniques = 9.60s. The bloom is the hero and the
-five are the proof, and the proof gets six times the screen time. That ratio was set when
-this was an ad and it survives the re-brief unchanged, for a different reason: a master
+**Ratio check.** Bloom = 2.40s. Five techniques = 15.36s (two bars each). The bloom is the hero and the
+five are the proof, and the proof still gets six times the screen time. That ratio was
+set when this was an ad and it survives the re-brief for a different reason: a master
 that spends its length on one spectacle is a showreel of one trick.
 
 ---
