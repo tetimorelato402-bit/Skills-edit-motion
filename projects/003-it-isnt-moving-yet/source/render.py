@@ -47,7 +47,7 @@ def main():
         pg.wait_for_function("window.renderFrame !== undefined")
         pg.evaluate("document.fonts.ready")
         pg.evaluate("""async () => {
-            const files = ['weave.png','plate_paper.png','plate_ochre.png','plate_ink.png'];
+            const files = ['weave.png','plate_paper.png','brush.png'];
             await Promise.all(files.map(f => {
                 const i = new Image(); i.src = 'tex/' + f;
                 return i.decode().catch(() => {});

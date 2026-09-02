@@ -174,13 +174,23 @@ Load-bearing for it, if it gets built:
   125 BPM grid. That is what stops five palettes reading as five different films.
 - **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
   **17 bars = 32.64s**, and the bloom is five beats (`bt(2)`–`bt(7)`, 2.4s).
-- **Act I is a dead plant in a mason jar, in the dark, growing and blooming** — seven
-  bars, `bt(0)`–`bt(28)`. It makes the film's question literal rather than metaphorical.
+- **Act I is a dead POPPY in a mason jar, in the dark, growing and blooming** — seven
+  bars, `bt(0)`–`bt(28)`. The poppy is chosen for camera reasons, not botanical ones: its
+  bud reads as dead, its head lifts before it opens (anticipation performed by the plant),
+  and its petals emerge creased and open by uncreasing. It is modelled with six
+  overlapping petals, not four — four gives a front-on camera two blades instead of a bowl. It makes the film's question literal rather than metaphorical.
   **The chat box was cut entirely**; there is no interface anywhere in the film, which is
   what disposes of the "I asked AI to..." risk. The question appears as pure type.
-- **The paint bloom erupts out of the flower head.** The 3D act is not cut away from, it
-  is covered — that handoff is the transition from the slow half to the fast one, and it
-  is why the Blender render never needs compositing against the 2D world.
+- **The paint bloom erupts out of the flower head, and the join is extracted, never typed.**
+  `scripts/handoff.py` projects the head through Act I's real camera and k-means clusters
+  the rendered poppy for the palette, lifting it **in value only** — the same method that
+  produced 001's palette from the oil portrait. Re-run it after any change to the Blender
+  camera or lighting, or the paint silently starts in the wrong place in the wrong colour.
+  The 3D act is not cut away from, it is covered; the two worlds share exactly one frame.
+- **The bloom is textured with `scripts/brushplate.py`, a neutral-grey plate carrying only
+  value.** 001's paper plates do nothing over saturated colour — there is no value range
+  left to push, and the paint reads as flat vector fill. A grey plate in `overlay` carves
+  strokes into any hue without shifting it: the palette rule expressed as a texture.
 - **`plant.py` has no keyframes.** It builds the scene once and `set_time(t)` moves it,
   the same contract as `renderFrame(t)`, so the 125 BPM grid stays the only clock.
 - **The question returns unchanged at the end and the viewer supplies the answer.**

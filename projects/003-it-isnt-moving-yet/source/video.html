@@ -48,7 +48,10 @@ const BPM=125, BEAT=60/BPM, BAR=4*BEAT;     // 0.48, 1.92
 const bt=n=>n*BEAT;
 const SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 
-const CLICK   = bt(2);          // 0.96 — the cursor presses send. This IS the drop.
+// Local time 0 here is film time bt(26) — the beat the poppy starts opening.
+// The flower is fully open by bt(2) local, and that is where the paint takes
+// over: the drop lands on the ignition, not on a cut.
+const IGNITE  = bt(2);          // 0.96
 const BLOOM   = [bt(2), bt(7)]; // 0.96 -> 3.36. Five beats exactly: 2.4s of detonation.
 const DUR     = bt(8);          // the gate render is two bars
 window.DUR = DUR;
@@ -91,70 +94,25 @@ el('div',ground,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.p
   backgroundRepeat:'repeat',mixBlendMode:'overlay',opacity:'0.14'});
 
 // ===========================================================================
-//  FRAME 0 — the cover.
+//  THE HANDOFF.
 //
-//  This has to survive one specific test: it must NOT read as a screenshot.
-//  The named failure mode for this whole film is "I asked AI to..." content,
-//  and a chat box is the fastest way to land in that genre. So the question is
-//  set at title scale in the film's own face, on the film's own painted ground,
-//  and the interface is reduced to the two things that carry the meaning — a
-//  caret and a send button. No panel, no chrome, no border, no product.
+//  Act I is Blender: seven bars of a dead poppy in a mason jar, growing in the
+//  dark. It ends with the flower open, and THAT rendered frame is the ground
+//  this file starts on — the paint does not cut to a new scene, it erupts out
+//  of the poppy and covers it. The two worlds share exactly one frame.
 //
-//  The word "alive" appears twice. The second one is in signal. That is the
-//  whole film in a single still, and it is also the profile cover.
+//  The chat box that used to open the film is gone entirely; there is no
+//  interface anywhere now, which is what removed the "I asked AI to..." risk.
+//  The question is pure type over the dark in Act I and again at the end.
 // ===========================================================================
-const M=84;                       // the house margin, same as 001
-const QSIZE=132, QLEAD=1.02;
-const QTOP=980;
+const act1 = el('div',stage,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/act1_last.png')",backgroundSize:'1080px 1920px'});
 
-// MICRO eyebrow, top left. Present the whole film, never animated — it anchors
-// the top of a frame that is otherwise deliberately, editorially empty.
-el('div',stage,{position:'absolute',left:px(M),top:px(96),color:'var(--grey)',
-  fontFamily:"'PlexMono',monospace",fontSize:'22px',fontWeight:'500',
-  letterSpacing:'0.22em',textTransform:'uppercase'},'a question');
-
-const qWrap=el('div',stage,{position:'absolute',left:px(M),top:px(QTOP),width:px(1080-M*2)});
-const QLINES=[
-  [['how do you','ink']],
-  [['make ideas','ink']],
-  [["that aren't",'ink']],
-  [['alive, ','ink'],['alive?','signal']],   // the turn happens inside the last line
-];
-const qLineEls=QLINES.map(parts=>{
-  // width:'fit-content' is load-bearing: a flex line at full container width
-  // reports 912px from getBoundingClientRect, and the caret — measured off it —
-  // lands 300px to the right of the text it is supposed to follow.
-  const line=el('div',qWrap,{display:'flex',alignItems:'baseline',whiteSpace:'pre',
-    width:'fit-content',
-    fontSize:px(QSIZE),fontWeight:'800',letterSpacing:'-0.045em',lineHeight:String(QLEAD)});
-  parts.forEach(([txt,tone])=>el('span',line,{color:tone==='signal'?'var(--signal)':'var(--ink)'},txt));
-  return line;
-});
-
-// The caret sits on the baseline of the last line, where a cursor would be.
-const caret=el('div',stage,{position:'absolute',width:'9px',background:'var(--ink)',
-  opacity:'0.85'});
-
-// The send button. Recognisable but unbranded — the shape everybody knows, in
-// the film's own signal colour rather than anybody's brand orange. It is the
-// origin of the bloom, so it is placed first and everything else is measured
-// from it.
-const BTN=96, BTNX=1080-M-BTN, BTNY=QTOP+QLINES.length*QSIZE*QLEAD+66;
-const btn=el('div',stage,{position:'absolute',left:px(BTNX),top:px(BTNY),
-  width:px(BTN),height:px(BTN),borderRadius:'26px',background:'var(--signal)',
-  display:'flex',alignItems:'center',justifyContent:'center'});
-btn.innerHTML='<svg width="44" height="44" viewBox="0 0 44 44" fill="none">'+
-  '<path d="M22 34V10M22 10L11 21M22 10L33 21" stroke="#EFE3CC" stroke-width="5" '+
-  'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-
-// a hairline rule under the type block: the only thing suggesting a field
-const rule=el('div',stage,{position:'absolute',left:px(M),width:px(1080-M*2-BTN-40),
-  top:px(BTNY+BTN-2),height:'3px',background:'var(--ink)',opacity:'0.18'});
-
-// the signature, MICRO, bottom left — present the whole film, never animated
-el('div',stage,{position:'absolute',left:px(M),top:px(1804),color:'var(--grey)',
-  fontFamily:"'PlexMono',monospace",fontSize:'22px',fontWeight:'500',
-  letterSpacing:'0.22em',textTransform:'uppercase'},'teti — motion');
+// The flower head, projected through Act I's actual camera by
+// scripts/handoff.py — never measured off a screenshot. Move the Blender
+// camera and this number is silently wrong, and the paint starts somewhere
+// that is not the flower.
+const HEAD_X = 540.0, HEAD_Y = 449.7;
 
 // ===========================================================================
 //  THE BLOOM.
@@ -185,8 +143,16 @@ const NPROF=96;
 // 500px petal in the middle of the frame and read as a HOLE punched in the
 // paint rather than as paint — the light tones have to be small or they stop
 // being highlights and start being gaps.
-const WARM=['#A8341A','#D8452A','#B8843A','#C2502F','#8E3218',
-            '#9A4A22','#B5471F','#C96A2B'];
+// EXTRACTED, NOT CHOSEN. scripts/handoff.py k-means clusters the rendered
+// poppy and lifts the result in value only — the same method that produced
+// 001's palette from teti's oil portrait, and the same rule: colour may move
+// in value, it must not leave the warm family. The paint is the flower's
+// colour because it came from the flower, not because two swatches were
+// matched by eye. Re-run handoff.py after any change to the Blender lighting.
+const WARM=['#F51A21','#DB6D15','#C14616','#AA6913',
+            '#952510','#6E3F1D','#733405','#5F1909'];
+// The cools are the five techniques' own accents, seeded into the bloom so
+// that the detonation contains the colours of everything that follows it.
 const COOL=['#1F5F6B','#2C5FA8','#3F7A3A','#7A2E52','#E8B25C','#D9C08A'];
 
 // A bristled radial profile. Four octaves: the low ones carry the silhouette,
@@ -211,7 +177,7 @@ function profile(){
 }
 
 // The bloom has to reach the far corner of the frame from the button.
-const CX=BTNX+BTN/2, CY=BTNY+BTN/2;
+const CX=HEAD_X, CY=HEAD_Y;
 const REACH=Math.hypot(Math.max(CX,1080-CX), Math.max(CY,1920-CY))*1.15;
 
 // How far the frame extends from the button in a given direction. The button
@@ -283,15 +249,26 @@ petals.sort((a,b)=>b.rad-a.rad);
 // and the cools land only on small ones. Left to chance, a plum or a magenta
 // draws a 500px petal and the detonation stops looking like teti's paint box.
 // The accent colours are accents — that has to be true here too.
+// Each petal takes its listed colour and then moves in VALUE only — never in
+// hue, per the palette rule. Without it, two overlapping petals drawn from the
+// same eight-entry list are the identical flat fill and their shared edge
+// disappears; paint never does that.
+const shade=(hex,f)=>{
+  const n=parseInt(hex.slice(1),16);
+  const cl=v=>Math.max(0,Math.min(255,Math.round(v*f)));
+  return 'rgb('+cl(n>>16)+','+cl((n>>8)&255)+','+cl(n&255)+')';
+};
 petals.forEach((p,i)=>{
-  p.c = i < NP*0.55 ? WARM[i%WARM.length] : (i%3===0 ? COOL[i%COOL.length] : WARM[i%WARM.length]);
+  const base = i < NP*0.55 ? WARM[i%WARM.length]
+             : (i%3===0 ? COOL[i%COOL.length] : WARM[i%WARM.length]);
+  p.c = shade(base, rng(0.80, 1.16));
 });
 
 // The wash: one large, slow, bristled shape under the entire spray. It is what
 // guarantees the frame is covered by the end without any small petal having to
 // be big enough to show a straight edge. Drawn first, so it is the GROUND of
 // the bloom rather than a disc competing with it.
-const wash={c:'#8E3218', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
+const wash={c:'#5F1909', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
             rad:REACH*1.15, elong:1.15, op:1, lag:0.10, dur:1.05, prof:profile()};
 
 // Every petal is drawn twice: a translucent HALO a few percent larger, then the
@@ -318,9 +295,24 @@ for(const p of [wash,...petals]){
   p.halo=el('div',bloomLayer,{position:'absolute',inset:'0',background:p.c,opacity:'0'});
   p.node=el('div',bloomLayer,{position:'absolute',inset:'0',background:p.c,opacity:'0'});
 }
+// TWO plates, at different scales and mirrored. One full-frame oil plate over
+// the whole bloom gives every petal the same brush direction in the same place,
+// and fifty overlapping petals sharing one grain read as WOOD — long vertical
+// striations running the height of the frame. A second plate at 1.6x and
+// flipped breaks that up into something that reads as loaded paint.
 const skinPlate=el('div',bloomLayer,{position:'absolute',inset:'0',
   backgroundImage:"url('tex/plate_paper.png')",backgroundSize:'1080px 1920px',
   mixBlendMode:'overlay',opacity:'0'});
+// The brush plate is the one that actually does the work. It is neutral grey
+// carrying only value, so in `overlay` it carves strokes into any hue without
+// shifting it — the palette rule as a texture. scripts/brushplate.py.
+const skinBrush=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/brush.png')",backgroundSize:'1080px 1920px',
+  mixBlendMode:'overlay',opacity:'0'});
+const skinBrush2=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/brush.png')",backgroundSize:'1730px 3070px',
+  backgroundPosition:'-410px -700px',transform:'scaleX(-1)',
+  mixBlendMode:'soft-light',opacity:'0'});
 const skinWeave=el('div',bloomLayer,{position:'absolute',inset:'0',
   backgroundImage:"url('tex/weave.png')",backgroundRepeat:'repeat',
   mixBlendMode:'multiply',opacity:'0'});
@@ -356,20 +348,8 @@ function petalPath(p, u, scale){
 // ===========================================================================
 window.renderFrame = function(t){
 
-  // --- frame 0 -------------------------------------------------------------
-  // The caret does not blink. A blinking cursor is wall-clock UI behaviour and
-  // it would put a moving element in the cover frame; this frame is the only
-  // stillness in the film and it earns the pause.
-  const lastLine=qLineEls[qLineEls.length-1];
-  caret.style.left = px(M + lastLine.getBoundingClientRect().width + 14);
-  caret.style.top  = px(QTOP + (QLINES.length-1)*QSIZE*QLEAD + QSIZE*0.14);
-  caret.style.height = px(QSIZE*0.80);
-
-  // The press: the button takes the click physically — down fast, and it never
-  // comes back up, because the bloom takes it.
-  const press = seg(t, CLICK-0.06, CLICK);
-  const s = 1 - 0.10*easeOut(press);
-  btn.style.transform = `scale(${s.toFixed(4)})`;
+  // Act I is a rendered frame, not an element tree — nothing to position. The
+  // flower opened in Blender; from here the only thing that moves is paint.
 
   // --- the bloom -----------------------------------------------------------
   const span = BLOOM[1]-BLOOM[0];
@@ -385,11 +365,13 @@ window.renderFrame = function(t){
 
   // the paint skin rides the bloom's own progress
   const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.40);
-  skinPlate.style.opacity = String(0.50*bp);
-  skinWeave.style.opacity = String(0.22*bp);
+  skinPlate.style.opacity  = String(0.30*bp);
+  skinBrush.style.opacity  = String(0.62*bp);
+  skinBrush2.style.opacity = String(0.45*bp);
+  skinWeave.style.opacity  = String(0.26*bp);
 
   // the hot centre — one sixteenth, then gone under the paint
-  const ig = seg(t, CLICK, CLICK+SIXTEENTH*0.7);
+  const ig = seg(t, IGNITE, IGNITE+SIXTEENTH*0.7);
   const cr = 34 + 130*easeOut(ig);
   core.style.left=px(CX-cr); core.style.top=px(CY-cr);
   core.style.width=px(cr*2); core.style.height=px(cr*2);
