@@ -405,6 +405,28 @@ function petalPath(p, u, scale){
 
 const POPPY = "url('tex/act1_last.png')";
 
+// THE PETALS TAKE EACH STYLE'S COLOUR.
+//
+// Every technique shows the same poppy, and every technique shows it in its
+// own accent — so the flower is recoloured five times rather than repeated
+// five times. `color` is the blend mode that does this and nothing else does:
+// it takes hue and saturation from the tint and keeps LUMINANCE from the
+// photograph, so every crease, every stamen and every highlight the Blender
+// render worked for survives intact. `multiply` would crush them into the
+// tint and `hue` would leave the vermilion saturation fighting the new colour.
+//
+// These are the same five hues the stem glitches through in Act I, so by the
+// time a technique arrives the viewer has already seen its colour run up
+// that stem.
+function tint(node, colour, strength){
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'color',opacity:String(strength),pointerEvents:'none'});
+  // a whisper of the accent in multiply as well, to keep the darks from going
+  // grey — `color` alone leaves shadows neutral and the tint reads as a filter
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'multiply',opacity:String(strength*0.22),pointerEvents:'none'});
+}
+
 function scene(){
   const d = el('div',stage,{position:'absolute',inset:'0',overflow:'hidden',
     display:'none'});
@@ -453,7 +475,7 @@ const s5 = scene();
 const s5petal = el('div',s5,{position:'absolute',width:'760px',height:'2600px',
   left:'160px',top:'-340px',background:AC.t5,
   backgroundImage:POPPY,backgroundSize:'1500px 2666px',
-  backgroundPosition:'-370px -33px',backgroundBlendMode:'multiply'});
+  backgroundPosition:'-370px -33px',backgroundBlendMode:'color'});
 const S5EDGE = edgeProfile(72, 26);
 (function(){
   const pts=[];
@@ -488,6 +510,7 @@ for(let r=0;r<GR;r++) for(let c=0;c<GC;c++){
     // holes punched in the grid rather than as cells of a picture.
     backgroundSize:'1900px 3378px',
     backgroundPosition:px(-c*GW*1.35-330)+' '+px(-r*GH*1.35-660),opacity:'0'});
+  tint(t, AC.t6, 0.86);
   s6tiles.push({node:t, r, c, order:(r*GC+c*7)%(GC*GR)});
 }
 // the block that travels across and occludes — the move worth stealing outright
@@ -511,6 +534,7 @@ for(let i=0;i<7;i++){
   for(let k=0;k<30;k++) pts.push((0+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
   for(let k=29;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
   f.style.clipPath='polygon('+pts.join(',')+')';
+  tint(f, AC.t3, 0.80);
   s3frag.push({node:f, rot:(rng(0,1)<0.5?-1:1)*(6+rng(0,8)), lag:i/7*0.62});
 }
 const s3tape = [];
@@ -595,6 +619,7 @@ el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.pn
 el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
   backgroundSize:'1730px 3070px',backgroundPosition:'-410px -700px',
   transform:'scaleX(-1)',mixBlendMode:'soft-light',opacity:'0.16'});
+tint(s7img, AC.t7, 0.62);
 el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/plate_paper.png')",
   backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.18'});
 // the weave under it all, so the painting sits on canvas rather than on glass
@@ -639,6 +664,7 @@ const bA = [];
       backgroundPosition:px(-i*150-300)+' -840px'});
     if(i%4===1) c.style.opacity='0';
   }
+  tint(g1, AC.t6, 0.86);
   bA.push({node:g1, dir:-1, span:1200});
 
   // 2 — torn collage: crooked fragments, tape, nothing aligned
@@ -658,6 +684,7 @@ const bA = [];
     for(let k=17;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/17*100).toFixed(1)+'%');
     f.style.clipPath='polygon('+pts.join(',')+')';
   }
+  tint(c2, AC.t3, 0.80);
   bA.push({node:c2, dir:+1, span:1200});
 
   // 3 — ink on one colour: two colours, line only
@@ -702,6 +729,7 @@ const bA = [];
     backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.24'});
   el('div',p4,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
     backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.32'});
+  tint(p4, AC.t7, 0.62);
   bA.push({node:p4, dir:+1, span:1300});
 })();
 

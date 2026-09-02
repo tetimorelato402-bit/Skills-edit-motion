@@ -62,6 +62,20 @@ LIVE_STEM  = (0.088, 0.121, 0.052, 1.0)
 DEAD_LEAF  = (0.062, 0.046, 0.028, 1.0)
 LIVE_LEAF  = (0.105, 0.155, 0.062, 1.0)
 PETAL      = (0.640, 0.170, 0.048, 1.0)   # vermilion — see BRIEF, the red-field rule
+
+# THE FIVE ACCENTS, as the stem will flicker through them. These are the exact
+# colours the five techniques use in video.html — rust, signal blue, hot red,
+# mustard, plum — so the glitch in the stem is a genuine preview of the film's
+# own back half rather than a decorative colour cycle.
+#
+# Converted sRGB -> linear, because Blender's colour inputs are linear and a hex
+# value dropped straight in renders noticeably darker and duller than the swatch.
+def _srgb(h):
+    v = [int(h[i:i+2], 16) / 255.0 for i in (1, 3, 5)]
+    lin = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in v]
+    return (lin[0], lin[1], lin[2], 1.0)
+
+ACCENTS = [_srgb(h) for h in ('#A8341A', '#2C5FA8', '#D8452A', '#B8843A', '#7A2E52')]
 PETAL_TIP  = (0.640, 0.240, 0.060, 1.0)   # ochre
 
 
@@ -391,6 +405,19 @@ class Scene:
         aim_at(k, (0.0, 0.015, 0.0))      # onto the table, through the flower
         self.key = k
 
+        # A BOUNCE, LINKED TO THE PLANT ALONE. The shaft models the flower from
+        # above and leaves the stem and the leaves as silhouettes; a dim warm
+        # bounce from low and front puts detail back into them without touching
+        # the table, which is what the light linking is for. It is the light a
+        # pool of that brightness would actually throw back up.
+        bpy.ops.object.light_add(type='AREA', location=(0.30, -0.60, 0.16))
+        bo = bpy.context.object
+        bo.data.energy = 7.5
+        bo.data.size = 0.55
+        bo.data.color = (1.0, 0.83, 0.62)
+        aim_at(bo, (0.0, 0.0, 0.26))
+        self.bounce = bo
+
         # THERE IS NO FILL. A cool area light used to sit off to the right to
         # give the glass an edge outside the pool, and it laid two hard pale
         # trapezoids across the table either side of the jar — which read as
@@ -431,6 +458,14 @@ class Scene:
         for name in ("jar", "water"):
             link.objects.link(bpy.data.objects[name])
         r.light_linking.receiver_collection = link
+
+        # the bounce sees the plant and nothing else
+        plants = bpy.data.collections.new("plant_receivers")
+        bpy.context.scene.collection.children.link(plants)
+        for ob in (self.stem, *[l for l, _ in self.leaves], *self.petals,
+                   *self.calyx, self.boss, *self.stamens):
+            plants.objects.link(ob)
+        bo.light_linking.receiver_collection = plants
 
     def _beam(self):
         """
@@ -618,8 +653,37 @@ class Scene:
         # dead to alive, in the material rather than in a swap
         life = seg(t, CLIMB[0] + BAR, OPEN[1])
         mix = lambda a, b: tuple(a[i] + (b[i] - a[i]) * life for i in range(4))
+        stem_col = mix(DEAD_STEM, LIVE_STEM)
+
+        # THE GLITCH.
+        #
+        # As the stem climbs it flickers through the five accent colours the
+        # film's back half is built from — a preview, buried in the first act,
+        # of every style that is coming. It is not decoration: those are the
+        # exact five hues the techniques use, so by the time T5 arrives in rust
+        # the viewer has already seen rust run up this stem.
+        #
+        # It has to READ as a fault rather than as a colour cycle, so: the hold
+        # is a thirty-second (0.06s) and the pick is pseudo-random rather than
+        # sequential, which is what stops the eye finding a rhythm in it. And it
+        # DECAYS — dense and violent at the base, thinning as the stem rises,
+        # gone by the time the bud forms. The plant glitches while it is still
+        # deciding what it is, and stops once it knows.
+        gl = seg(t, CLIMB[0], CLIMB[0] + BAR * 3.2)
+        if 0 < gl < 1:
+            step = int(t / (BEAT / 8))               # a thirty-second
+            r = (step * 1103515245 + 12345) % 2147483648
+            density = (1.0 - gl) ** 1.6              # dies away as it climbs
+            if (r / 2147483648.0) < density * 0.62:
+                acc = ACCENTS[(r >> 11) % len(ACCENTS)]
+                # blended, not replaced: a stem that turns fully blue is a
+                # different object, one that flashes toward blue is a fault
+                k = 0.55 + 0.45 * density
+                stem_col = tuple(stem_col[i] + (acc[i] - stem_col[i]) * k
+                                 for i in range(4))
+
         self.mat_stem.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
-            .default_value = mix(DEAD_STEM, LIVE_STEM)
+            .default_value = stem_col
         self.mat_leaf.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
             .default_value = mix(DEAD_LEAF, LIVE_LEAF)
 
@@ -651,6 +715,7 @@ class Scene:
         # paint takes them.
         close = ease_in_out(seg(t, ARC[0], PUSH[1]))
         self.key.data.energy = 620 * find * live * (1.0 - 0.42 * close)
+        self.bounce.data.energy = 7.5 * find * live * (1.0 - 0.30 * close)
         self.fill.data.energy = 42 * find * live
         # Density 0.9 is a faint mist. A shaft you can SEE in a dark room needs
         # an order of magnitude more than that — at 0.9 the pool on the floor
