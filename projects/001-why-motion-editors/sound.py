@@ -34,18 +34,25 @@ solver is ported verbatim from video.html), so a re-timed beat re-scores itself.
 
 TWO STYLES, ONE GRID. The film's cut never changes; only the kit and the groove do.
 
-    python3 sound.py                      # house   -> sound.wav
-    python3 sound.py --afro               # afro    -> sound_afro.wav
-    python3 sound.py out.wav [--afro]
+    python3 sound.py                      # house    -> sound.wav
+    python3 sound.py --style=afro         # afro     -> sound_afro.wav
+    python3 sound.py out.wav --style=techno
 
-  house  Kungs, "I Feel So Bad" — four on the floor, clap on 2 and 4, offbeat
-         open hats, an A-minor i-VI bass vamp and a two-bar pluck riff.
-  afro   HUGEL & SOLTO, "Jamaican (Bam Bam)" — Afro House, 122 BPM in the
-         original. It is built here at the film's own 125 (the genre lives at
-         120-126, so nothing has to move) with the parts that actually make the
-         style: a rolling conga tumbao between the kicks, a shaker on every
-         sixteenth, a 3-2 clave, a bouncing syncopated bass, a marimba hook in
-         A Dorian, and a two-tom "bam bam" answering every second bar.
+  SIX STYLES, all on the film's 125 grid, all playing the same motion cues:
+
+  none     no music at all — the film's own sound design, the honest baseline.
+  house    Kungs, "I Feel So Bad" — four on the floor, clap on 2 and 4, offbeat
+           open hats, an A-minor i-VI bass vamp, a two-bar pluck riff.
+  afro     HUGEL & SOLTO, "Jamaican (Bam Bam)" — Afro House, 122 in the original;
+           built at 125 because the genre lives at 120-126 and the picture must
+           not move. Conga tumbao between the kicks, shaker on every sixteenth,
+           3-2 clave, bouncing bass, marimba hook in A Dorian, two toms answering.
+  boombap  half-time, so it reads at about 62: kick on 1, snare on 3, swung hats,
+           a dusty Am7-G7 chord and a record hissing underneath.
+  techno   cold and hypnotic: a long kick, struck metal on every offbeat, a flat
+           sixteenth hat bed, a sub that breathes, one note of melody.
+  trailer  no groove — a drone, a slow pulse, and low brass on the section lines,
+           with the biggest hit on the drop. The film as film, not as a track.
 
 Both styles play the same motion cues at the same frames, because those come
 from the film, not from the genre.
@@ -53,7 +60,8 @@ from the film, not from the genre.
 import numpy as np, wave, os, sys
 
 ARGV    = [a for a in sys.argv[1:] if not a.startswith('--')]
-STYLE   = 'afro' if '--afro' in sys.argv else 'house'
+STYLE   = next((a.split('=',1)[1] for a in sys.argv if a.startswith('--style=')),
+               'afro' if '--afro' in sys.argv else 'house')
 TEXTURE = '--texture' in sys.argv or os.environ.get('TEXTURE') == '1'
 
 SR   = 48000
@@ -227,6 +235,67 @@ def deepkick(gain=1.0,dur=0.50):
     f=41+(165-41)*np.exp(-t*38)
     body=np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*6.0)
     return np.tanh(mix(body,click(0.005,0.3,3,0.30))*1.8)/np.tanh(1.8)*gain
+
+# ---- boom bap, techno and trailer voices -----------------------------------
+def vinyl(dur,gain=1.0):
+    """the noise floor of a record: hiss, with occasional pops"""
+    n=secs(dur); hiss=ma(rng.standard_normal(n),6)*0.5
+    pops=(rng.random(n)<0.0009)*rng.standard_normal(n)*3.0
+    return (hiss+ma(pops,2))*gain
+def bapsnare(gain=1.0):
+    """a sampled-sounding snare: bandpassed, short, sat on a little"""
+    n=secs(0.22); t=tvec(n); x=rng.standard_normal(n)
+    body=(ma(hp(x,9),3))*env_exp(n,0.15)
+    tone=np.sin(2*np.pi*196*t)*env_exp(n,0.07)*0.55+np.sin(2*np.pi*288*t)*env_exp(n,0.05)*0.3
+    return np.tanh((body*1.1+tone)*1.6)/np.tanh(1.6)*gain
+def bapkick(gain=1.0):
+    """round, dark, no click — it sits under everything"""
+    n=secs(0.40); t=tvec(n)
+    f=48+(120-48)*np.exp(-t*30)
+    return np.tanh(np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*8.5)*1.7)/np.tanh(1.7)*gain
+def soulstab(freqs,dur=0.42,gain=1.0):
+    """a dusty chord: filtered down, wobbling like tape"""
+    n=secs(dur); t=tvec(n); s=np.zeros(n)
+    for f in freqs:
+        s+=np.sin(2*np.pi*f*t*(1+0.0016*np.sin(2*np.pi*3.3*t))+rng.random()*6.28)
+    s=ma(s,4)*np.minimum(1,t/0.012)*np.exp(-t*5.0)*gain/len(freqs)
+    return s
+def clank(gain=1.0):
+    """struck metal — inharmonic, the offbeat of a techno bar"""
+    n=secs(0.18); t=tvec(n); s=np.zeros(n)
+    for f,d in [(1970,16),(3115,22),(4460,30),(6280,40),(880,12)]:
+        s+=np.sin(2*np.pi*f*t+rng.random()*6.28)*np.exp(-t*d)
+    return (s/3+hp(rng.standard_normal(n),2)*env_exp(n,0.05)*0.6)*gain
+def rumble(dur,freq=41,gain=1.0):
+    """the sub floor of a techno room: a drone that breathes"""
+    n=secs(dur); t=tvec(n)
+    s=np.sin(2*np.pi*freq*t)+0.4*np.sin(2*np.pi*freq*1.5*t+1.1)
+    lfo=0.6+0.4*np.sin(2*np.pi*(1/(4*BEAT))*t)
+    e=np.clip(np.minimum(t/0.4,(dur-t)/0.4),0,1)
+    return s*lfo*e*gain
+def blip(freq,gain=1.0,dur=0.16):
+    """a resonant one-note squelch — techno's only melody"""
+    n=secs(dur); t=tvec(n)
+    saw=2*((freq*t)%1)-1
+    cut=np.exp(-t*22)
+    return np.tanh(ma(saw,3)*(0.4+3.5*cut)*np.exp(-t*11)*2.2)/np.tanh(2.2)*gain
+def braam(freq=58,dur=1.6,gain=1.0):
+    """the trailer hit: a stack of detuned saws, swelling then dropping"""
+    n=secs(dur); t=tvec(n); s=np.zeros(n)
+    for d in (-7,-3,0,4,9):
+        f=freq*2**(d/1200.0)
+        s+=2*((f*t)%1)-1
+        s+=0.5*(2*(((f*2)*t)%1)-1)
+    e=np.minimum(1,t/0.05)*np.exp(-t*2.1)
+    return np.tanh(ma(s,3)*e*0.9)/np.tanh(0.9)*gain*0.5
+def revcym(dur=1.2,gain=1.0):
+    """a cymbal played backwards — it arrives instead of decaying"""
+    n=secs(dur); u=np.linspace(0,1,n)
+    return hp(rng.standard_normal(n),2)*(u**3.2)*gain
+def heartbeat(gain=1.0):
+    n=secs(0.42); t=tvec(n)
+    f=52+(96-52)*np.exp(-t*26)
+    return np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*9)*gain
 
 # ---- the sounds of motion --------------------------------------------------
 def click(dur=0.035,tau=0.12,k=6,gain=1.0):
@@ -459,7 +528,95 @@ def groove_afro():
     put(impact(0.22), bt(36), 0.0)
 
 
-{ 'house': groove_house, 'afro': groove_afro }[STYLE]()
+
+def groove_boombap():
+    """Half-time at 125, so it feels like ~62: kick on 1, snare on 3, swung hats,
+    a dusty chord and a record underneath. The film stops dancing and starts nodding."""
+    S=BEAT/4
+    def at(b,i,sw=0.0): return bar(b)+i*S+sw
+    SWING=0.036                                    # the offbeat eighths land late
+    put(vinyl(DUR,0.030), 0.0, 0.0)                # the record runs the whole way
+    CH_A=[A3,C4,E4,G4]; CH_B=[G3,Bn3,D4,F4]        # Am7 → G7, the classic loop
+    for b in range(1,12):
+        intro, build, last = b==1, b==6, b==11
+        if not intro:
+            put(bapkick(0.90), at(b,0))
+            if not build: put(bapkick(0.62), at(b,7)); put(bapkick(0.50), at(b,10))
+            if not last:  put(bapsnare(0.52), at(b,8), 0.05)
+        else:
+            put(bapkick(0.40), at(b,0)); put(bapsnare(0.20), at(b,8), 0.05)
+        if b>=2 and not last:                      # swung eighths on the hats
+            for i in range(0,16,2):
+                if build and i>=12: continue
+                put(hat(0.070 if i%4 else 0.090), at(b,i, SWING if (i//2)%2 else 0.0), 0.32)
+        if b>=3 and not build and not last:        # the chord, off the beat
+            for i in (4,12):
+                put(soulstab(CH_A if b%2 else CH_B, 0.42, 0.085), at(b,i), -0.2)
+        if b>=2 and not build:                     # upright-ish bass
+            root=A1 if b%2 else G2
+            put(bass(root,BEAT*1.1,0.34), at(b,0))
+            if not last: put(bass(root,BEAT*0.5,0.24), at(b,10))
+    put(revcym(BEAT*3,0.10), bar(7)-BEAT*3, 0.0)
+    put(impact(0.34), bar(7), 0.0)
+    put(bapsnare(0.45), bt(43), 0.05); put(bapsnare(0.55), bt(44), 0.05)
+
+def groove_techno():
+    """125, cold and hypnotic: a long kick, struck metal on the offbeats, sixteenth
+    hats, a sub that breathes, and exactly one note of melody."""
+    S=BEAT/4
+    def at(b,i): return bar(b)+i*S
+    put(rumble(DUR-BAR, 41, 0.085), BAR, 0.0)
+    for b in range(1,12):
+        intro, build, last = b==1, b==6, b==11
+        for i in (0,4,8,12):
+            if intro and i in (4,12): continue
+            if build and i==12: continue
+            put(kick(0.34 if intro else 0.95, dur=0.52), at(b,i))
+        if intro: continue
+        for i in range(16):                        # a flat sixteenth hat bed
+            if build and i>=12: continue
+            put(hat(0.038 if i%2 else 0.052), at(b,i), 0.34)
+        if not last:
+            for i in (2,6,10,14):                  # metal on every offbeat
+                if build and i>=12: continue
+                put(clank(0.115), at(b,i), -0.40 if i%4==2 else 0.40)
+        if b>=3 and not build and not last:        # one note, moved around
+            for i,f in [(3,A2),(7,A2),(11,C3),(14,A2)]:
+                put(blip(f,0.13), at(b,i), -0.15)
+        if b in (4,8,10) and not last:
+            put(clap(0.22), at(b,12), 0.04)
+    put(riser(BAR,0.24), bar(7)-BAR, 0.0)
+    put(impact(0.52), bar(7), 0.0)
+    put(clank(0.30), bt(43), 0.3); put(clank(0.38), bt(44), -0.3)
+
+def groove_trailer():
+    """No groove at all — the film treated as film. A sub drone, a slow pulse, and
+    low brass on the section lines, with the biggest hit on the drop."""
+    put(rumble(DUR-BEAT*2, 43, 0.075), BEAT, 0.0)
+    for b in range(3,6):                           # a slow pulse under the anatomy
+        for i in (0,2):
+            put(heartbeat(0.30), bar(b)+i*BEAT, 0.0)
+    for t,f,g in [(bt(4),58,0.40),(bt(8),58,0.34),(bt(24),44,0.62),(bt(36),65,0.34)]:
+        put(revcym(BEAT*3, 0.13), t-BEAT*3, 0.0)   # the arrival, then the hit
+        put(braam(f, 1.7, g), t, 0.0)
+    put(riser(BAR*1.5,0.30), bt(24)-BAR*1.5, 0.0)
+    put(impact(0.60), bt(24), 0.0)
+    put(downlift(1.2,0.14), bt(24)+BEAT*0.5, 0.2)
+    for b in (8,9):                                # the hero gets a held chord
+        l,r=stab([A2,E3,A3,C4], BAR*1.3, 0.055); put_st(l,r,bar(b))
+    put(braam(49, 1.4, 0.44), bt(43), 0.0)
+    put(revcym(BEAT*2, 0.10), bt(44)-BEAT*2, 0.0)
+
+def groove_none():
+    """Nothing. The film's own sound design, alone — which is how it started, and
+    the honest baseline every other option has to beat."""
+    put(room(BAR*2, 0.026), 0.0)
+
+GROOVES={'house':groove_house,'afro':groove_afro,'boombap':groove_boombap,
+         'techno':groove_techno,'trailer':groove_trailer,'none':groove_none}
+if STYLE not in GROOVES:
+    sys.exit("unknown style %r — pick one of: %s" % (STYLE, ', '.join(GROOVES)))
+GROOVES[STYLE]()
 
 # ============================================================================
 # THE SOUNDS OF MOTION — every cue on the frame where the motion happens,
@@ -609,7 +766,7 @@ out=np.tanh(out*1.30)/np.tanh(1.30)                       # glue on the loud hit
 out=out/np.abs(out).max()*0.80                            # ≈ −1 dBTP after AAC
 pcm=(np.clip(out.T,-1,1)*32767).astype('<i2')
 
-DEFAULT='sound.wav' if STYLE=='house' else 'sound_afro.wav'
+DEFAULT='sound.wav' if STYLE=='house' else 'sound_%s.wav'%STYLE
 P=ARGV[0] if ARGV else os.path.join(os.path.dirname(os.path.abspath(__file__)),DEFAULT)
 with wave.open(P,'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)

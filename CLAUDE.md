@@ -67,16 +67,25 @@ Preview a few frames instead of the whole film while iterating:
   out, a fill runs in), 7 THE DROP, 8–9 the hero, 10–11 the end card thinning to the last
   hit. The bend is a glide on the drag's exact easeInOut, `bt(23)→bt(24)`, landing with the
   drop.
-- **Two styles share the grid; the motion cues are the same in both.** `python3 sound.py`
-  writes the house cut (`sound.wav`) and `python3 sound.py --afro` the Afro House one
-  (`sound_afro.wav`) — `groove_house()` and `groove_afro()` are the only difference, because
-  the cues come from the film, not the genre. House: four on the floor, clap on 2 and 4,
-  offbeat open hats, A-minor i–VI bass, a two-bar pluck riff. Afro (after HUGEL & SOLTO's
-  *Jamaican (Bam Bam)*, 122 BPM in the original — the genre lives at 120–126, so it is built
-  at the film's 125 and nothing in the picture moves): a conga tumbao rolling between the
-  kicks, shaker on every sixteenth, a 3-2 son clave, a bass bouncing off the beat, a marimba
-  hook in A Dorian, and two toms answering every second bar. **A style swap is a remux, never
-  a re-render.**
+- **Six styles share the grid; the motion cues are identical in all of them.**
+  `python3 sound.py --style=NAME` writes `sound_NAME.wav` (`house` is the default and writes
+  `sound.wav`). Only the `groove_*()` function differs, because the cues come from the film,
+  not the genre — so **a style swap is a remux, never a re-render**, and adding a seventh
+  style means writing one function.
+  | style | what it is |
+  |---|---|
+  | `none` | no music — the film's own sound design, the baseline the rest must beat |
+  | `house` | Kungs, *I Feel So Bad* — four on the floor, offbeat open hats, a pluck riff |
+  | `afro` | HUGEL & SOLTO, *Jamaican (Bam Bam)* — conga tumbao, shaker sixteenths, marimba |
+  | `boombap` | half-time, reads at ~62 — kick on 1, snare on 3, swung hats, vinyl |
+  | `techno` | cold: a long kick, struck metal on the offbeats, one note of melody |
+  | `trailer` | no groove — a drone, a slow pulse, low brass on the section lines |
+  The variant wavs are gitignored: they regenerate in two seconds. `study-001-audio-options.mp4`
+  is the A/B reel — the same four bars (the build, the drop, the hero) under each option.
+- **Density and weight are the two axes that actually separate them**, measured over those
+  four bars: onsets per bar runs 8 (`none`) → 36 (`afro`), and the low/high energy balance
+  runs −10.5 dB (`none`, thin and bright) → +1.0 dB (`afro`, bass-forward). Pick on those,
+  not on genre names.
 - **The palette is derived, not chosen.** It was extracted from teti's oil portrait
   (`brand/portrait-source.png`) by k-means. Colour may move in *value*; it must not leave
   the warm family.
