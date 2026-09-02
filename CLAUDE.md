@@ -153,7 +153,8 @@ what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
 ## The pitch film — "It isn't moving yet"
 
-`projects/003-it-isnt-moving-yet/` is briefed, not built. It is **not a numbered study** —
+`projects/003-it-isnt-moving-yet/` is **at gate 1**: frame 0 and the bloom are built and
+rendered on the 001 engine, nothing past `bt(5)` exists. It is **not a numbered study** —
 the directory is numbered for ordering only; the studies are the craft, this is the offer.
 Read its `BRIEF.md` first.
 
@@ -171,6 +172,20 @@ Load-bearing for it, if it gets built:
   13 bars = 24.96s.
 - **The chat box is on screen for under a second, unbranded, in Inter display.** Its named
   failure mode is looking like "I asked AI to..." content, and the cold open is the risk.
+- **The question is never answered on screen.** It returns unchanged at the end and the
+  viewer supplies the answer. Putting a line under it is the one edit that breaks the film.
+- **No `will-change`, and one paint skin over the whole bloom, never one per petal.**
+  Past a layer budget Chromium stops applying style updates *silently* — no error, no
+  warning — and screenshots come back showing arbitrary earlier states.
+  `scripts/check-bloom.py` asserts coverage is monotonic and is what catches it.
+
+## ffmpeg in this container
+
+There is no system ffmpeg, and Playwright's bundled one is built `--disable-everything`:
+it cannot demux mp4 or decode h264, so it fails on this repo's own renders with an error
+that reads like file corruption. `pip install imageio-ffmpeg` gives a full build with
+libx264 — `python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())"`.
+This is what makes the 120fps → `tmix` → 30 house shutter runnable here at all.
 
 ## Fonts
 

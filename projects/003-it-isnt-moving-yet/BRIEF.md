@@ -1,59 +1,69 @@
 # "It isn't moving yet" — Creative Brief
 
-teti studio · the pitch film · 9:16 · 24.96s · 125 BPM · Instagram Reels, cold Explore
+teti studio · **the master** · 9:16 · 125 BPM · no post date
 
-Produced from a full `big-video-project` interview (36 questions). Answers carried
-forward from `001/BRIEF.md` are credited where they apply; where this film **departs**
-from 001, that is a decision and it is marked as one.
+Produced from a full `big-video-project` interview (36 questions), then **substantially
+re-briefed** when teti corrected the premise. Read the revision note below before
+anything else — an earlier version of this file described a conversion ad with a
+two-week deadline, and every one of those decisions has been pulled.
 
-> **This is not Study 003.** The numbered studies are the craft; this is the offer.
-> The repo directory is numbered for ordering only — nothing on the grid says "003".
+> **This is not Study 003, and it is not a post.** The repo directory is numbered for
+> ordering only. Nothing on the grid says "003", and nothing is scheduled.
 
 ---
 
-## The idea (one sentence)
+## REVISED — what teti actually asked for
 
-A founder asks a machine how to market an idea that is still only an idea; the answer
-detonates out of the send button, and five completely different films happen in ten
-seconds — because the idea was never the problem, it just wasn't moving yet.
+In teti's words: *"this video is not going to get posted now. it is the master of my
+current skill level. its everything i can do on display."*
 
-## What changed from 001, deliberately
+That reframes the whole thing. **This is a capability piece, not a campaign.** It is the
+single artefact that says what teti can currently do, built without a clock and without a
+conversion job. The marketing is what teti called an **underhand** — the film sells by
+being undeniable, not by asking for anything.
 
-001's brief is explicit: *"a debut of craft… not an ad aimed at a client's pain point"*,
-and it retired the client-problem framing on purpose. **This film is the opposite and
-that is intentional.** teti's reason, in their words: *"I want to make money and gain
-clients… start posting on Instagram to see if I could gain commotion and lock in with a
-client."* The viewer's problem comes first and teti arrives as the fix.
+**Pulled from the earlier brief, and they should stay pulled:**
 
-001 stays what it is. The two can coexist because they are addressed to different
-moments — 001 introduces the craft, this one asks for the work.
+| Pulled | Because |
+|---|---|
+| "send me your idea" CTA on screen | Nothing is being asked for. An ask undercuts a master. |
+| Two-week deadline, 20–30 hours | Explicitly withdrawn. It is done when it is right. |
+| "One DM about real work" as success | There is no post, so there is no inbound to count. |
+| Cold-Explore first-1.5-seconds pressure | Not the distribution. The cover frame can be composed rather than defensive. |
+| The answer line on screen | See below — this is the biggest change of all. |
+
+## The question — and why it is never answered
+
+The question changed, and it changed for the better:
+
+> ### how do you make ideas that aren't alive, alive?
+
+This is not a founder's marketing question. It is **teti's craft question**, and it is
+the one the whole body of work is already circling. 001 answers *someone has to decide
+how things move.* 002 answers *the idea was never the problem.* This one asks the thing
+both of those are answers to — it is the parent of the series, not a sibling.
+
+And teti's hardest instruction: **"the why is clearly answered by the viewer themselves."**
+
+That kills the answer line. The earlier brief ended on *"your idea is fine — it just
+isn't moving yet"*, which answers the question **for** the viewer and turns a
+demonstration into a caption. The film ends instead on **the question, returning
+unchanged** — the same words, the same place, the same size as the cover. By then the
+viewer has watched twenty seconds of dead type become alive, so they have already
+answered it, and the film never says the thing out loud. The title of the film keeps the
+retired line, because it is a good line and it belongs on the folder, not on the screen.
 
 ## Audience & placement
 
-- **Instagram Reels, 9:16, cold Explore.** Not a warm DM, not paid. A stranger's thumb
-  decides in about a second, muted. This is the hardest distribution there is and every
-  decision below is bent around it.
-- **The buyer:** a founder with an idea and no way to show it — the person who has
-  written the sentence *"how do I market my idea that's just an idea?"* and meant it.
-- **What they should conclude:** *"I'm going to work with this guy."* (teti's own words.)
-- **The action, and only this one: DM.** On-screen and in caption: **send me your idea.**
-  Chosen over follow/save/silence because the stated goal is a locked-in client, and
-  because "send me your idea" is the lowest-friction thing you can ask a founder for —
-  they already have it typed somewhere.
-
-## The message
-
-- **Takeaway (locked):** **"Your idea is fine — it just isn't moving yet."**
-- **The question, in the founder's own words (locked, and it is the only sustained type
-  in the film):** **"how do i market my idea that's just an idea?"**
-- **CTA line (locked):** **send me your idea**
-- **Caption, first line:** *"How do you market an idea that's still just an idea?"* —
-  asks the question back, then the offer on line two. (Departs from 001's rule that the
-  caption mirrors the on-screen line; the question invites replies, and replies are the
-  cheapest route to a DM.)
-- **Dream comment (the bar this is judged against):** *"wow awesome i love the way you
+- **9:16, and eventually Instagram** — but not now, and not designed around a stranger's
+  thumb. The cover frame gets to be composed rather than defensive.
+- **Who it is for, in this order:** teti first (it is the proof of a level), then anyone
+  teti chooses to show it to — a prospective client, a studio, a peer.
+- **What it should produce:** *"I'm going to work with this guy."* (teti's own words.)
+  Not this week, and not from a metric.
+- **Dream comment (the bar it is judged against):** *"wow awesome i love the way you
   envisioned this video."* Note what that is — a comment about **authorship**, not about
-  software. The film has to look *composed*, not just fast.
+  software. It has to look *composed*, not just fast.
 
 ## Style DNA
 
@@ -102,9 +112,12 @@ counter-measures are structural, not stylistic — see Issue 1.
 
 Synthesised, never licensed — the house rule since 001, and `sound.py` already does this.
 
-- **125 BPM, 13 bars, and the film is cut to it.** Beat 0.48s, bar 1.92s, 13 bars =
-  **24.96s**. Same grid and same engine as 001, so cue times stay frame-exact by
-  construction rather than by hand.
+- **125 BPM, and the film is cut to it.** Beat 0.48s, bar 1.92s. Same grid and same
+  engine as 001, so cue times stay frame-exact by construction rather than by hand.
+- **Runtime is now an open decision.** 13 bars (24.96s) was sized for a cold-Explore
+  Reel. With no post date, a bloom that wants 1.44s, five techniques that each want a
+  full bar, and the question returning at the end, 13 is tight. **17 bars = 32.64s** is
+  the honest number for what is described here. Teti decides; the grid does not care.
 - **Designed both ways, deliberately.** Burned-in type carries the argument muted; the
   synthesised house track carries the rip when someone taps.
 - **The drop is the click.** No long build — the film opens *on* the drop at 0.96s. Bar 1
@@ -119,25 +132,25 @@ Synthesised, never licensed — the house rule since 001, and `sound.py` already
   `paint.py` + `sound.py` — which already has the paint engine and the 125 BPM grid);
   grade, texture and final cut happen in DaVinci Resolve Studio on the desktop.
 - **Render at 120fps, tmix down to 30.** The house shutter. Do not shortcut it.
-- **Two weeks. 20–30 hours.** The first real deadline across all three projects.
-- **Formats:** 1080×1920 primary. Cover frame = frame 0 (the typed question — it must
-  read as a deliberate title card, not a screenshot). Safe zones: keep everything clear of
-  the right-side UI rail and the bottom caption band.
+- **No deadline.** Withdrawn by teti along with the post date. This is the one project
+  in the repo where "ship soon" does not apply, and that is a deliberate choice, not
+  drift. The risk that comes with it is Issue 10.
+- **Formats:** 1080×1920 primary. Cover frame = frame 0 (the question — it must read as
+  a deliberate title card, not a screenshot). Safe zones still observed, so that posting
+  it later never requires re-cutting it.
 - **Approval: teti alone.**
 - **Already exists and should be reused, not remade:** the paint engine and oil plates,
   the portrait and derived palette, `sound.py`'s house engine, the 125 BPM grid helpers.
 
 ## Success criteria & non-goals
 
-- **Success (teti's honest answer): one DM about real work.** One inbound from someone
-  with a budget. See Issue 5 — this is the right goal and the wrong metric for a single
-  post, and the brief says so rather than pretending otherwise.
-- **Leading indicators to actually watch:** non-follower reach (does the cold-Explore bet
-  work at all) and saves (does it earn the next video's distribution).
-- **Quality bar: the bloom is perfect; everything else may ship rough.** The hero gets the
-  hours. A technique that reads at 80% still ships.
-- **Non-goals:** not a tutorial, not a showreel, not a numbered study, not an argument
-  about AI.
+- **Success: teti can point at it.** It is the master — the answer to "what can you
+  actually do." There is no number, because there is no post. The test is whether teti
+  would send this file to someone they wanted to work with, unaccompanied.
+- **Quality bar: the bloom is perfect; everything else may be rough.** The hero gets the
+  hours. Unchanged from the interview, and the only quality rule that survives.
+- **Non-goals:** not a tutorial, not a numbered study, not an argument about AI, and —
+  now — not a conversion asset. Nothing in it asks for anything.
 
 ---
 
@@ -147,7 +160,7 @@ Bar = 1.92s. Beat = 0.48s. `bt(n)` = beat n from frame 0, as in `video.html`.
 
 | Bar | Time | Screen | Type | Sound |
 |---|---|---|---|---|
-| **1** | 0.00–1.92 | **The cover frame.** The question already sits finished in the box; cursor hovers the orange send button. Bone ground, canvas weave, no chrome beyond the box and the button. Held dead still for two beats — the only stillness in the film. Click on `bt(2)`. | **how do i market my idea that's just an idea?** | Room tone. Two dry key ticks. The click *is* the drop. |
+| **1** | 0.00–1.92 | **The cover frame.** The question already sits finished; the cursor hovers the send button. Parchment ground, canvas weave, no chrome beyond a hairline rule and the button. Held dead still for two beats — the only stillness in the film, and it earns the pause. Click on `bt(2)`. | **how do you make ideas that aren't alive, alive?** — the second `alive` in signal | Room tone. Two dry key ticks. The click *is* the drop. |
 | **2** | 1.92–3.84 | **THE BLOOM.** Colour detonates out of the button and eats the frame — the one moment the film leaves the palette entirely. Peaks by `bt(5)`, drains back to bone by `bt(7)`. `teti.` strobes once on `bt(7)` and is gone. | `teti.` — one frame group, lowercase | Drop lands on the ignition. Full arrangement in at once. |
 | **3** | 3.84–5.76 | **T5 — white space editorial.** One word at enormous scale on near-empty bone. Motion enters from the left, exits right. | question pinned, MICRO, top left | Groove. Hit on the word landing. |
 | **4** | 5.76–7.68 | **T6 — modular grid.** The frame becomes tiles; blocks slide in and out of cells, one passing across and briefly occluding the mark. Everything snaps, nothing floats. | question pinned | Tighter hats, hit per snap. |
@@ -155,28 +168,34 @@ Bar = 1.92s. Beat = 0.48s. `bt(n)` = beat n from frame 0, as in `video.html`.
 | **6** | 9.60–11.52 | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. The breather. | question pinned | Bass and hats pull out. Pen-scratch foley on the strokes. |
 | **7** | 11.52–13.44 | **T7 — painted frame.** Brush-drawn, frame-to-frame, painted lettering. The film resolves into teti's own hand. | question pinned | Riser under it. |
 | **8** | 13.44–15.36 | **All five at once.** Tiled, moving left and right, "showing everywhere" — the range stated in one image. | question pinned | Peak. |
-| **9** | 15.36–17.28 | Everything drains off. The question returns **alone** on empty bone, exactly as it was in bar 1. | the question, full display scale | Breakdown. Near-silence by the last beat. |
-| **10** | 17.28–19.20 | The answer lands over it, one line per two beats. | **your idea is fine —** / **it just isn't moving yet.** | Two hits, one per line. |
+| **9** | 15.36–17.28 | Everything drains off. The question returns **alone**, in exactly the position, size and colour it held in bar 1. | the question, unchanged | Breakdown. Near-silence by the last beat. |
+| **10** | 17.28–19.20 | **Nothing is added.** The question simply sits there while the viewer supplies the answer. This bar is the whole film's argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. | — | One low tone, then room tone. |
 | **11** | 19.20–21.12 | `teti.` resolves out of the paint — the same mark as the profile picture, so the film and the account share a face. | `teti.` | Warm low tone. |
-| **12** | 21.12–23.04 | The offer. | **send me your idea** · @handle | Last full bar of the track. |
-| **13** | 23.04–24.96 | Hold, then cut to the empty chat box on the final frame so the Reel loops cleanly back into bar 1. | — | Thins to the last hit on the loop point. |
+| **12** | 21.12–23.04 | Hold on the mark. No offer, no handle, no link. | — | Last full bar of the track. |
+| **13** | 23.04–24.96 | Cut back to the untouched cover frame on the final frame, so the film loops into itself and the question is the first and last thing seen. | the question | Thins to the last hit on the loop point. |
 
-**Ratio check.** Bloom = 1.44s (5.8%). Five techniques = 9.60s (38%). That is the correct
-split: the bloom buys the scroll-stop, the five buy the hire.
+*(Bars are given at 13. If the runtime opens to 17, the extra four go to the five
+techniques and to bar 10's silence — never to new content.)*
+
+**Ratio check.** Bloom = 1.44s. Five techniques = 9.60s. The bloom is the hero and the
+five are the proof, and the proof gets six times the screen time. That ratio was set when
+this was an ad and it survives the re-brief unchanged, for a different reason: a master
+that spends its length on one spectacle is a showreel of one trick.
 
 ---
 
 ## Issues — read this section twice
 
-**1. Your cold open is your own named failure mode.** teti's biggest fear is looking like
-*"I asked AI to…"* content, and the film opens on a chat box. That genre is enormous and
-Explore is full of it; being mistaken for it costs the whole video.
-**Resolution:** the box is on screen for **under one second of total screen time** and is
-never shown again until the loop frame. No logo, no wordmark, no product name, no UI
-chrome beyond the field and the button. The question is set in **Inter display at title
-scale**, so the cover frame reads as a typographic statement that happens to contain a
-send button — not as a screen recording. If frame 0 could be mistaken for a screenshot,
-it has failed and must be reset.
+**1. The cold open is still your own named failure mode, even without Explore.** teti's
+biggest fear is looking like *"I asked AI to…"* content, and the film opens on a text
+field and a send button. Losing the Explore deadline lowers the stakes; it does not
+remove them, because a master gets looked at *harder* than a Reel does.
+**Resolution, and it is already built:** the box is on screen for under a second of total
+screen time and never returns until the loop. No logo, no wordmark, no product name, no
+panel — a hairline rule and a button, nothing else. The question is set in **Inter
+display at title scale on the painted ground**, so frame 0 reads as a typographic
+statement that happens to contain a send button. If it could be mistaken for a
+screenshot, it has failed and gets reset.
 
 **2. Five palettes is the exact thing that makes a showreel look like a showreel.** teti
 chose one palette per technique *and* named "generic showreel" as a thing to avoid. Those
@@ -204,19 +223,21 @@ explained.** No second beat of setup, no cut back to the founder, no resolution 
 That is why the return-to-the-founder ending was rejected. Hold that line in the edit —
 the temptation to add "context" at 15s will be strong and it will kill the film.
 
-**5. "One DM about real work" is the right goal and the wrong metric for one post.** A
-single cold-Explore Reel from an account with no history converting a stranger into a paid
-inquiry is a low-probability event, and judging this film by it will read as failure even
-if the film is excellent.
-**Resolution:** the DM is the goal of **the series**; this post is judged on non-follower
-reach and saves. Keep the DM ask because it costs nothing and occasionally works — but
-write down now, before posting, that zero DMs on post one is the expected result, so the
-number does not talk teti out of posting the second one. **The thing that produces clients
-is the fourth video, and the fourth video only exists if the first three get posted.**
+**5. A master with no audience and no date is a project that can run forever.** This is
+the real risk of the re-brief, and it is bigger than anything the ad version carried. The
+deadline is gone, the metric is gone, and the standard is now "everything I can do" —
+which is a bar that rises every time teti learns something. 001 took a full session and
+shipped; 002 is parked at a gate; this one has no forcing function at all.
+**Resolution:** the gate structure is the substitute for a deadline. Frame 0 and the
+bloom are approved or rejected as a unit before any technique is built, each technique is
+approved on its own bar, and **"everything I can do" is frozen to the five techniques
+already chosen** — anything learned mid-build goes into the next film, not this one. If
+that rule is not held, the five becomes six and the film never finishes.
 
 **6. The bloom is a transition, not a message.** It is the surviving moment and it is
-spectacle — a viewer can love it completely and still not know what teti does or that
-teti is for hire. The "how'd you do that" comment is not the DM.
+spectacle — a viewer can love it completely and still not have registered a single thing
+about what teti can *do*. Admiration for one effect is not the same as belief in a level,
+and this film exists to establish a level.
 **Resolution:** already structural — `teti.` strobes within one beat of the bloom
 resolving, and the five techniques start 1.92s later. The bloom is never allowed to be the
 last thing that happened before the viewer's attention returns.
@@ -224,10 +245,10 @@ last thing that happened before the viewer's attention returns.
 **7. This has no visual identity of its own yet.** It is deliberately not a numbered study,
 which frees it to be loud — but it also means it will sit on a grid of quiet craft studies
 with nothing marking it as belonging to the same person or as a repeatable format.
-**Resolution:** the **chat frame and the send button are the recurring mark.** If this
-becomes a format ("send me your idea", one idea, five treatments), it already has an
-identity and the cover frames will rhyme down the grid. Design frame 0 as though there
-will be five of them.
+**Resolution:** the **question frame and the send button are the recurring mark.** If
+this ever becomes a format — one question, five treatments — it already has an identity
+and the cover frames will rhyme down the grid. Design frame 0 as though there will be
+five of them.
 
 **8. Twenty to thirty hours is tight for five techniques, a hero bloom and a dual sound
 design.** Two weeks is real, and it is the first real deadline across all three projects —
@@ -246,19 +267,25 @@ problem is in this brief, not in the render.
 
 ## Next actions
 
-1. **Today — build frame 0.** The cover frame, full size and at 390px. It is the cover,
-   the cold open, the loop point and the recurring mark for a possible format, and it is
-   the single highest-leverage image in the film. If it reads as a screenshot, iterate
-   until it doesn't. Nothing else starts until this one is right.
-2. **Day 2–4 — build the bloom alone**, as a standalone 2-second render on the 001 engine.
-   It is the hero, it gets the perfect-quality budget, and it is the only part where "it
-   rips" is decided. Judge it at 390px, muted. This is the stop gate.
-3. **Day 3 — decide T9.** Draw the ink frames or cut to the four-technique 11-bar cut.
-   Decide before any technique is built, not after.
-4. **Day 5–10 — build the five in reverse expense order:** T7 (the paint engine already
-   does it) → T5 → T6 → T3 → T9. Every stop leaves a shippable film.
-5. **Day 11–12 — `sound.py` off the same constants**, then the Resolve finish: grade,
-   texture pass, final cut. Post with the caption above.
+There are no dates, by teti's decision. The gates below replace them, and they are what
+stops "everything I can do" from becoming a film that is never finished.
+
+1. **DONE — frame 0 and the bloom are built and rendered.** `source/video.html` on the
+   001 engine, 125 BPM, deterministic `renderFrame(t)`. See `BUILD.md` for what they
+   cost and what broke on the way.
+2. **GATE 1 — approve or reject frame 0 and the bloom as a unit.** They are the cover
+   and the hero; every technique is built on top of them. Judge the bloom moving, not as
+   stills, and judge frame 0 at 390px. Nothing else starts until this passes.
+3. **Decide the runtime — 13 bars or 17.** It only affects how much room the five
+   techniques get, and it is cheaper to decide now than after two of them are built.
+4. **Decide T9.** Draw the ink frames or drop to four techniques. It is the only asset in
+   the film that code teti already owns cannot produce, and it is the piece most likely
+   to stall the build. Decide before any technique is started, not after.
+5. **Build the five in reverse expense order:** T7 (the paint engine already does it) →
+   T5 → T6 → T3 → T9, each approved on its own bar. **The five are frozen.** Anything
+   teti learns during the build goes into the next film.
+6. **`sound.py` off the same constants**, then the Resolve finish: grade, texture pass,
+   final cut.
 
 ---
 
