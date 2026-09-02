@@ -151,6 +151,27 @@ PENDING rather than PASS, on purpose.
 (`HANDOFF.md` proposed ARC-in-Blender as study 002. This took the slot because it is
 what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
+## The pitch film — "It isn't moving yet"
+
+`projects/003-it-isnt-moving-yet/` is briefed, not built. It is **not a numbered study** —
+the directory is numbered for ordering only; the studies are the craft, this is the offer.
+Read its `BRIEF.md` first.
+
+It deliberately reverses 001's framing: 001 is a debut of craft and explicitly *not* an ad,
+this one leads with the viewer's problem and asks for the work ("send me your idea"). Both
+framings are correct for their own film; do not "fix" either to match the other.
+
+Load-bearing for it, if it gets built:
+
+- **The ground never leaves the warm family; the accent may.** Five techniques each get
+  their own accent colour, which is the only sanctioned exception to the palette rule
+  above — bone and umber stay constant under all five, as do the oil-plate surface and the
+  125 BPM grid. That is what stops five palettes reading as five different films.
+- **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
+  13 bars = 24.96s.
+- **The chat box is on screen for under a second, unbranded, in Inter display.** Its named
+  failure mode is looking like "I asked AI to..." content, and the cold open is the risk.
+
 ## Fonts
 
 The film needs **Inter** (400–900) plus ten families for the end-card type cycle:
