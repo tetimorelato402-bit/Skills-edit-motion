@@ -30,10 +30,28 @@ So the drums do not sit under the film — they are the same events. Cue times
 below are derived from the film's own constants and easing curves (the bezier
 solver is ported verbatim from video.html), so a re-timed beat re-scores itself.
 
-    python3 sound.py              # writes sound.wav next to this file
-    python3 sound.py out.wav
+TWO STYLES, ONE GRID. The film's cut never changes; only the kit and the groove do.
+
+    python3 sound.py                      # house   -> sound.wav
+    python3 sound.py --afro               # afro    -> sound_afro.wav
+    python3 sound.py out.wav [--afro]
+
+  house  Kungs, "I Feel So Bad" — four on the floor, clap on 2 and 4, offbeat
+         open hats, an A-minor i-VI bass vamp and a two-bar pluck riff.
+  afro   HUGEL & SOLTO, "Jamaican (Bam Bam)" — Afro House, 122 BPM in the
+         original. It is built here at the film's own 125 (the genre lives at
+         120-126, so nothing has to move) with the parts that actually make the
+         style: a rolling conga tumbao between the kicks, a shaker on every
+         sixteenth, a 3-2 clave, a bouncing syncopated bass, a marimba hook in
+         A Dorian, and a two-tom "bam bam" answering every second bar.
+
+Both styles play the same motion cues at the same frames, because those come
+from the film, not from the genre.
 """
 import numpy as np, wave, os, sys
+
+STYLE = 'afro' if '--afro' in sys.argv else 'house'
+ARGS  = [a for a in sys.argv[1:] if not a.startswith('--')]
 
 SR   = 48000
 BPM  = 125.0
@@ -171,6 +189,42 @@ def impact(gain=1.0):
     crash=hp(rng.standard_normal(n),2)*np.exp(-t*4.2)*0.45
     return np.tanh((boom+crash)*1.5)/np.tanh(1.5)*gain
 
+# ---- the afro kit ----------------------------------------------------------
+def conga(freq=310,open_=True,gain=1.0):
+    """a hand drum: a pitched body that snaps down, plus the slap of the palm"""
+    dur=0.30 if open_ else 0.13
+    n=secs(dur); t=tvec(n)
+    f=freq*(1+0.9*np.exp(-t*90))
+    ph=2*np.pi*np.cumsum(f)/SR
+    body=np.sin(ph)*np.exp(-t*(9 if open_ else 26))+0.32*np.sin(ph*2.6)*np.exp(-t*24)
+    slap=hp(rng.standard_normal(secs(0.012)),3)*env_exp(secs(0.012),0.2)*0.55
+    return mix(body,slap)*gain
+def shaker(gain=1.0,accent=False):
+    """the sixteenth-note engine of the groove — soft attack, no click"""
+    n=secs(0.075 if accent else 0.05); x=hp(rng.standard_normal(n),2)
+    return x*np.minimum(1,tvec(n)/0.006)*env_exp(n,0.19 if accent else 0.12)*gain
+def clave(gain=1.0):
+    """two hardwood sticks — the 3-2 pattern that holds the bar together"""
+    n=secs(0.09); t=tvec(n)
+    s=np.sin(2*np.pi*2450*t)*np.exp(-t*46)+0.5*np.sin(2*np.pi*3700*t)*np.exp(-t*70)
+    return mix(s,click(0.01,0.08,3,0.35))*gain
+def tom(freq=110,gain=1.0,dur=0.34):
+    n=secs(dur); t=tvec(n)
+    f=freq*(1+0.7*np.exp(-t*30)); ph=2*np.pi*np.cumsum(f)/SR
+    return (np.sin(ph)*np.exp(-t*7.5)+hp(rng.standard_normal(n),3)*np.exp(-t*30)*0.18)*gain
+def marimba(freq,gain=1.0,dur=0.50):
+    """wood: the fundamental plus the tuned fourth partial, and the mallet"""
+    n=secs(dur); t=tvec(n); ph=2*np.pi*freq*t
+    s=np.sin(ph)*np.exp(-t*5.5)+0.42*np.sin(4*ph)*np.exp(-t*16)+0.15*np.sin(10*ph)*np.exp(-t*30)
+    mallet=hp(rng.standard_normal(secs(0.008)),3)*env_exp(secs(0.008),0.2)*0.22
+    return mix(s*np.minimum(1,t/0.002),mallet)*gain
+def deepkick(gain=1.0,dur=0.50):
+    """rounder and longer than the house kick — afro sits lower and looser"""
+    n=secs(dur); t=tvec(n)
+    f=41+(165-41)*np.exp(-t*38)
+    body=np.sin(2*np.pi*np.cumsum(f)/SR)*np.exp(-t*6.0)
+    return np.tanh(mix(body,click(0.005,0.3,3,0.30))*1.8)/np.tanh(1.8)*gain
+
 # ---- the sounds of motion --------------------------------------------------
 def click(dur=0.035,tau=0.12,k=6,gain=1.0):
     n=secs(dur); x=rng.standard_normal(n)*env_exp(n,tau)
@@ -243,79 +297,166 @@ def glide(f0,f1,t_glide,sustain,release,gain=1.0,curve=easeInOut,sat=1.9,vib=0.0
 A1=55.0; C2=65.41; D2=73.42; E2=82.41; F2=87.31; G2=98.0; A2=110.0
 C3=130.81; D3=146.83; E3=164.81; F3=174.61; G3=196.0; A3=220.0
 C4=261.63; D4=293.66; E4=329.63; F4=349.23; G4=392.0; A4=440.0
+Bn3=246.94; Bn4=493.88; Fs5=739.99      # Bn = B natural: B1..B6 are the film's beats
 C5=523.25; D5=587.33; E5=659.26; F5=698.46; A5=880.0
 
 # ============================================================================
-# THE ARRANGEMENT — eleven bars
+# THE ARRANGEMENT — eleven bars, in two styles
 #   1 intro · 2 the beat lands · 3-5 the groove · 6 the build · 7 THE DROP
 #   8-9 the hero · 10-11 the end card, thinning to the last hit
 # ============================================================================
-KICK=[]                      # bars that get four-on-the-floor
-FULL=range(2,12)
-for b in range(1,12):
-    if b==1:   KICK+= [bar(1)+0*BEAT, bar(1)+2*BEAT]      # intro: 1 and 3 only
-    elif b==6: KICK+= [bar(6)+i*BEAT for i in range(3)]   # the build drops beat 4
-    elif b==11:KICK+= [bar(11)+i*BEAT for i in range(4)]
-    else:      KICK+= [bar(b)+i*BEAT for i in range(4)]
+def groove_house():
+    """Kungs, "I Feel So Bad" — four on the floor, offbeat open hats, a pluck riff."""
+    KICK=[]                      # bars that get four-on-the-floor
+    FULL=range(2,12)
+    for b in range(1,12):
+        if b==1:   KICK+= [bar(1)+0*BEAT, bar(1)+2*BEAT]      # intro: 1 and 3 only
+        elif b==6: KICK+= [bar(6)+i*BEAT for i in range(3)]   # the build drops beat 4
+        elif b==11:KICK+= [bar(11)+i*BEAT for i in range(4)]
+        else:      KICK+= [bar(b)+i*BEAT for i in range(4)]
 
-KG=0.86
-for t in KICK:
-    g=KG*(0.30 if t<BAR else 1.0)
-    if t>=bar(7) and t<bar(8): g*=1.06                    # the drop bar hits hardest
-    put(kick(g),t,0.0)
+    KG=0.86
+    for t in KICK:
+        g=KG*(0.30 if t<BAR else 1.0)
+        if t>=bar(7) and t<bar(8): g*=1.06                    # the drop bar hits hardest
+        put(kick(g),t,0.0)
 
-# clap on 2 and 4 from bar 2; none in the build's second half
-for b in range(2,12):
-    for beat in (1,3):
-        t=bar(b)+beat*BEAT
-        if b==6 and beat==3: continue                     # hold it back into the drop
-        if b==11 and beat==3: continue                    # the film has ended by then
-        put(clap(0.34),t,0.04)
+    # clap on 2 and 4 from bar 2; none in the build's second half
+    for b in range(2,12):
+        for beat in (1,3):
+            t=bar(b)+beat*BEAT
+            if b==6 and beat==3: continue                     # hold it back into the drop
+            if b==11 and beat==3: continue                    # the film has ended by then
+            put(clap(0.34),t,0.04)
 
-# hats: closed on the beat-eighths, OPEN on the offbeat — the house signature
-for b in range(2,12):
-    if b==11: continue
-    for i in range(8):
-        t=bar(b)+i*(BEAT/2)
-        if b==6 and t>=bar(6)+3*BEAT: continue            # the build empties out
-        if i%2==0: put(hat(0.085),t,0.30)
-        else:      put(hat(0.115,True),t,0.34)
+    # hats: closed on the beat-eighths, OPEN on the offbeat — the house signature
+    for b in range(2,12):
+        if b==11: continue
+        for i in range(8):
+            t=bar(b)+i*(BEAT/2)
+            if b==6 and t>=bar(6)+3*BEAT: continue            # the build empties out
+            if i%2==0: put(hat(0.085),t,0.30)
+            else:      put(hat(0.115,True),t,0.34)
 
-# bass: A minor vamp, i–VI. Root on the downbeat, then the offbeats push it along
-VAMP={1:A1,2:A1,3:F2,4:A1,5:F2,6:A1,7:A1,8:F2,9:A1,10:F2,11:A1}
-for b in range(2,12):
-    root=VAMP[b]; fifth=root*1.5
-    if b==11:
-        put(bass(root,BEAT*2,0.34),bar(11)); continue
-    put(bass(root,BEAT*0.9,0.34),bar(b)+0*BEAT)
-    if b==6: continue                                     # the build takes the bass out
-    put(bass(root,BEAT*0.45,0.27),bar(b)+1.5*BEAT)
-    put(bass(root,BEAT*0.45,0.27),bar(b)+2.5*BEAT)
-    put(bass(fifth,BEAT*0.45,0.24),bar(b)+3.5*BEAT)
+    # bass: A minor vamp, i–VI. Root on the downbeat, then the offbeats push it along
+    VAMP={1:A1,2:A1,3:F2,4:A1,5:F2,6:A1,7:A1,8:F2,9:A1,10:F2,11:A1}
+    for b in range(2,12):
+        root=VAMP[b]; fifth=root*1.5
+        if b==11:
+            put(bass(root,BEAT*2,0.34),bar(11)); continue
+        put(bass(root,BEAT*0.9,0.34),bar(b)+0*BEAT)
+        if b==6: continue                                     # the build takes the bass out
+        put(bass(root,BEAT*0.45,0.27),bar(b)+1.5*BEAT)
+        put(bass(root,BEAT*0.45,0.27),bar(b)+2.5*BEAT)
+        put(bass(fifth,BEAT*0.45,0.24),bar(b)+3.5*BEAT)
 
-# the pluck riff — two bars long, offbeat-led, the thing that stays in your head
-RIFF_A=[(0.5,E5),(1.0,C5),(1.5,A4),(2.0,C5),(2.5,E5),(3.0,D5),(3.5,C5)]
-RIFF_B=[(0.5,F5),(1.0,C5),(1.5,A4),(2.0,C5),(2.5,F5),(3.0,E5),(3.5,C5)]
-RIFF_BARS=[(3,RIFF_A),(4,RIFF_B),(5,RIFF_A),(7,RIFF_A),(8,RIFF_B),(9,RIFF_A),(10,RIFF_B)]
-for b,riff in RIFF_BARS:
-    g=0.20 if b!=7 else 0.24
-    for off,f in riff:
-        put(pluck(f,0.34,g),bar(b)+off*BEAT,-0.5+1.0*(off/3.5))
+    # the pluck riff — two bars long, offbeat-led, the thing that stays in your head
+    RIFF_A=[(0.5,E5),(1.0,C5),(1.5,A4),(2.0,C5),(2.5,E5),(3.0,D5),(3.5,C5)]
+    RIFF_B=[(0.5,F5),(1.0,C5),(1.5,A4),(2.0,C5),(2.5,F5),(3.0,E5),(3.5,C5)]
+    RIFF_BARS=[(3,RIFF_A),(4,RIFF_B),(5,RIFF_A),(7,RIFF_A),(8,RIFF_B),(9,RIFF_A),(10,RIFF_B)]
+    for b,riff in RIFF_BARS:
+        g=0.20 if b!=7 else 0.24
+        for off,f in riff:
+            put(pluck(f,0.34,g),bar(b)+off*BEAT,-0.5+1.0*(off/3.5))
 
-# chord stabs on the offbeat of 2 and 4
-AM7=[A3,C4,E4,G4]; FM7=[F3,A3,C4,E4]
-for b in range(3,11):
-    ch=AM7 if VAMP[b]==A1 else FM7
-    for beat in (1.5,3.5):
-        l,r=stab(ch,0.26,0.085); put_st(l,r,bar(b)+beat*BEAT)
+    # chord stabs on the offbeat of 2 and 4
+    AM7=[A3,C4,E4,G4]; FM7=[F3,A3,C4,E4]
+    for b in range(3,11):
+        ch=AM7 if VAMP[b]==A1 else FM7
+        for beat in (1.5,3.5):
+            l,r=stab(ch,0.26,0.085); put_st(l,r,bar(b)+beat*BEAT)
 
-# risers into the two landings that matter, and the exhale after the drop
-put(riser(BAR,0.16), bar(1),0.0)                          # into the beat at 1.92
-put(riser(BAR*0.9,0.30), bar(7)-BAR*0.9,0.0)              # into THE DROP at 11.52
-put(impact(0.55), bar(7),0.0)
-put(downlift(1.0,0.13), bar(7)+BEAT*0.5,0.2)
-put(riser(BEAT*3,0.13), bt(33),0.0)                       # into the end card
-put(impact(0.26), bt(36),0.0)
+    # risers into the two landings that matter, and the exhale after the drop
+    put(riser(BAR,0.16), bar(1),0.0)                          # into the beat at 1.92
+    put(riser(BAR*0.9,0.30), bar(7)-BAR*0.9,0.0)              # into THE DROP at 11.52
+    put(impact(0.55), bar(7),0.0)
+    put(downlift(1.0,0.13), bar(7)+BEAT*0.5,0.2)
+    put(riser(BEAT*3,0.13), bt(33),0.0)                       # into the end card
+    put(impact(0.26), bt(36),0.0)
+
+def groove_afro():
+    """HUGEL & SOLTO, "Jamaican (Bam Bam)" — Afro House. The original is 122 BPM;
+    the genre lives at 120-126, so it is built at the film's own 125 and nothing
+    in the picture has to move. Everything below is written in SIXTEENTHS of a
+    bar, because that is where this groove actually lives."""
+    S=BEAT/4                                       # a sixteenth: 0.12 s
+    def at(b,i): return bar(b)+i*S                 # bar b, sixteenth i
+
+    # the rolling conga tumbao — it plays BETWEEN the kicks, which is the style
+    TUMBAO=[(3,'h'),(6,'l'),(7,'h'),(10,'l'),(11,'h'),(14,'l'),(15,'h')]
+    CLAVE_A=[0,6,12]; CLAVE_B=[4,10]               # 3-2 son clave across two bars
+    BASSFIG=[0,6,10,14]
+    # the marimba hook, A Dorian — minor, but with the bright sixth the style wants
+    MAR_A=[(0,A4),(3,C5),(6,D5),(8,E5),(11,D5),(14,C5)]
+    MAR_B=[(0,G4),(3,Bn4),(6,D5),(8,E5),(11,C5),(14,Bn4)]
+    VAMP={1:A1,2:A1,3:A1,4:G2,5:A1,6:G2,7:A1,8:G2,9:A1,10:G2,11:A1}
+    PAD ={'A':[A3,C4,E4,Bn4],'G':[G3,Bn3,D4,E4]}
+
+    for b in range(1,12):
+        A = VAMP[b]==A1
+        intro, build, last = b==1, b==6, b==11
+
+        # kick — four on the floor, deeper and longer than the house kit
+        for i in (0,4,8,12):
+            if intro and i in (4,12): continue      # bar 1: 1 and 3 only
+            if build and i==12: continue            # the build drops beat 4
+            put(deepkick(0.30 if intro else 0.92), at(b,i))
+
+        # shaker on every sixteenth, accented on the offbeats — the engine
+        if not intro:
+            for i in range(16):
+                if build and i>=12: continue
+                put(shaker(0.075 if i%4==2 else 0.048, accent=(i%4==2)), at(b,i), 0.38)
+
+        # congas between the kicks
+        if not intro and not last:
+            for i,k in TUMBAO:
+                if build and i>=12: continue
+                g=0.30 if k=='h' else 0.26
+                put(conga(430 if k=='h' else 232, k=='h', g), at(b,i), -0.42 if k=='l' else 0.30)
+
+        # clave, and the clap on 2 and 4
+        if b>=3 and not last:
+            for i in (CLAVE_A if b%2 else CLAVE_B): put(clave(0.10), at(b,i), -0.30)
+        if b>=2 and not last:
+            for i in (4,12):
+                if build and i==12: continue
+                put(clap(0.30), at(b,i), 0.04)
+
+        # the bass bounces off the beat rather than sitting on it
+        if b>=2 and not build:
+            root=VAMP[b]
+            if last:
+                put(bass(root,BEAT*2,0.34), at(b,0))
+            else:
+                for n,i in enumerate(BASSFIG):
+                    put(bass(root*(1.5 if i==14 else 1.0), BEAT*(0.8 if i==0 else 0.4),
+                             0.34 if i==0 else 0.26), at(b,i))
+
+        # the marimba hook, in from bar 3, out through the build
+        if b>=3 and not build and not last:
+            for i,f in (MAR_A if A else MAR_B):
+                put(marimba(f,0.155 if b!=7 else 0.185), at(b,i), -0.45+0.9*(i/15))
+
+        # a warm pad, very low
+        if b>=2 and not last:
+            l,r=stab(PAD['A' if A else 'G'],BAR*0.8,0.030); put_st(l,r,bar(b))
+
+        # "BAM BAM" — two toms answering every second bar, and the name of the track
+        if b in (4,6,8,10):
+            put(tom(126,0.34), at(b,13), -0.25); put(tom(104,0.40), at(b,15), 0.25)
+
+    # a tom fill runs the build into the drop, and the drop lands hardest
+    for n,i in enumerate((8,10,12,13,14,15)):
+        put(tom(150-n*11, 0.22+0.05*n), at(6,i), -0.5+1.0*n/5)
+    put(riser(BAR*0.9,0.26), bar(7)-BAR*0.9, 0.0)
+    put(impact(0.50), bar(7), 0.0)
+    put(downlift(1.0,0.12), bar(7)+BEAT*0.5, 0.2)
+    put(riser(BEAT*3,0.11), bt(33), 0.0)
+    put(impact(0.22), bt(36), 0.0)
+
+
+{ 'house': groove_house, 'afro': groove_afro }[STYLE]()
 
 # ============================================================================
 # THE SOUNDS OF MOTION — every cue on the frame where the motion happens,
@@ -451,8 +592,9 @@ out=np.tanh(out*1.30)/np.tanh(1.30)                       # glue on the loud hit
 out=out/np.abs(out).max()*0.80                            # ≈ −1 dBTP after AAC
 pcm=(np.clip(out.T,-1,1)*32767).astype('<i2')
 
-P=sys.argv[1] if len(sys.argv)>1 else os.path.join(os.path.dirname(os.path.abspath(__file__)),'sound.wav')
+DEFAULT='sound.wav' if STYLE=='house' else 'sound_afro.wav'
+P=ARGS[0] if ARGS else os.path.join(os.path.dirname(os.path.abspath(__file__)),DEFAULT)
 with wave.open(P,'wb') as w:
     w.setnchannels(2); w.setsampwidth(2); w.setframerate(SR)
     w.writeframes(pcm.tobytes())
-print("wrote", P, round(os.path.getsize(P)/1024), "KB   ", BPM, "BPM  ", BARS, "bars  ", round(DUR,3), "s")
+print("wrote", P, round(os.path.getsize(P)/1024), "KB   ", STYLE, BPM, "BPM  ", BARS, "bars  ", round(DUR,3), "s")
