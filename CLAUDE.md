@@ -230,6 +230,27 @@ Load-bearing for it, if it gets built:
   produced 001's palette from the oil portrait. Re-run it after any change to the Blender
   camera or lighting, or the paint silently starts in the wrong place in the wrong colour.
   The 3D act is not cut away from, it is covered; the two worlds share exactly one frame.
+- **The flower carries the five accents itself, in both acts.** The stem strobes through
+  them on a thirty-second grid while it climbs, hits decaying `(1-p)**1.6` so it is violent
+  when the plant is dead and gone by the bud; and each technique in the back half recolours
+  the poppy to its own accent with `mix-blend-mode: color` (hue and saturation from the
+  tint, **luminance from the source**, so the brushwork survives). `ACCENTS` in `plant.py`
+  and `AC` in `video.html` are the same five hexes and must stay so — but Blender's inputs
+  are linear, so `plant.py` converts sRGB→linear on the way in; pasting a hex straight in
+  renders ~40% bright and pastel. The glitch's randomness is a hashed frame index, never
+  `random()`: `set_time(t)` must stay a pure function of `t` or re-rendering a range comes
+  back different from the first pass.
+- **A bounce light lifts the plant, and it is light-linked to the plant.** One warm area
+  light low and camera-right, `light_linking.receiver_collection` on the plant collection.
+  Unlinked it puts a second pool on the table and the beam stops being the only light in
+  the room — the same lesson as the rim spot, paid for twice.
+- **Cycles cost here, measured: 540x960 at 24 samples is 11.1s/frame, at 48 it is 19.9s.**
+  The denoiser closes the gap, so 24 is the setting and Act I is 68 minutes. Act I renders
+  at 540 and is lanczos-upscaled to 1080 at conform time; **the two acts are conformed
+  separately and concatenated, never filtered together** — `setsar=1` on both legs or
+  `concat` refuses them, and Act I uses `framerate=` (which blends) not `fps=` (which
+  duplicates and judders on the camera arc), because Cycles was not asked for motion blur.
+  Grain goes on **both** legs at the same strength, or the join reads as a change of stock.
 - **The bloom is textured with `scripts/brushplate.py`, a neutral-grey plate carrying only
   value.** 001's paper plates do nothing over saturated colour — there is no value range
   left to push, and the paint reads as flat vector fill. A grey plate in `overlay` carves

@@ -250,6 +250,41 @@ profile and the same six projected axes the paint bloom uses — and drawn on wi
 `stroke-dashoffset`. It is hand-drawn in the sense that matters: nothing was traced, and
 it is the same flower.
 
+## The flower carries the palette
+
+Three things tie the five techniques' accents back to the flower itself, so the colour in
+the back half is not five arbitrary choices but something the flower was already doing.
+
+- **The stem glitches through the five accents while it climbs.** `ACCENTS` in `plant.py`
+  is the same five hexes as `AC` in `video.html`, converted sRGB→linear (Blender's inputs
+  are linear; pasting the hex straight in renders about 40% too bright and washes the
+  colours toward pastel). The stem picks one at random on a **thirty-second** grid — fast
+  enough to strobe, slow enough to read as discrete colours rather than as noise — and the
+  hit density decays `(1 - progress) ** 1.6` across the first 3.2 bars, so it is violent
+  when the plant is dead and gone by the time the bud forms. Measured over the render:
+  **48% of frames carry a hit in the first third, 16% in the middle, 5% in the last.** The
+  randomness is a hashed frame index, not `random()` — `set_time(t)` has to stay a pure
+  function of `t` or a re-render of a range comes back different from the first pass.
+- **Each technique tints the poppy to its own accent, and the tint is `mix-blend-mode:
+  color`.** `tint()` in `video.html` lays the accent over the scene taking hue and
+  saturation from the tint and **luminance from the source**, so every fold, edge and
+  brush stroke in the flower survives the recolour. A flat `background` at low opacity, or
+  `multiply` alone, buries exactly the detail the recolour exists to show. The second
+  `multiply` layer at 0.22 of the strength is only there to keep the darks from going
+  chalky. Six call sites: the five techniques and the bar-16 bands.
+- **A bounce light, linked to the plant alone.** One warm area light low and to camera
+  right, `light_linking.receiver_collection` set to the plant collection, lifting the
+  shadow side of the stem and the undersides of the petals so the glitch colours are
+  visible at all in a scene lit by one hard beam from above. Linked, because unlinked it
+  puts a second pool on the table and the beam stops being the only light in the room.
+
+**Cycles cost, measured on these four cores at 540x960:** 24 samples 11.1s/frame, 48
+samples 19.9s/frame. The denoiser closes most of the gap, so 24 is the setting — a full
+Act I is 369 frames, which is 68 minutes at 24 and over two hours at 48. `volume_step_rate
+= 8.0` sharpens the beam's edge for free; it is a stepping change, not a sample change.
+
+---
+
 ## Making it read as ONE flower
 
 The film asks a viewer to follow a single object through a growth, a camera arc, a cut and
@@ -274,8 +309,33 @@ hoped about:
   `handoff.py` after ANY change to the camera or the lights**, and re-render the 2D side
   after it.
 
-The clips also butt with nothing to trim: Act I runs `bt(0)`–`bt(32)` and ends on a
+The clips also butt with nothing to trim: Act I runs `bt(0)`-`bt(32)` and ends on a
 sixteenth of black; `video.html`'s local time 0 IS `bt(32)`, the frame the shutter opens on.
+
+**Assembling the two acts.** They are rendered at different sizes and different rates, so
+each is conformed separately and then concatenated — never filtered together:
+
+```sh
+FF=$(python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())")
+# Act I: 540x960 at 24 -> 1080x1920 at 30, blended (it has no rendered motion blur)
+$FF -y -framerate 24 -i outputs/plant_hi/f%05d.png \
+  -vf "scale=1080:1920:flags=lanczos,framerate=fps=30:interp_start=0:interp_end=255,\
+noise=alls=2:allf=t+u,setsar=1,format=yuv420p" -t 15.36 \
+  -c:v libx264 -profile:v high -crf 16 -preset slow act1.mp4
+# Act II: 1080x1920 at 120 -> the house 270-degree shutter -> 30
+$FF -y -framerate 120 -i source/frames120/f%05d.png \
+  -filter_complex "[0:v]tmix=frames=3:weights='1 2 1',fps=30,noise=alls=2:allf=t+u,\
+setsar=1,format=yuv420p[v]" -map "[v]" \
+  -c:v libx264 -profile:v high -crf 16 -preset slow act2.mp4
+$FF -y -f concat -safe 0 -i list.txt -c copy outputs/it-isnt-moving-yet.mp4
+```
+
+`setsar=1` on **both** legs or `concat` refuses them (a scaled leg comes out 1600:1599 and
+an unscaled one 0:1). `framerate=` rather than `fps=` on Act I: `fps` duplicates frames and
+a 24→30 pulldown judders on the camera arc, where `framerate` blends and stands in for the
+motion blur Cycles was not asked to compute. The grain is applied to **both** legs at the
+same strength — a clean 3D leg butting a grained 2D one is a visible change of stock at the
+one cut the film exists to hide.
 
 ---
 
