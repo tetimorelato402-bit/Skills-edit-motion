@@ -278,10 +278,47 @@ the back half is not five arbitrary choices but something the flower was already
   visible at all in a scene lit by one hard beam from above. Linked, because unlinked it
   puts a second pool on the table and the beam stops being the only light in the room.
 
+### Four things that only show up once the flower is rendered big
+
+Act I ends on six petals filling a 1080-wide frame. Everything below looked fine at 300px
+and was a defect at 540, and the last lit frame is also the ground the ENTIRE 2D half is
+composited over (`POPPY` in `video.html` is `act1_last.png`, used by all five techniques),
+so a defect here is a defect in every shot of the film.
+
+- **A smooth transmissive shell is moulded plastic, whatever the lighting.** The petals
+  carry a procedural crumple bump and a roughness variation off the same noise — matte in
+  the folds, silkier on the ridges — and the roughness half is the one that reads as
+  tissue. Coordinates are **Generated**, not Object: Generated is normalised over the mesh
+  bounding box in local space and so is unaffected by the petal's scale animating 0→1
+  during the bloom. Object coordinates swim.
+- **Veining and sheen both backfire.** A second bump stretched 26:1 base-to-tip made
+  parallel streaks down each petal, and with `Sheen Weight` glinting off them the birds-eye
+  read as brushed satin ribbing — a worse material than the plastic it replaced. Both were
+  removed. Petal veins are a shading detail at this size and barely even that.
+- **One crimp wave at six samples per period is a balloon.** `blade()`'s crease was a single
+  2.5-period standing wave and `nv=15`, which is a perfectly smooth lobe six times over —
+  the open flower read as a ring of inflated tubes. A 7-period harmonic at 0.30 of the
+  amplitude, with `nv=27` to resolve it, is creased tissue from the same silhouette.
+- **From directly above, an upright cylinder is a disc.** 52 identical stamens at 13° off
+  vertical on one radius rendered as a bead necklace in the birds-eye — the shot the whole
+  act builds toward. They splay 26–44° now and present their length to the camera as a
+  radiating fringe, which is also the paint bloom's figure one shot early. Thin and short
+  (r 0.42mm, 19–30mm): the first splayed pass was 0.62mm and 26–42mm and read as a scribble
+  of black bars over the petals. All the jitter comes from a **hashed index, never
+  `random()`** — a resumed render chunk rebuilds the scene from scratch and has to get the
+  same flower.
+- **Near-black under a broad specular lobe reads GREY at full-frame size**, because the
+  highlight covers the whole sphere. The boss is `Roughness 0.88 / Specular IOR Level 0.22`
+  — velvet — and only then is it the dark hole the brief says the paint comes out of.
+
 **Cycles cost, measured on these four cores at 540x960:** 24 samples 11.1s/frame, 48
-samples 19.9s/frame. The denoiser closes most of the gap, so 24 is the setting — a full
-Act I is 369 frames, which is 68 minutes at 24 and over two hours at 48. `volume_step_rate
-= 8.0` sharpens the beam's edge for free; it is a stepping change, not a sample change.
+samples 19.9s/frame on a smooth petal. The creased petal costs about **three times** that
+— bump plus transmission is a lot of rays — and a close-up measured 50.7s at 24 samples,
+so the shading above turns a 68-minute act into a three-hour one. Adaptive sampling is what
+buys it back: `adaptive_threshold = 0.02` with a 6-sample floor spends nothing on the dark
+two-thirds of a frame lit by a single beam, where variance is already under what the
+denoiser finishes anyway. `volume_step_rate = 8.0` sharpens the beam's edge for free; it is
+a stepping change, not a sample change.
 
 ---
 

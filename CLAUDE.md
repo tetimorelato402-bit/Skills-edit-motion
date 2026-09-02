@@ -244,8 +244,25 @@ Load-bearing for it, if it gets built:
   light low and camera-right, `light_linking.receiver_collection` on the plant collection.
   Unlinked it puts a second pool on the table and the beam stops being the only light in
   the room — the same lesson as the rim spot, paid for twice.
+- **Act I's last lit frame is the ground the ENTIRE 2D half sits on**, not just the join —
+  `POPPY` in `video.html` is `act1_last.png` and all five techniques composite over it. So
+  any change to the Blender shading or lighting invalidates the whole 2D render, not the
+  first bar: finish Act I's look BEFORE rendering the 2D leg, or render it twice.
+- **The flower has to survive filling a 1080-wide frame, and four things did not.** A
+  smooth transmissive petal is moulded plastic — it needs a crumple bump plus a roughness
+  variation off the same noise, on **Generated** coordinates (Object coordinates swim when
+  the petal's scale animates 0→1). Veining stretched base-to-tip, and any sheen over it,
+  turn the birds-eye into brushed satin — both were built and removed. One crimp wave at
+  six samples per period is a smooth lobe, so six petals are a balloon; a 7-period harmonic
+  fixes it. And from directly above an upright cylinder is a disc, so 52 vertical stamens
+  were a bead necklace — splayed 26-44° they read as a radiating fringe instead, which is
+  the paint bloom's own figure one shot early. Every jitter is a **hashed index, never
+  `random()`**: a resumed render chunk rebuilds the scene and must get the same flower.
 - **Cycles cost here, measured: 540x960 at 24 samples is 11.1s/frame, at 48 it is 19.9s.**
-  The denoiser closes the gap, so 24 is the setting and Act I is 68 minutes. Act I renders
+  The denoiser closes the gap, so 24 is the setting. A CREASED petal costs about three
+  times a smooth one, which turns the 68-minute act into three hours; `adaptive_threshold
+  = 0.02` with a 6-sample floor buys most of it back, because the dark two-thirds of a
+  frame lit by one beam needs nothing the denoiser cannot finish. Act I renders
   at 540 and is lanczos-upscaled to 1080 at conform time; **the two acts are conformed
   separately and concatenated, never filtered together** — `setsar=1` on both legs or
   `concat` refuses them, and Act I uses `framerate=` (which blends) not `fps=` (which

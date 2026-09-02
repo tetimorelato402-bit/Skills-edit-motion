@@ -42,6 +42,18 @@ def configure(res, samples):
     # coarser step is free speed and visually identical. Measured at 540:
     # 48 samples 19.9s, 24 samples 11.1s, and the denoiser closes the gap.
     sc.cycles.volume_step_rate = 8.0
+    # Adaptive sampling with the denoiser behind it. The creased petals cost
+    # about three times a smooth shell (bump plus transmission is a lot of
+    # rays), and almost all of that is spent on the dark two-thirds of a frame
+    # lit by one beam — where the variance is already below anything the
+    # denoiser cannot finish. A 0.02 threshold with a 6-sample floor spends the
+    # budget on the flower.
+    sc.cycles.use_adaptive_sampling = True
+    sc.cycles.adaptive_threshold = 0.02
+    sc.cycles.adaptive_min_samples = 6
+    # Thin petals; two transmission bounces is all one ever needs. The jar
+    # keeps four via max_bounces above.
+    sc.cycles.transmission_bounces = 3
     sc.render.resolution_x = res
     sc.render.resolution_y = round(res * 16 / 9)
     sc.render.image_settings.file_format = 'PNG'

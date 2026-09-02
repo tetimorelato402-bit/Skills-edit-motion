@@ -462,10 +462,10 @@ class Scene:
         for i in range(NST):
             a = i / NST * math.tau + jit(i, 3) * 0.09
             r = 0.016 + 0.011 * jit(i, 7)
-            lean = math.radians(30.0 + 22.0 * jit(i, 11))
-            length = 0.026 + 0.016 * jit(i, 13)
+            lean = math.radians(26.0 + 18.0 * jit(i, 11))
+            length = 0.019 + 0.011 * jit(i, 13)
             bpy.ops.mesh.primitive_cylinder_add(
-                radius=0.00062, depth=length, vertices=8,
+                radius=0.00042, depth=length, vertices=8,
                 location=(r * math.cos(a), r * math.sin(a), 0.4385 + length * 0.34))
             st = bpy.context.object
             st.rotation_euler = (lean * math.cos(a + math.pi), lean * math.sin(a), 0)
