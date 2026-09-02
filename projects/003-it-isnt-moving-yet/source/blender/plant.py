@@ -123,6 +123,90 @@ def principled(name, **kw):
     return mat
 
 
+def petal_material():
+    """
+    A poppy petal is CREASED TISSUE, and at the size this one reaches — six
+    petals filling a 1080-wide frame — a smooth Principled surface reads as
+    moulded plastic. Three things fix that, and none of them is a texture file:
+
+    * a crumple, an isotropic noise bump, which is the crease itself;
+    * a ROUGHNESS variation off the same noise — matte in the folds, silkier
+      on the ridges. This is the half that actually reads as tissue. A second
+      bump stretched 26:1 for veining was built first and thrown away: it made
+      parallel streaks running the length of the petal, and with any sheen on
+      them the birds-eye read as brushed satin ribbing. Petal veins are a
+      shading detail at this size, and barely even that;
+    * a per-petal VALUE jitter off `Object Info > Random`. Six petals cut from
+      one mesh with one colour are an identical flat fill wherever they
+      overlap, and their shared edge simply vanishes. The jitter multiplies
+      RGB by one scalar, so it moves value and cannot move hue — the palette
+      rule, in a node graph.
+
+    Coordinates are Generated, not Object: Generated is normalised over the
+    mesh bounding box in local space, so it is unaffected by the petal's scale
+    animating 0 -> 1 during the bloom. Object coordinates would swim.
+    """
+    mat = bpy.data.materials.new("petal")
+    mat.use_nodes = True
+    nt = mat.node_tree
+    b = nt.nodes["Principled BSDF"]
+    # No sheen. Sheen over a bump is what turned the creases into glints.
+    for k, v in (("Transmission Weight", 0.38), ("IOR", 1.36),
+                 ("Specular IOR Level", 0.34)):
+        if k in b.inputs:
+            b.inputs[k].default_value = v
+
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+
+    def noise(scale, detail, rough, mscale):
+        m = nt.nodes.new("ShaderNodeMapping")
+        m.inputs["Scale"].default_value = mscale
+        nt.links.new(tc.outputs["Generated"], m.inputs["Vector"])
+        n = nt.nodes.new("ShaderNodeTexNoise")
+        n.inputs["Scale"].default_value = scale
+        n.inputs["Detail"].default_value = detail
+        n.inputs["Roughness"].default_value = rough
+        nt.links.new(m.outputs["Vector"], n.inputs["Vector"])
+        return n
+
+    crumple = noise(15.0, 5.0, 0.58, (1.0, 1.0, 1.0))
+
+    bump = nt.nodes.new("ShaderNodeBump")
+    bump.inputs["Strength"].default_value = 0.16
+    bump.inputs["Distance"].default_value = 0.005
+    nt.links.new(crumple.outputs["Fac"], bump.inputs["Height"])
+    nt.links.new(bump.outputs["Normal"], b.inputs["Normal"])
+
+    rgh = nt.nodes.new("ShaderNodeMapRange")
+    rgh.inputs["To Min"].default_value = 0.56
+    rgh.inputs["To Max"].default_value = 0.30
+    nt.links.new(crumple.outputs["Fac"], rgh.inputs["Value"])
+    nt.links.new(rgh.outputs["Result"], b.inputs["Roughness"])
+
+    info = nt.nodes.new("ShaderNodeObjectInfo")
+    rng = nt.nodes.new("ShaderNodeMapRange")
+    rng.inputs["To Min"].default_value = 0.84
+    rng.inputs["To Max"].default_value = 1.14
+    nt.links.new(info.outputs["Random"], rng.inputs["Value"])
+    # The crumple also darkens where it folds away from the light, which is
+    # what stops the jitter reading as six flat cards of six flat tints.
+    fold = nt.nodes.new("ShaderNodeMapRange")
+    fold.inputs["To Min"].default_value = 0.86
+    fold.inputs["To Max"].default_value = 1.05
+    nt.links.new(crumple.outputs["Fac"], fold.inputs["Value"])
+    both = nt.nodes.new("ShaderNodeMath")
+    both.operation = 'MULTIPLY'
+    nt.links.new(rng.outputs["Result"], both.inputs[0])
+    nt.links.new(fold.outputs["Result"], both.inputs[1])
+
+    tint = nt.nodes.new("ShaderNodeVectorMath")
+    tint.operation = 'SCALE'
+    tint.inputs[0].default_value = PETAL[:3]
+    nt.links.new(both.outputs["Value"], tint.inputs["Scale"])
+    nt.links.new(tint.outputs["Vector"], b.inputs["Base Color"])
+    return mat
+
+
 def mesh_from(name, verts, faces, mat=None):
     me = bpy.data.meshes.new(name)
     me.from_pydata(verts, [], faces)
@@ -157,7 +241,14 @@ def blade(length, halfwidth, cup, bend, nu=13, nv=5, fullness=0.7, crimp=0.0):
             # strongest at mid-length where the petal is widest — it is the
             # single feature that separates a poppy from a tulip, and it is
             # what makes the opening read as unfolding rather than scaling.
-            crease = crimp * math.sin(v * math.pi * 2.5) * math.sin(math.pi * u) * halfwidth
+            # One 2.5-period wave alone is what made the open flower read as a
+            # ring of INFLATED TUBES: at nv=15 six samples per period is a
+            # perfectly smooth lobe, and six smooth lobes are a balloon. A
+            # 7-period harmonic at a third the amplitude (and enough nv to
+            # resolve it) turns the same silhouette into creased tissue.
+            crease = crimp * halfwidth * math.sin(math.pi * u) * (
+                math.sin(v * math.pi * 2.5) * 0.70
+                + math.sin(v * math.pi * 7.0 + 0.9) * 0.30)
             verts.append((x, u * length, -drop - cup * (x ** 2) + crease))
     for i in range(nu - 1):
         for j in range(nv - 1):
@@ -177,11 +268,14 @@ class Scene:
         # Poppy petals are thin and translucent — backlit they glow rather than
         # simply being lit, which is the entire reason for a rim key in a dark
         # scene. Without transmission they read as painted card.
-        self.mat_petal = principled(
-            "petal", **{"Base Color": PETAL, "Roughness": 0.38,
-                        "Transmission Weight": 0.38, "IOR": 1.36})
+        self.mat_petal = petal_material()
+        # The boss is the one surface that ever fills the whole frame, and a
+        # near-black diffuse with a broad specular lobe reads GREY at that size
+        # — the highlight covers the sphere. A poppy's eye is velvet: almost no
+        # specular, almost no gloss.
         self.mat_eye = principled(
-            "eye", **{"Base Color": (0.022, 0.014, 0.012, 1.0), "Roughness": 0.55})
+            "eye", **{"Base Color": (0.022, 0.014, 0.012, 1.0), "Roughness": 0.88,
+                      "Specular IOR Level": 0.22})
         self.mat_glass = principled(
             "glass", **{"Base Color": (0.86, 0.88, 0.84, 1.0), "Roughness": 0.045,
                         "IOR": 1.45, "Transmission Weight": 1.0})
@@ -315,7 +409,7 @@ class Scene:
             # Cup 3.0 inflated each petal into a smooth bulb — from above the
             # flower read as a peach rather than as overlapping tissue. A poppy
             # petal is THIN and creased: less cup, more crimp.
-            v, f = blade(0.088, 0.080, 1.5, 0.008, nu=21, nv=15,
+            v, f = blade(0.088, 0.080, 1.5, 0.008, nu=25, nv=27,
                          fullness=0.36, crimp=0.40)
             ob = mesh_from(f"petal{i}", v, f, self.mat_petal)
             ob.location = (0, 0, 0.430)
@@ -349,15 +443,32 @@ class Scene:
         child(boss)
         self.boss = boss
 
+        # Fifty-two identical cylinders standing at 13 degrees off vertical,
+        # all on one radius, read from the birds-eye as a BEAD NECKLACE — from
+        # directly above an upright cylinder is a disc, so the ring the whole
+        # act ends on was a circle of 52 dots. The fix is the flower's real
+        # anatomy: poppy stamens SPLAY, and at 30-52 degrees they present their
+        # length to an overhead camera instead of their end, so the same ring
+        # reads as a radiating black fringe — which is also the paint bloom's
+        # figure, one shot early.
+        #
+        # Everything is jittered off a hashed index, never `random()`: the
+        # scene has to rebuild identically on every resumed chunk of a render.
+        def jit(i, salt):
+            return (((i * 2654435761 + salt * 40503) % 65536) / 65536.0)
+
         self.stamens = []
-        for i in range(52):
-            a = i / 52 * math.tau
+        NST = 86
+        for i in range(NST):
+            a = i / NST * math.tau + jit(i, 3) * 0.09
+            r = 0.016 + 0.011 * jit(i, 7)
+            lean = math.radians(30.0 + 22.0 * jit(i, 11))
+            length = 0.026 + 0.016 * jit(i, 13)
             bpy.ops.mesh.primitive_cylinder_add(
-                radius=0.00075, depth=0.030,
-                location=(0.019 * math.cos(a), 0.019 * math.sin(a), 0.4405))
+                radius=0.00062, depth=length, vertices=8,
+                location=(r * math.cos(a), r * math.sin(a), 0.4385 + length * 0.34))
             st = bpy.context.object
-            st.rotation_euler = (math.radians(13) * math.cos(a + math.pi),
-                                 math.radians(13) * math.sin(a), 0)
+            st.rotation_euler = (lean * math.cos(a + math.pi), lean * math.sin(a), 0)
             st.data.materials.append(self.mat_eye)
             st.scale = (0, 0, 0)
             child(st)
