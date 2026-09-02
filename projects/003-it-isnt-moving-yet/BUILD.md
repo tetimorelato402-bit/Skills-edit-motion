@@ -30,7 +30,7 @@ with no conversion.
 | `scripts/check-bloom.py` | Asserts the bloom only ever grows. Read why below. |
 | `source/blender/plant.py` | Act I. Builds the scene, and `set_time(t)` moves it. |
 | `source/blender/render_plant.py` | Cycles CPU, stills or a range. |
-| `scripts/handoff.py` | Projects the flower head and extracts its palette. |
+| `scripts/handoff.py` | Projects the flower head and its petal axes, and extracts its palette. |
 | `scripts/brushplate.py` | The grayscale brush plate the bloom is textured with. |
 
 ```sh
@@ -209,6 +209,35 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
 - **Tilting the shaft has to be toward the camera.** Tilted away from the lens for the
   birds-eye, the poppy is backlit and goes dark at exactly the moment it should be at its
   brightest — correctly lit, and unusable.
+## Making it read as ONE flower
+
+The film asks a viewer to follow a single object through a growth, a camera arc, a cut and
+a change of medium. Three things break that reading, and all three are fixed rather than
+hoped about:
+
+- **Exposure.** The camera closes from 3.2x the framing distance to 0.36m and the pool it
+  travels into gets brighter the whole way, so the poppy rendered dim at 13s and blazing
+  at 15s. It is one continuous shot of one flower, but a colour that swings that far reads
+  as two different objects. The key pulls back 42% across the arc and the push so the
+  petals hold the same vermilion from the moment they open to the moment the paint takes
+  them.
+- **The petal axes.** `handoff.py` projects the six real petals' screen directions
+  (48.2°, 110.3°, 172.0°, 231.5°, 289.8°, 348.3°) and the paint's first six petals launch
+  along exactly those, first, before the rest. For the opening frames the paint is not
+  merely erupting from where the flower was — it is continuing the flower's own geometry
+  outward. This is the single strongest continuity cue in the film and it costs nothing.
+- **The backdrop must be regenerated whenever the lighting changes.** `act1_last.png` is
+  Act I's final lit frame and the ground the paint erupts over. Change the Blender
+  exposure and the 2D clip is butting against a frame that no longer exists — the join
+  jumps in brightness at exactly the cut you spent the whole act hiding. **Re-run
+  `handoff.py` after ANY change to the camera or the lights**, and re-render the 2D side
+  after it.
+
+The clips also butt with nothing to trim: Act I runs `bt(0)`–`bt(32)` and ends on a
+sixteenth of black; `video.html`'s local time 0 IS `bt(32)`, the frame the shutter opens on.
+
+---
+
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a

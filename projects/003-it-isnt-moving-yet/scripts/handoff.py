@@ -19,6 +19,7 @@ ever be typed by hand:
 
   python3 scripts/handoff.py
 """
+import math
 import os
 import sys
 
@@ -71,6 +72,28 @@ def main():
     px, py = co.x * W, (1.0 - co.y) * H
     print(f"  flower head, projected:  x = {px:7.1f}   y = {py:7.1f}   "
           f"({co.x*100:.1f}%, {(1-co.y)*100:.1f}% of frame)")
+
+    # --- 1b. which way do its petals point? -------------------------------
+    # THE STRONGEST CONTINUITY CUE IN THE FILM, and it costs nothing.
+    #
+    # The paint's first six petals launch along the screen-space axes of the
+    # flower's six real ones, so for the first frames after the cut the paint
+    # is not merely erupting from where the flower was — it is continuing the
+    # flower's own geometry outward. Then it diverges into sixty-six and
+    # becomes paint. Nobody consciously notices; it is what makes a viewer read
+    # one object across two media instead of a flower and then some colour.
+    axes = []
+    for i in range(6):
+        ob = bpy.data.objects[f"petal{i}"]
+        me = ob.evaluated_get(dg).to_mesh()
+        tip = max(me.vertices, key=lambda v: v.co.y).co.copy()
+        world = ob.matrix_world @ tip
+        t = world_to_camera_view(bpy.context.scene, scene.cam, world)
+        dx, dy = t.x * W - px, (1.0 - t.y) * H - py
+        axes.append(math.degrees(math.atan2(dy, dx)) % 360.0)
+        ob.evaluated_get(dg).to_mesh_clear()
+    axes.sort()
+    print("  petal axes on screen (deg): " + ", ".join(f"{a:.1f}" for a in axes))
 
     # --- 2. what colour -----------------------------------------------------
     still = os.path.join(OUT, "handoff.png")
@@ -136,6 +159,7 @@ def main():
         f.write(f"ORIGIN {px:.1f} {py:.1f}\n")
         f.write("RAW " + " ".join(raw) + "\n")
         f.write("WARM " + " ".join(lifted) + "\n")
+        f.write("AXES " + " ".join(f"{a:.1f}" for a in axes) + "\n")
     print(f"\n  written to {OUT}/handoff.txt")
 
 

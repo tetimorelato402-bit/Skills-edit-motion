@@ -632,9 +632,25 @@ class Scene:
         # to be a switch.
         find = ease_out(seg(t, bt(1), bt(4)))
         near = ease_in_out(seg(t, 0, ACT_I_END))
-        live = 1.0 - seg(t, *SHUTTER)
+        # A CUT, NOT A DIP. Ramping across the sixteenth means the frame only
+        # reaches black on the very last one and then snaps back to full — a
+        # lopsided dip rather than a blink. The lights are simply off for the
+        # whole sixteenth, which is what "the lights cut out" means and what
+        # makes the paint arrive out of nothing.
+        live = 0.0 if t >= SHUTTER[0] else 1.0
 
-        self.key.data.energy = 620 * find * live
+        # EXPOSURE COMPENSATION ON THE PUSH.
+        #
+        # The camera closes from 3.2x the framing distance down to 0.36m, and
+        # the pool it is travelling into gets brighter the whole way — so the
+        # poppy renders dim at 13s and blazing at 15s. It is one continuous
+        # shot of one flower, but a viewer reads a colour that swings that far
+        # as two different objects, which is the one thing this act cannot
+        # afford. The key pulls back through the arc and the push so the petals
+        # hold the same vermilion from the moment they open to the moment the
+        # paint takes them.
+        close = ease_in_out(seg(t, ARC[0], PUSH[1]))
+        self.key.data.energy = 620 * find * live * (1.0 - 0.42 * close)
         self.fill.data.energy = 42 * find * live
         # Density 0.9 is a faint mist. A shaft you can SEE in a dark room needs
         # an order of magnitude more than that — at 0.9 the pool on the floor

@@ -205,6 +205,13 @@ Load-bearing for it, if it gets built:
   centre — the same image as the paint detonation — so the two worlds are one picture in
   two media and the cut becomes a SUBSTITUTION rather than a transition. Two distances:
   stop at the rosette, then push in. Then one sixteenth of black, and the paint.
+- **It has to read as ONE flower across the arc and the cut.** Three things are load-
+  bearing for that: the key pulls back 42% through the arc so the petals hold one colour
+  instead of swinging dim-to-blazing as the camera closes; the paint's first six petals
+  launch along the six REAL petals' projected screen axes, so the paint continues the
+  flower's geometry before diverging; and `act1_last.png` — the ground the paint erupts
+  over — must be regenerated whenever the Blender lighting or camera changes, or the join
+  jumps in brightness at exactly the cut the whole act exists to hide.
 - **The paint bloom erupts out of the flower head, and the join is extracted, never typed.**
   `scripts/handoff.py` projects the head through Act I's real camera and k-means clusters
   the rendered poppy for the palette, lifting it **in value only** — the same method that

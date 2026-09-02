@@ -48,12 +48,13 @@ const BPM=125, BEAT=60/BPM, BAR=4*BEAT;     // 0.48, 1.92
 const bt=n=>n*BEAT;
 const SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 
-// Local time 0 here is film time bt(26) — the beat the poppy starts opening.
-// The flower is fully open by bt(2) local, and that is where the paint takes
-// over: the drop lands on the ignition, not on a cut.
-const IGNITE  = bt(2);          // 0.96
-const BLOOM   = [bt(2), bt(7)]; // 0.96 -> 3.36. Five beats exactly: 2.4s of detonation.
-const DUR     = bt(8);          // the gate render is two bars
+// LOCAL TIME 0 IS FILM TIME bt(32) — the frame the shutter opens on. Act I
+// runs 0 to bt(32) in Blender and ends on a sixteenth of black; this file
+// picks up the instant the image comes back, so the two clips butt together
+// with nothing to trim and nothing to overlap.
+const IGNITE  = 0;
+const BLOOM   = [0, bt(5)];     // five beats exactly: 2.4s of detonation
+const DUR     = bt(6);          // 2.88s — the bloom plus a little settle
 window.DUR = DUR;
 
 // ---- easing ---------------------------------------------------------------
@@ -117,6 +118,15 @@ const act1 = el('div',stage,{position:'absolute',inset:'0',
 // that is not the flower.
 const HEAD_X = 540.0, HEAD_Y = 963.0;
 
+// The screen-space directions of the flower's six real petals, projected
+// through Act I's camera by scripts/handoff.py. The paint's first six petals
+// are launched along these exact axes, so for the first frames after the cut
+// the paint is not merely starting where the flower was — it is continuing the
+// flower's own geometry outward before it diverges into sixty-six and becomes
+// paint. This is what makes a viewer read ONE OBJECT across two media rather
+// than a flower and then some colour.
+const PETAL_AXES = [48.2, 110.3, 172.0, 231.5, 289.8, 348.3];
+
 // ===========================================================================
 //  THE BLOOM.
 //
@@ -152,8 +162,8 @@ const NPROF=96;
 // in value, it must not leave the warm family. The paint is the flower's
 // colour because it came from the flower, not because two swatches were
 // matched by eye. Re-run handoff.py after any change to the Blender lighting.
-const WARM=['#F52F1A','#E77A0A','#CE3309','#B66E08',
-            '#9E1A07','#6C451F','#734205','#641C04'];
+const WARM=['#F5411A','#E7640A','#CE4209','#B66708',
+            '#9E2107','#863806','#734B05','#641204'];
 // The cools are the five techniques' own accents, seeded into the bloom so
 // that the detonation contains the colours of everything that follows it.
 const COOL=['#1F5F6B','#2C5FA8','#3F7A3A','#7A2E52','#E8B25C','#D9C08A'];
@@ -216,12 +226,17 @@ for(let i=0;i<NP;i++){
   // Angles are biased into the frame — the button sits low and right, so most
   // of the paint has to travel up and left, but not all of it, or the burst
   // reads as a fan instead of a detonation.
-  const ang = (i/NP)*Math.PI*2 + rng(-0.10,0.10);
+  // the first six inherit the real flower's headings; the rest spread evenly
+  const ang = i < PETAL_AXES.length
+    ? PETAL_AXES[i] * Math.PI / 180
+    : (i/NP)*Math.PI*2 + rng(-0.10,0.10);
   // The bloom used to own the frame by 1.50s and then had nine tenths of a
   // second with nothing left to do. Spreading the launches out, and shrinking
   // every late petal, keeps paint arriving ON TOP of paint right to the end —
   // successive waves instead of a plateau.
-  const lag = rng(0, 0.72);
+  // and they go FIRST, so the continuation is the thing the eye sees before
+  // the detonation has spread far enough to be abstract
+  const lag = i < PETAL_AXES.length ? rng(0, 0.05) : rng(0.06, 0.72);
   petals.push({
     ang,
     // dist must stay well under rad's reach. Thrown 0.88 of the way to the far
@@ -271,7 +286,7 @@ petals.forEach((p,i)=>{
 // guarantees the frame is covered by the end without any small petal having to
 // be big enough to show a straight edge. Drawn first, so it is the GROUND of
 // the bloom rather than a disc competing with it.
-const wash={c:'#641C04', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
+const wash={c:'#641204', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
             rad:REACH*1.15, elong:1.15, op:1, lag:0.10, dur:1.05, prof:profile()};
 
 // Every petal is drawn twice: a translucent HALO a few percent larger, then the
