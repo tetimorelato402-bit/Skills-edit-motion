@@ -1,8 +1,14 @@
 # "It isn't moving yet" — build notes
 
-**Status: at gate 1.** Frame 0 (the cover) and the bloom (the hero) are built and
-rendered — 3.83s at 1080×1920. Nothing past `bt(8)` exists. Runtime is **17 bars =
-32.64s** and the bloom is **five beats, `bt(2)`–`bt(7)`, 2.4s**. `BRIEF.md` is the spec — read the REVISED section
+**Status: at gate 1.** Two pieces exist. Runtime is **17 bars = 32.64s**.
+
+- **Act I, the jar** — `source/blender/`, Blender 4.5 via `bpy`, Cycles on CPU. Seven
+  bars of a dead plant in a mason jar growing in the dark and blooming. Stills and a
+  low-res motion test render here; a full-resolution sequence does not (see below).
+- **The bloom** — `source/video.html`, five beats of paint. Built with its origin at a
+  send button that no longer exists; **its origin must move to the flower head.**
+
+The chat-box opening was cut when the jar replaced it. `frame 0` as built is retired. `BRIEF.md` is the spec — read the REVISED section
 at the top first, the premise changed after the interview.
 
 ## The stack
@@ -20,6 +26,8 @@ with no conversion.
 | `source/paint.py` | The oil plates, from 001. `OUT` now writes next to itself. |
 | `source/fonts/` | Inter + IBM Plex Mono, self-hosted. |
 | `scripts/check-bloom.py` | Asserts the bloom only ever grows. Read why below. |
+| `source/blender/plant.py` | Act I. Builds the scene, and `set_time(t)` moves it. |
+| `source/blender/render_plant.py` | Cycles CPU, stills or a range. |
 
 ```sh
 python3 source/render.py --out ../outputs/pv --times 0,0.96,1.32,1.86,2.40   # stills
@@ -37,6 +45,34 @@ $FF -y -framerate 120 -i source/frames120/f%05d.png \
   -map "[v]" -c:v libx264 -profile:v high -crf 17 -preset slow \
   -movflags +faststart outputs/gate-bloom.mp4
 ```
+
+## Act I — Blender in this container
+
+```sh
+pip install bpy==4.5.13
+python3 source/blender/render_plant.py --times 0,3.4,7.2,10.6,12.5,13.44 --res 360 --samples 24
+```
+
+**There are no keyframes.** `plant.py` builds the scene once and `set_time(t)` positions
+everything for time `t` — the same contract as `renderFrame(t)` in `video.html`, and for
+the same reason: Blender's animation system would be a second source of truth to keep in
+sync with the 125 BPM grid, and a pure function of `t` is not.
+
+**What this container can and cannot do.** There is no GPU — `/dev/dri` does not exist.
+
+- **Cycles CPU works** and is the only real path. 360×640 at 20 samples is ~3.3s/frame
+  on 4 cores.
+- **EEVEE is a dead end here.** It needs `libEGL`, which is not installed by default;
+  `apt-get install libegl1 libglx-mesa0` plus `LIBGL_ALWAYS_SOFTWARE=1
+  EGL_PLATFORM=surfaceless` does get it running — and it then took **40s for a default
+  cube at 540×960**, far slower than Cycles, because llvmpipe is software rasterisation
+  and EEVEE Next leans on a lot of GPU passes. Do not spend time on it.
+- **A full-resolution Act I is a desktop job, and here is the measured number.** One
+  frame at 1080×1920 / 96 samples took **104.3 seconds** on these four cores. Seven bars
+  is 403 frames at 30fps and 1613 at 120 — so **11.7 hours** for a flat 30fps pass and
+  **46.7 hours** for the house 120→`tmix`→30 shutter. Approve the act here as stills and
+  low-res motion tests; render it where there is a GPU. `CLAUDE.md` already lists Blender
+  as a desktop unlock and this is what it meant.
 
 ---
 
@@ -94,6 +130,19 @@ $FF -y -framerate 120 -i source/frames120/f%05d.png \
   type out over half a beat, and the result was a frame of empty parchment with a small
   paint cluster in the corner: the question had gone before the paint arrived to take it.
   There is no opacity on the type at all.
+- **Frame the camera by solving for it, not by eye.** The first pass put the camera 0.86m
+  from the jar on an 85mm lens. That covers 24cm of subject height — so the jar filled the
+  bottom of the frame, the stem ran off the top, and the flower, the entire point of the
+  act, was never in shot. `_camera()` now solves the distance from the lens, the sensor
+  and the subject height.
+- **A petal's "closed" is a HIGH pitch, not a low one.** The blade is generated along +Y
+  and pitch rotates about X, so 90° stands a petal upright into a bud and 0° lays it flat
+  and open. Writing it the intuitive way round ran the whole bloom backwards — the flower
+  was wide open at 12.5s and a tight bud at 13.4s. It also must not go past about 18°:
+  taken all the way to flat the petals reflex and the flower reads as a parasol.
+- **A jar has to be mostly empty to read as glass.** 13cm of water in a 24cm jar made the
+  body an opaque black cylinder that looked like a tin can. A finger of water — 4cm — lets
+  the key light through the body, which is the only reason to use glass at all.
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a

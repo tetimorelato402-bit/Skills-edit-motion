@@ -153,8 +153,9 @@ what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
 ## The pitch film — "It isn't moving yet"
 
-`projects/003-it-isnt-moving-yet/` is **at gate 1**: frame 0 and the bloom are built and
-rendered on the 001 engine, nothing past `bt(5)` exists. It is **not a numbered study** —
+`projects/003-it-isnt-moving-yet/` is **at gate 1**, and it is the one project here with
+**two stacks in one film**: Act I is Blender/Cycles (`source/blender/`), everything after
+the bloom is the 001 HTML engine (`source/video.html`). It is **not a numbered study** —
 the directory is numbered for ordering only; the studies are the craft, this is the offer.
 Read its `BRIEF.md` first.
 
@@ -173,8 +174,15 @@ Load-bearing for it, if it gets built:
   125 BPM grid. That is what stops five palettes reading as five different films.
 - **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
   **17 bars = 32.64s**, and the bloom is five beats (`bt(2)`–`bt(7)`, 2.4s).
-- **The chat box is on screen for under a second, unbranded, in Inter display.** Its named
-  failure mode is looking like "I asked AI to..." content, and the cold open is the risk.
+- **Act I is a dead plant in a mason jar, in the dark, growing and blooming** — seven
+  bars, `bt(0)`–`bt(28)`. It makes the film's question literal rather than metaphorical.
+  **The chat box was cut entirely**; there is no interface anywhere in the film, which is
+  what disposes of the "I asked AI to..." risk. The question appears as pure type.
+- **The paint bloom erupts out of the flower head.** The 3D act is not cut away from, it
+  is covered — that handoff is the transition from the slow half to the fast one, and it
+  is why the Blender render never needs compositing against the 2D world.
+- **`plant.py` has no keyframes.** It builds the scene once and `set_time(t)` moves it,
+  the same contract as `renderFrame(t)`, so the 125 BPM grid stays the only clock.
 - **The question returns unchanged at the end and the viewer supplies the answer.**
   Putting a line under it is the one edit that breaks the film.
 - **Every bloom petal has its own fixed duration**, rather than all of them ending when
@@ -187,6 +195,19 @@ Load-bearing for it, if it gets built:
   Past a layer budget Chromium stops applying style updates *silently* — no error, no
   warning — and screenshots come back showing arbitrary earlier states.
   `scripts/check-bloom.py` asserts coverage is monotonic and is what catches it.
+
+## Blender in this container
+
+`pip install bpy==4.5.13` gives Blender as a Python module and **Cycles on CPU works**
+(~3.3s/frame at 360x640, 20 samples, 4 cores). Two things to know before spending time:
+
+- **There is no GPU** — `/dev/dri` does not exist. EEVEE needs `libEGL` (not installed;
+  `apt-get install libegl1 libglx-mesa0` plus `LIBGL_ALWAYS_SOFTWARE=1
+  EGL_PLATFORM=surfaceless` does get it running) and then renders a *default cube* at
+  540x960 in 40s — far slower than Cycles, because llvmpipe is software rasterisation.
+  EEVEE is a dead end here; do not retry it.
+- **Full-resolution Blender sequences are a desktop job.** Approve the act here as stills
+  and low-res motion tests, render it where there is a GPU.
 
 ## ffmpeg in this container
 

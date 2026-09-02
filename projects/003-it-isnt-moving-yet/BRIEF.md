@@ -2,6 +2,10 @@
 
 teti studio · **the master** · 9:16 · **17 bars = 32.64s** · 125 BPM · no post date
 
+**Act I is 3D.** A dead plant in a mason jar, in the dark, that grows and blooms —
+Blender/Cycles, seven bars. Everything after the bloom is the 2D paint world. See
+"The jar" below; this replaced the chat-box opening entirely.
+
 Produced from a full `big-video-project` interview (36 questions), then **substantially
 re-briefed** when teti corrected the premise. Read the revision note below before
 anything else — an earlier version of this file described a conversion ad with a
@@ -31,6 +35,32 @@ being undeniable, not by asking for anything.
 | "One DM about real work" as success | There is no post, so there is no inbound to count. |
 | Cold-Explore first-1.5-seconds pressure | Not the distribution. The cover frame can be composed rather than defensive. |
 | The answer line on screen | See below — this is the biggest change of all. |
+
+## The jar — Act I
+
+teti's direction: *"a plant in a cup. dark lighting made on blender. the plant is in a
+mason jar. its slowly growing and its dark and dead and then it blooms. from that bloom
+we start making our video in faster pace different styles."*
+
+This is the single best structural decision the film has had, for a reason worth stating:
+**it makes the question literal instead of metaphorical.** "How do you make ideas that
+aren't alive, alive?" — and the first seven bars are a dead thing becoming alive. Nothing
+on screen explains that and nothing should.
+
+It also disposes of the film's biggest named risk. The chat box is **cut entirely** — no
+field, no send button, no interface of any kind. The question appears as pure type over
+the dark. There is now no way to mistake this for "I asked AI to…" content, because
+there is no AI on screen.
+
+- **Seven bars, `bt(0)`–`bt(28)`, 13.44s.** Nearly half the film is dark and slow before
+  anything fast happens. That is the contrast the second half is spending.
+- **The bloom origin moves from the send button to the flower head.** The paint
+  detonation already built is reused unchanged apart from its origin — the 3D flower
+  opens, and the 2D paint erupts out of it. That handoff *is* the transition from the
+  slow act to the fast one, and it is why the plant does not need to be composited into
+  anything: it simply gets covered.
+- **The plant's rust petals are the same accent as the paint.** The 3D act and the 2D act
+  share one colour so the cut between worlds is not a cut between films.
 
 ## The question — and why it is never answered
 
@@ -165,19 +195,21 @@ Total 68 beats = **32.64s**.
 |---|---|---|---|---|
 | Bar | Beats | Screen | Type | Sound |
 |---|---|---|---|---|
-| **1–2** | `bt(0)`–`bt(8)` | **The cover, then THE BLOOM.** The question sits finished; the cursor hovers the send button; parchment ground, canvas weave, a hairline rule and nothing else. Dead still for two beats — the only stillness in the film. Click on `bt(2)`, and the paint detonates out of the button for five beats. The question is never faded: the paint **swallows** it. | **how do you make ideas that aren't alive, alive?** — the second `alive` in signal | Room tone, two dry key ticks, then the click *is* the drop. Full arrangement in at once. |
-| **3** | `bt(8)`–`bt(12)` | The bloom settles and `teti.` strobes once out of the paint, on `bt(8)`, and is gone before the bar ends. | `teti.` — lowercase | The drop rides out. |
-| **4–5** | `bt(12)`–`bt(20)` | **T5 — white space editorial.** One word at enormous scale on near-empty ground. Motion enters left, exits right. | question pinned, MICRO, top left | Groove. Hit on the word landing. |
-| **6–7** | `bt(20)`–`bt(28)` | **T6 — modular grid.** The frame becomes tiles; blocks slide through cells, one passing across and briefly occluding the mark. Everything snaps, nothing floats. | question pinned | Tighter hats, hit per snap. |
-| **8–9** | `bt(28)`–`bt(36)` | **T3 — torn collage.** Tape at 6–14°, torn edges, colour blocks wiping the frame between beats. The loudest bars. | question pinned | Peak energy, clap on 2 and 4. |
-| **10–11** | `bt(36)`–`bt(44)` | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. The breather. | question pinned | Bass and hats pull out. Pen-scratch foley. |
-| **12–13** | `bt(44)`–`bt(52)` | **T7 — painted frame.** Brush-drawn, frame to frame, painted lettering. The film resolves into teti's own hand. | question pinned | Riser under it. |
-| **14** | `bt(52)`–`bt(56)` | **All five at once.** Tiled, moving left and right — "showing everywhere", the range stated in one image. | question pinned | Peak. |
-| **15** | `bt(56)`–`bt(60)` | Everything drains off. The question returns **alone**, in exactly the position, size and colour it held in bar 1. | the question, unchanged | Breakdown to near-silence. |
-| **16** | `bt(60)`–`bt(64)` | **Nothing is added.** The question sits there while the viewer supplies the answer. This bar is the film's whole argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. Then `teti.` resolves out of the paint, the same mark as the profile picture. | `teti.` | One low tone, then room tone. |
-| **17** | `bt(64)`–`bt(68)` | Hold on the mark — no offer, no handle, no link — then cut back to the untouched cover on the final frame, so the film loops into itself and the question is the first and last thing seen. | the question | Thins to the last hit on the loop point. |
+| **1** | `bt(0)`–`bt(4)` | **Black, then the jar.** A mason jar on a dark table, lit by one warm rake from behind left. Almost nothing is visible. Nothing moves. | the question fades up over the dark, `MICRO`, and holds | Room tone. A single low pulse on `bt(0)`. |
+| **2–6** | `bt(4)`–`bt(24)` | **The stem climbs.** Slow, continuous, over five bars — the growth is never cut to, it just does not stop. Leaves unfurl on the eighths as the stem passes them. Dead brown warms toward living olive so gradually that no single moment is the change. The camera pushes in across the whole act. | the question leaves at `bt(8)`; the frame is wordless from here to the end card | The bed builds one element per bar. No drums yet. |
+| **7** | `bt(24)`–`bt(28)` | **The bud swells and opens.** The petals — rust, the same accent as the paint — lift off the calyx and open on the last two beats. | — | The riser. Everything pulls out on the last beat. |
+| **8–9** | `bt(28)`–`bt(36)` | **THE BLOOM.** Paint detonates out of the flower head for five beats and takes the whole frame. The plant is not cut away from: it is **covered**. This is the handoff from the 3D world to the 2D one, and the only frame in the film where both exist. | — | The drop lands exactly on the ignition. Full arrangement at once. |
+| **10** | `bt(36)`–`bt(40)` | **T5 — white space editorial.** One word at enormous scale on near-empty ground, entering left, exiting right. | — | Groove. Hit on the landing. |
+| **11** | `bt(40)`–`bt(44)` | **T6 — modular grid.** The frame becomes tiles; blocks slide through cells and one passes across the mark, briefly occluding it. Everything snaps. | — | Tighter hats, hit per snap. |
+| **12** | `bt(44)`–`bt(48)` | **T3 — torn collage.** Tape at 6–14°, torn edges, colour blocks wiping the frame between beats. The loudest bar. | — | Peak energy, clap on 2 and 4. |
+| **13** | `bt(48)`–`bt(52)` | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. | — | Bass and hats pull out. Pen-scratch foley. |
+| **14** | `bt(52)`–`bt(56)` | **T7 — painted frame.** Brush-drawn, frame to frame, painted lettering. The film resolves into teti's own hand. | — | Riser under it. |
+| **15** | `bt(56)`–`bt(60)` | **All five at once.** Tiled, moving left and right — "showing everywhere", the range stated in one image. | — | Peak. |
+| **16** | `bt(60)`–`bt(64)` | Everything drains off and **the question returns**, in exactly the type, size and position it held in bar 1. **Nothing is added.** It sits there while the viewer supplies the answer. This bar is the film's whole argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. | the question, unchanged | Breakdown to near-silence, then one low tone. |
+| **17** | `bt(64)`–`bt(68)` | `teti.` resolves out of the paint — the same mark as the profile picture. Hold. No offer, no handle, no link. Then cut back to the dark jar on the final frame, so the film loops into itself. | `teti.` | Thins to the last hit on the loop point. |
 
-**Ratio check.** Bloom = 2.40s. Five techniques = 15.36s (two bars each). The bloom is the hero and the
+**Ratio check.** The jar = 13.44s. Bloom = 2.40s. Five techniques = 9.60s (one bar each,
+fast, as asked). Nearly half the film is spent earning the second half. The bloom is the hero and the
 five are the proof, and the proof still gets six times the screen time. That ratio was
 set when this was an ad and it survives the re-brief for a different reason: a master
 that spends its length on one spectacle is a showreel of one trick.
