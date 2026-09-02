@@ -63,6 +63,14 @@ there is no AI on screen.
   in the jar neck, roots growing down into the water.)*
 - **Seven bars, `bt(0)`–`bt(28)`, 13.44s.** Nearly half the film is dark and slow before
   anything fast happens. That is the contrast the second half is spending.
+- **One light: a direct beam from above, landing on the floor.** The camera starts across
+  a dark room, small, outside the light, and travels into it over the whole act. There is
+  no second lamp in the room — the only other light is a rim linked to the glass alone so
+  it cannot touch the table.
+- **The last beat of Act I is BLACK.** The lights cut on `bt(27)` — two frames, a switch
+  and not a dimmer — and the film holds on nothing for one beat before the bloom. That
+  beat is what makes the paint an event rather than a transition: it detonates out of a
+  hole in the film, on the downbeat.
 - **The bloom erupts from the flower head, and both the position and the palette are
   extracted rather than typed.** `scripts/handoff.py` projects the flower head through
   Act I's actual camera — (540, 450), dead centre, 23% down — so nudging the Blender
@@ -208,9 +216,10 @@ Total 68 beats = **32.64s**.
 |---|---|---|---|---|
 | Bar | Beats | Screen | Type | Sound |
 |---|---|---|---|---|
-| **1** | `bt(0)`–`bt(4)` | **Black, then the jar.** A mason jar on a dark table, lit by one warm rake from behind left. Almost nothing is visible. Nothing moves. | the question fades up over the dark, `MICRO`, and holds | Room tone. A single low pulse on `bt(0)`. |
+| **1** | `bt(0)`–`bt(4)` | **Black, then a shaft.** A hard beam drops from somewhere above and lands on the table as a pool of light; the jar is standing in it, small and far away in a dark room. Nothing else is lit. Nothing moves. | the question fades up over the dark, `MICRO`, and holds | Room tone. A single low pulse on `bt(0)`. |
 | **2–6** | `bt(4)`–`bt(24)` | **The stem climbs.** Slow, continuous, over five bars — the growth is never cut to, it just does not stop. Leaves unfurl on the eighths as the stem passes them. Dead brown warms toward living olive so gradually that no single moment is the change. The camera pushes in across the whole act. | the question leaves at `bt(8)`; the frame is wordless from here to the end card | The bed builds one element per bar. No drums yet. |
-| **7** | `bt(24)`–`bt(28)` | **The bud swells and opens.** The petals — rust, the same accent as the paint — lift off the calyx and open on the last two beats. | — | The riser. Everything pulls out on the last beat. |
+| **7** | `bt(24)`–`bt(27)` | **The bud swells and opens, in the beam.** The head lifts, the two sepals split back, and the petals — rust, the same accent as the paint — uncrease and open. The camera has arrived; it started across the room and ends inside the light. | — | The riser. |
+| **7** | `bt(27)`–`bt(28)` | **THE LIGHTS CUT.** Two frames, not a fade. One full beat of absolute black. | — | Everything drops out. Total silence. |
 | **8–9** | `bt(28)`–`bt(36)` | **THE BLOOM.** Paint detonates out of the flower head for five beats and takes the whole frame. The plant is not cut away from: it is **covered**. This is the handoff from the 3D world to the 2D one, and the only frame in the film where both exist. | — | The drop lands exactly on the ignition. Full arrangement at once. |
 | **10** | `bt(36)`–`bt(40)` | **T5 — white space editorial.** One word at enormous scale on near-empty ground, entering left, exiting right. | — | Groove. Hit on the landing. |
 | **11** | `bt(40)`–`bt(44)` | **T6 — modular grid.** The frame becomes tiles; blocks slide through cells and one passes across the mark, briefly occluding it. Everything snaps. | — | Tighter hats, hit per snap. |

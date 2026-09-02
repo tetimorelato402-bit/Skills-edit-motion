@@ -200,6 +200,15 @@ Load-bearing for it, if it gets built:
   value.** 001's paper plates do nothing over saturated colour — there is no value range
   left to push, and the paint reads as flat vector fill. A grey plate in `overlay` carves
   strokes into any hue without shifting it: the palette rule expressed as a texture.
+- **Act I is lit by ONE beam from above** landing on the floor as a pool, with the camera
+  starting across a dark room and travelling into it. **The lights cut to black on
+  `bt(27)`** — two frames, a switch not a fade — so the film holds on nothing for a beat
+  and the bloom detonates out of a hole rather than out of a lit frame.
+- **In Blender, aim lights with `aim_at(ob, target)` and never by typed Euler angles**, and
+  remember that `volume_bounces` defaults to 0 — which is no scattering at all, so a beam
+  renders as nothing. Both failures look exactly like "the value is too low". A lamp's
+  footprint on the table is also what photographs, not the lamp: use light linking rather
+  than hunting for a position where the spill hides.
 - **`plant.py` has no keyframes.** It builds the scene once and `set_time(t)` moves it,
   the same contract as `renderFrame(t)`, so the 125 BPM grid stays the only clock.
 - **The question returns unchanged at the end and the viewer supplies the answer.**

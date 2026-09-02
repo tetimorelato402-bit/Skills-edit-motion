@@ -164,6 +164,34 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   A second copy at 1.6× and mirrored breaks it up. Petals also take a per-petal value
   jitter (never hue), because two overlapping petals drawn from the same eight-entry list
   are otherwise an identical flat fill and their shared edge vanishes.
+- **`volume_bounces` defaults to ZERO in Cycles, and that means no scattering at all.**
+  Not "no indirect volume light" — a camera ray crossing the beam can only be absorbed, so
+  the shaft rendered as *nothing* through a correctly built, correctly lit, density-15
+  cone. It looks exactly like a texture or a density bug and is neither. `configure()`
+  sets it to 2.
+- **A volume mesh must be a closed manifold.** The beam cone was built as a side wall with
+  no caps; an open tube has no inside for Cycles to fill and renders as nothing at any
+  density — the same symptom as the bounces bug, from a different cause.
+- **A shaft is only a shaft if its edges are in frame.** At 19° the cone was 58cm across
+  where the frame is 46cm wide, so the haze filled the whole frame and read as a general
+  lift. The camera was inside the light. The beam also has to be *wider than the light
+  cone* (5.5° of haze around a 3.5° spot), or the volume's own boundary becomes the visible
+  edge and the beam renders as a bar with hard vertical sides.
+- **The light and the subject must actually be in the same place.** The spot and cone sat
+  at (0.05, 0.10) while the jar was at the origin, so the beam came down *beside* the
+  flower and lit bare table next to it.
+- **What photographs is the light a lamp CASTS, not the lamp.** A cool area fill laid two
+  hard pale trapezoids across the table either side of the jar, and they read as flat cards
+  standing behind the subject — set dressing, not a bug, which is why they survived several
+  passes. `visible_camera = False` does not help, because the lamp itself was never the
+  thing in shot. The fix is **light linking**: the rim spot is linked to the jar and the
+  water alone (`light_linking.receiver_collection`) so it edges the glass and cannot touch
+  the table. Hunting for a lamp position where the footprint hides is wasted time — the
+  table is six metres wide.
+- **Aim lights at a target, never by typed Euler angles.** The rim spot was set to
+  (118°, 0, −141°) and lit nothing whatsoever, which is indistinguishable from an energy
+  that is too low. `aim_at(ob, target)` builds the rotation from a direction vector, and a
+  direction vector cannot be wrong that way.
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a

@@ -30,11 +30,17 @@ BEAT = 60.0 / BPM          # 0.48
 BAR = 4 * BEAT             # 1.92
 bt = lambda n: n * BEAT
 
-DARK      = (bt(0),  bt(4))    # the jar alone, barely lit
+DARK      = (bt(0),  bt(4))    # the beam finds the floor; the jar is barely there
 CLIMB     = (bt(4),  bt(22))   # the stem grows
-BUD       = (bt(20), bt(26))   # the bud forms and swells
-OPEN      = (bt(26), bt(28))   # the flower opens; the paint takes over at bt(28)
+BUD       = (bt(19), bt(25))   # the bud forms and swells
+OPEN      = (bt(25), bt(27))   # the flower opens, IN the beam
+BLACKOUT  = (bt(27), bt(27) + 2 / 120.0)   # the lights CUT — two frames, not a fade
 ACT_I_END = bt(28)             # 13.44s — seven bars
+
+# The last beat of the act is black. That is not dead air: it is the beat every
+# element of the arrangement drops out of, so the bloom detonates out of NOTHING
+# on the downbeat. A bloom that erupts from a lit frame is a transition; one
+# that erupts from a hole in the film is an event.
 
 # ---------------------------------------------------------------- palette
 # The ground never leaves the warm family. The living green is the plant's own
@@ -66,6 +72,19 @@ def ease_in_out(u):
 
 
 # ---------------------------------------------------------------- scaffolding
+def aim_at(ob, target):
+    """
+    Point a light (or anything) at a world-space target.
+
+    Lights get aimed by hand-typed Euler angles all over tutorials and it is
+    guesswork: the rim spot in this scene was set to (118, 0, -141) degrees and
+    lit nothing at all, which is indistinguishable from an energy that is too
+    low. A direction vector cannot be wrong in that way.
+    """
+    d = ob.location - Vector(target)
+    ob.rotation_euler = d.to_track_quat('Z', 'Y').to_euler()
+
+
 def wipe():
     bpy.ops.wm.read_factory_settings(use_empty=True)
 
@@ -154,6 +173,7 @@ class Scene:
         self._leaves()
         self._flower()
         self._lights()
+        self._beam()
         self._camera()
         self._world()
 
@@ -314,25 +334,128 @@ class Scene:
 
     def _lights(self):
         """
-        Dark. One warm key behind and left, raking across the jar; a dim cool
-        fill from the right so the glass has an edge on both sides; nothing
-        else. The point of the act is that most of the frame is black.
+        ONE SHAFT, STRAIGHT DOWN. A hard spot from high above drops a pool of
+        light on the table and the jar stands in it — everything outside the
+        pool is black. This replaced a back-left rake, which lit the jar
+        prettily but described nothing: there was no reason for the light, no
+        place for the camera to travel to, and nothing for the blackout to take
+        away.
+
+        A narrow spot with a small radius is what makes the edge of the pool
+        hard. A soft-edged pool reads as a vignette; a hard one reads as a
+        beam coming through something.
         """
-        bpy.ops.object.light_add(type='AREA', location=(-0.62, 0.68, 0.62))
+        # DIRECTLY OVER THE JAR. Offset by 5cm and 10cm the shaft came down
+        # beside the flower and lit the table next to it — which renders as a
+        # bright column standing next to the subject and reads as a lit card,
+        # not as a beam. The whole image is the flower standing IN the light.
+        bpy.ops.object.light_add(type='SPOT', location=(0.0, 0.015, 2.05))
         k = bpy.context.object
-        k.data.energy = 46
-        k.data.size = 0.80
-        k.data.color = (1.0, 0.72, 0.44)
-        k.rotation_euler = (math.radians(58), 0, math.radians(-138))
+        k.data.energy = 620
+        # A SHAFT IS ONLY A SHAFT IF YOU CAN SEE ITS EDGES. At 19 degrees the
+        # cone was 58cm across where the frame is 46cm wide, so the haze filled
+        # the entire frame and read as a general lift rather than as a beam —
+        # the camera was inside the light. Ten degrees puts both edges in shot
+        # with black either side, which is the whole image.
+        k.data.spot_size = math.radians(7)
+        # A soft blend is what gives the shaft soft edges. The haze is lit BY
+        # this spot, so the light's falloff is the beam's falloff.
+        k.data.spot_blend = 0.52
+        k.data.shadow_soft_size = 0.035
+        k.data.color = (1.0, 0.79, 0.55)
+        aim_at(k, (0.0, 0.015, 0.0))      # straight down onto the table
         self.key = k
 
-        bpy.ops.object.light_add(type='AREA', location=(0.75, 0.30, 0.34))
-        f = bpy.context.object
-        f.data.energy = 5.5
-        f.data.size = 0.7
-        f.data.color = (0.62, 0.70, 0.92)
-        f.rotation_euler = (math.radians(76), 0, math.radians(108))
-        self.fill = f
+        # THERE IS NO FILL. A cool area light used to sit off to the right to
+        # give the glass an edge outside the pool, and it laid two hard pale
+        # trapezoids across the table either side of the jar — which read as
+        # flat cards standing behind the subject and survived several passes
+        # because they look like set dressing. Turning off its camera
+        # visibility does not help: what is in shot is the light it CASTS, not
+        # the light itself.
+        #
+        # It is gone rather than repositioned, because a direct sun beam is one
+        # source by definition. The glass gets its edge from the shaft's own
+        # bounce off the table and from a hair of world ambient instead, which
+        # is what would actually happen in a dark room with one window.
+        # The rim is a narrow SPOT from behind, not an area light. An area
+        # light large enough to edge the glass also lays a wide pale footprint
+        # across the table, and that footprint — not the lamp itself — is what
+        # rendered as two flat cards flanking the jar. A tight spot aimed at
+        # the jar from behind puts its small ellipse behind the subject, where
+        # the jar itself hides it, and still catches both edges of the glass.
+        bpy.ops.object.light_add(type='SPOT', location=(-0.42, 0.52, 0.46))
+        r = bpy.context.object
+        r.data.energy = 42
+        r.data.spot_size = math.radians(26)
+        r.data.spot_blend = 0.6
+        r.data.shadow_soft_size = 0.05
+        r.data.color = (1.0, 0.80, 0.60)
+        aim_at(r, (0.0, 0.0, 0.16))       # the jar's body, not the flower
+        self.fill = r
+
+        # LIGHT LINKING. Any light placed to edge the glass also throws its own
+        # footprint across the table, and that footprint is what read as pale
+        # cards behind the jar through several passes. Rather than hunting for
+        # a position where the footprint hides — there isn't one, the table is
+        # six metres wide — the rim is linked to the glass alone. It edges the
+        # jar and cannot touch the table at all. The shaft stays the only thing
+        # lighting the room, which is what "a direct sun beam" means.
+        link = bpy.data.collections.new("rim_receivers")
+        bpy.context.scene.collection.children.link(link)
+        for name in ("jar", "water"):
+            link.objects.link(bpy.data.objects[name])
+        r.light_linking.receiver_collection = link
+
+    def _beam(self):
+        """
+        The shaft made visible: a cone of thin haze from the spot down to the
+        table, as a BOUNDED volume rather than a world volume. A world volume
+        makes every ray in the scene a volume ray and the frame cost roughly
+        triples; a cone that contains only the beam costs a fraction of that
+        and is the only place the haze would be visible anyway.
+        """
+        top, bottom = 2.05, 0.0
+        h = top - bottom
+        r_top = 0.035
+        # The haze cone is deliberately WIDER than the light cone (5.5 deg
+        # against the spot's 3.5). Matched exactly, the volume's own boundary
+        # is the visible edge and the beam renders as a bar with hard vertical
+        # sides; wider, the edge you see is the light falling off, which is
+        # what a real shaft has.
+        r_bot = math.tan(math.radians(5.5)) * h
+        verts, faces = [], []
+        n = 36
+        for ring, (r, z) in enumerate(((r_top, top), (r_bot, bottom))):
+            for k in range(n):
+                a = k / n * math.tau
+                verts.append((r * math.cos(a), 0.015 + r * math.sin(a), z))
+        for k in range(n):
+            k2 = (k + 1) % n
+            faces.append((k, k2, n + k2, n + k))
+        # CAP BOTH ENDS. A volume needs a closed manifold — an open tube has no
+        # inside for Cycles to fill, so it renders as nothing at all, at any
+        # density. The beam was invisible for exactly this reason and it looks
+        # identical to "the density is too low".
+        faces.append(tuple(range(n)))                       # top
+        faces.append(tuple(reversed(range(n, 2 * n))))      # bottom
+        cone = mesh_from("beam", verts, faces)
+
+        mat = bpy.data.materials.new("haze")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        for node in list(nt.nodes):
+            if node.type != 'OUTPUT_MATERIAL':
+                nt.nodes.remove(node)
+        vol = nt.nodes.new("ShaderNodeVolumePrincipled")
+        vol.inputs["Color"].default_value = (1.0, 0.84, 0.63, 1.0)
+        vol.inputs["Density"].default_value = 0.0
+        vol.inputs["Anisotropy"].default_value = 0.42
+        nt.links.new(vol.outputs["Volume"], nt.nodes["Material Output"].inputs["Volume"])
+        cone.data.materials.append(mat)
+        cone.visible_shadow = False
+        self.beam = cone
+        self.haze = vol
 
     def _camera(self):
         """
@@ -350,10 +473,23 @@ class Scene:
         subject_h = 0.62              # table to above the open flower, with air
         self.cam_far = subject_h / (2 * math.tan(
             math.atan(self.sensor_v / (2 * self.lens))))
-        self.cam_near = self.cam_far * 0.88     # the push-in lands here
+        # "and then the camera goes there" — it starts well back in the dark and
+        # travels into the pool, rather than easing forward a few centimetres.
+        # It arrives AT the solved framing, it does not push past it. Ending at
+        # 0.86x cropped the bottom of the jar and lost the pool of light
+        # entirely — the camera travelled to the beam and then straight through
+        # it, which throws away the thing it travelled for.
+        # The opening frame has to be WIDE. A shaft only reads while there is
+        # darkness either side of it and you can see it descending from above;
+        # start close and the camera is already inside the light, which is why
+        # the beam kept reading as a general lift. At 3.2x the frame is ~1.1m
+        # across and the beam is 21cm of it — unmistakable — and the travel
+        # then means something, because it ends inside what it started outside.
+        self.cam_start = self.cam_far * 3.2
+        self.cam_near = self.cam_far
         self.cam_z = 0.255
 
-        bpy.ops.object.camera_add(location=(0, -self.cam_far, self.cam_z))
+        bpy.ops.object.camera_add(location=(0, -self.cam_start, self.cam_z))
         c = bpy.context.object
         c.data.lens = self.lens
         c.data.sensor_fit = 'VERTICAL'
@@ -365,7 +501,7 @@ class Scene:
         w = bpy.data.worlds.new("w")
         w.use_nodes = True
         w.node_tree.nodes["Background"].inputs[0].default_value = UMBER
-        w.node_tree.nodes["Background"].inputs[1].default_value = 0.012
+        w.node_tree.nodes["Background"].inputs[1].default_value = 0.030
         bpy.context.scene.world = w
 
     # -- the one function that moves anything -------------------------------
@@ -427,11 +563,24 @@ class Scene:
         self.mat_leaf.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
             .default_value = mix(DEAD_LEAF, LIVE_LEAF)
 
-        # the light comes up as the thing comes alive — the act starts nearly black
-        self.key.data.energy = 46 * (0.28 + 0.72 * ease_out(seg(t, bt(2), bt(20))))
+        # THE BEAM, then THE CUT.
+        #
+        # The shaft finds the floor over the first bar and holds; the haze
+        # thickens a little as the camera comes into it, because a beam reads
+        # denser the closer you are to it. Then on bt(27) everything goes, in
+        # two frames — a fade would be a dimmer being turned down, and this has
+        # to be a switch.
+        find = ease_out(seg(t, bt(1), bt(4)))
+        near = ease_in_out(seg(t, 0, ACT_I_END))
+        live = 1.0 - seg(t, *BLACKOUT)
 
-        # a slow push in, the whole act. 86cm to 68cm over thirteen seconds is
-        # barely perceptible per second and unmistakable across the act.
-        push = ease_in_out(seg(t, 0, ACT_I_END))
-        dist = self.cam_far + (self.cam_near - self.cam_far) * push
-        self.cam.location = (0, -dist, self.cam_z + 0.030 * push)
+        self.key.data.energy = 620 * find * live
+        self.fill.data.energy = 42 * find * live
+        # Density 0.9 is a faint mist. A shaft you can SEE in a dark room needs
+        # an order of magnitude more than that — at 0.9 the pool on the floor
+        # rendered but the beam making it did not, which is most of the shot.
+        self.haze.inputs["Density"].default_value = (7.0 + 5.0 * near) * find * live
+
+        # the camera travels into the pool across the whole act
+        dist = self.cam_start + (self.cam_near - self.cam_start) * near
+        self.cam.location = (0, -dist, self.cam_z + 0.034 * near)

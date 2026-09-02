@@ -32,6 +32,12 @@ def configure(res, samples):
     # changes nothing anyone can see at Reel size.
     sc.cycles.transmission_bounces = 4
     sc.cycles.max_bounces = 6
+    # VOLUME BOUNCES DEFAULTS TO ZERO, and that is not "no indirect volume
+    # light" — it is no scattering events at all, so a camera ray crossing the
+    # beam can only be absorbed. The shaft rendered as nothing at density 15
+    # through a correctly capped, correctly lit cone, which looks identical to
+    # a texture bug and is not one.
+    sc.cycles.volume_bounces = 2
     sc.render.resolution_x = res
     sc.render.resolution_y = round(res * 16 / 9)
     sc.render.image_settings.file_format = 'PNG'
