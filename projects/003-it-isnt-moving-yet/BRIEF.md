@@ -246,6 +246,10 @@ Total 68 beats = **32.64s**.
 | **16** | `bt(60)`–`bt(64)` | Everything drains off and **the question returns**, in exactly the type, size and position it held in bar 1. **Nothing is added.** It sits there while the viewer supplies the answer. This bar is the film's whole argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. | the question, unchanged | Breakdown to near-silence, then one low tone. |
 | **17** | `bt(64)`–`bt(68)` | `teti.` resolves out of the paint — the same mark as the profile picture. Hold. No offer, no handle, no link. Then cut back to the dark jar on the final frame, so the film loops into itself. | `teti.` | Thins to the last hit on the loop point. |
 
+**BUILT AS OF THIS PASS: all 18 bars.** Act I in Blender (8 bars), everything after the
+bloom in `video.html` (10 bars). What remains is finish, not structure — Act I at full
+resolution on a GPU, the soundtrack, and a grade.
+
 **Ratio check.** The jar = 15.36s. Bloom = 2.40s. Five techniques = 9.60s (one bar each,
 fast, as asked). Nearly half the film is spent earning the second half. The bloom is the hero and the
 five are the proof, and the proof still gets six times the screen time. That ratio was

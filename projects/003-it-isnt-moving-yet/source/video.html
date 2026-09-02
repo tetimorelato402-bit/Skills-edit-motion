@@ -67,7 +67,11 @@ const T6 = [bt(12), bt(16)];    // modular grid           — signal blue
 const T3 = [bt(16), bt(20)];    // torn collage           — hot red on cream
 const T9 = [bt(20), bt(24)];    // ink on one colour      — mustard
 const T7 = [bt(24), bt(28)];    // painted frame          — the paint engine
-const DUR     = bt(28);         // 13.44s — the bloom and the five
+
+const ALL5 = [bt(28), bt(32)];  // all five at once — "showing everywhere"
+const QUES = [bt(32), bt(36)];  // the question returns, and is not answered
+const ENDC = [bt(36), bt(40)];  // teti., and the loop back into the dark
+const DUR     = bt(40);         // 19.20s — ten bars, and the film is 18
 window.DUR = DUR;
 
 // ---- easing ---------------------------------------------------------------
@@ -597,8 +601,149 @@ el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/plate_pa
 el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
   backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.34'});
 
+// ---------------------------------------------------------------- ALL FIVE
+// SHOWING EVERYWHERE. Five horizontal bands, one technique each, running at
+// once and sliding in alternating directions — the range stated in a single
+// image instead of over nine seconds.
+//
+// The bands are rebuilt rather than reusing the scenes above, because a scene
+// scaled down to a fifth of the frame stops being the technique: T5's whole
+// character is a shape too big for its frame, and shrunk into a band it is
+// just a small picture. Each band is its technique's SIGNATURE at band scale.
+const sA = scene();
+const BANDS = 5, BH = 1920/BANDS;
+const band = (i) => el('div',sA,{position:'absolute',left:'0',top:px(i*BH),
+  width:'1080px',height:px(BH),overflow:'hidden'});
+
+const bA = [];
+(function(){
+  // 0 — white space editorial: one oversized petal on near-empty ground
+  const b0 = band(0);
+  el('div',b0,{position:'absolute',inset:'0',background:CREAM});
+  const p0 = el('div',b0,{position:'absolute',left:'0',top:'-90px',
+    width:'2600px',height:px(BH+180),backgroundImage:POPPY,
+    backgroundSize:'900px 1600px',backgroundRepeat:'repeat-x',
+    backgroundPosition:'-240px -300px',mixBlendMode:'multiply',opacity:'0.92'});
+  bA.push({node:p0, dir:+1, span:900});
+
+  // 1 — modular grid: cells, hard edges, nothing free
+  const b1 = band(1);
+  el('div',b1,{position:'absolute',inset:'0',background:CREAM});
+  const g1 = el('div',b1,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH),display:'flex'});
+  for(let i=0;i<12;i++){
+    const c = el('div',g1,{width:'200px',height:px(BH),flex:'0 0 200px',
+      backgroundImage: i%3===2 ? 'none' : POPPY,
+      background: i%3===2 ? AC.t6 : undefined,
+      backgroundSize:'1500px 2666px',
+      backgroundPosition:px(-i*150-300)+' -840px'});
+    if(i%4===1) c.style.opacity='0';
+  }
+  bA.push({node:g1, dir:-1, span:1200});
+
+  // 2 — torn collage: crooked fragments, tape, nothing aligned
+  const b2 = band(2);
+  el('div',b2,{position:'absolute',inset:'0',background:AC.t3});
+  const c2 = el('div',b2,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH)});
+  for(let i=0;i<10;i++){
+    const w=210+rng(0,180), h=BH*rng(0.42,0.86);
+    const f = el('div',c2,{position:'absolute',width:px(w),height:px(h),
+      left:px(i*230+rng(-30,30)),top:px(rng(10,BH-h-10)),
+      backgroundImage:POPPY,backgroundSize:'1500px 2666px',
+      backgroundPosition:px(-rng(200,1100))+' '+px(-rng(700,1500)),
+      transform:`rotate(${(rng(0,1)<0.5?-1:1)*(6+rng(0,8))}deg)`});
+    const e=edgeProfile(18,20), pts=[];
+    for(let k=0;k<18;k++) pts.push((e[k]*0.5).toFixed(1)+'% '+(k/17*100).toFixed(1)+'%');
+    for(let k=17;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/17*100).toFixed(1)+'%');
+    f.style.clipPath='polygon('+pts.join(',')+')';
+  }
+  bA.push({node:c2, dir:+1, span:1200});
+
+  // 3 — ink on one colour: two colours, line only
+  const b3 = band(3);
+  el('div',b3,{position:'absolute',inset:'0',background:AC.t9});
+  const i3 = el('div',b3,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH)});
+  const sv = document.createElementNS(NS,'svg');
+  sv.setAttribute('viewBox','0 0 2400 '+Math.round(BH));
+  Object.assign(sv.style,{position:'absolute',inset:'0',width:'2400px',height:px(BH)});
+  for(let n=0;n<6;n++){
+    const cx=180+n*400, cy=BH/2;
+    for(let i=0;i<6;i++){
+      const a=(i/6)*Math.PI*2, e=edgeProfile(14,6), d=[];
+      for(let k=0;k<14;k++){
+        const u=k/13, w=Math.pow(Math.sin(Math.PI*u),0.72)*44+e[k], L=u*118;
+        d.push((k?'L':'M')+(cx+Math.cos(a)*L-Math.sin(a)*w).toFixed(0)+' '+
+                            (cy+Math.sin(a)*L+Math.cos(a)*w).toFixed(0));
+      }
+      for(let k=13;k>=0;k--){
+        const u=k/13, w=Math.pow(Math.sin(Math.PI*u),0.72)*44+e[k], L=u*118;
+        d.push('L'+(cx+Math.cos(a)*L+Math.sin(a)*w).toFixed(0)+' '+
+                   (cy+Math.sin(a)*L-Math.cos(a)*w).toFixed(0));
+      }
+      const pth=document.createElementNS(NS,'path');
+      pth.setAttribute('d',d.join(' ')+' Z');
+      pth.setAttribute('fill','none'); pth.setAttribute('stroke',INK);
+      pth.setAttribute('stroke-width','5'); pth.setAttribute('stroke-linecap','round');
+      sv.appendChild(pth);
+    }
+  }
+  i3.appendChild(sv);
+  bA.push({node:i3, dir:-1, span:1200});
+
+  // 4 — painted frame: the engine, at band scale
+  const b4 = band(4);
+  const p4 = el('div',b4,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH),backgroundImage:POPPY,
+    backgroundSize:'1300px 2311px',backgroundRepeat:'repeat-x',
+    backgroundPosition:'-120px -900px'});
+  el('div',p4,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+    backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.24'});
+  el('div',p4,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+    backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.32'});
+  bA.push({node:p4, dir:+1, span:1300});
+})();
+
+// ---------------------------------------------------------------- THE QUESTION
+// It comes back exactly as it went, and NOTHING IS ADDED. This bar is the whole
+// argument of the film and it contains no new element: by now the viewer has
+// watched a dead thing become alive and then be made five ways, so they answer
+// it themselves. Putting a line underneath would answer it for them and turn a
+// demonstration into a caption.
+const sQ = scene();
+const QLINES = [["how do you",0],["make ideas",0],["that aren't",0],["alive, ",0],["alive?",1]];
+const qEls = [];
+(function(){
+  const wrap = el('div',sQ,{position:'absolute',left:'84px',top:'640px',width:'912px'});
+  const rows = [["how do you"],["make ideas"],["that aren't"],["alive, ","alive?"]];
+  rows.forEach((parts,i)=>{
+    const line = el('div',wrap,{display:'flex',alignItems:'baseline',whiteSpace:'pre',
+      width:'fit-content',fontSize:'132px',fontWeight:'800',letterSpacing:'-0.045em',
+      lineHeight:'1.02',overflow:'hidden'});
+    const inner = el('div',line,{display:'flex',whiteSpace:'pre'});
+    parts.forEach((txt,j)=>el('span',inner,{
+      color:(i===3&&j===1)?AC.t5:INK},txt));
+    qEls.push(inner);
+  });
+})();
+
+// ---------------------------------------------------------------- END CARD
+// teti. resolves out of the paint, holds, and the film cuts back to the dark
+// jar — so the last frame is the first frame and the loop is seamless. No
+// offer, no handle, no link: the work is the argument.
+const sE = scene();
+const eMark = el('div',sE,{position:'absolute',left:'84px',top:'880px',
+  fontSize:'196px',fontWeight:'800',letterSpacing:'-0.05em',color:INK},'teti');
+const eDot = el('div',sE,{position:'absolute',top:'880px',
+  fontSize:'196px',fontWeight:'800',letterSpacing:'-0.05em',color:AC.t5},'.');
+const eLoop = el('div',sE,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/act1_first.png')",backgroundSize:'1080px 1920px',
+  opacity:'0'});
+
 const SCENES = [
   {d:s5, at:T5}, {d:s6, at:T6}, {d:s3, at:T3}, {d:s9, at:T9}, {d:s7, at:T7},
+  {d:sA, at:ALL5}, {d:sQ, at:QUES}, {d:sE, at:ENDC},
 ];
 
 // ===========================================================================
@@ -688,6 +833,54 @@ function drawFive(t){
       e.node.style.opacity = String(1 - uOut(t,T9));
     });
     s9.style.clipPath = uIn(t,T9) < 1 ? wipePath(uIn(t,T9), -1) : 'none';
+  }
+
+  // ---- ALL FIVE · showing everywhere -------------------------------------
+  // The bands arrive one per sixteenth, top to bottom, then all slide together
+  // in alternating directions. Alternating is the point: five bands drifting
+  // the same way is a texture scrolling, five bands opposing each other is
+  // five things happening at once.
+  if(t>=ALL5[0] && t<ALL5[1]+EIGHTH){
+    const u = uAll(t,ALL5);
+    bA.forEach((b,i)=>{
+      const arrive = easeOut(seg(t, ALL5[0]+i*SIXTEENTH, ALL5[0]+i*SIXTEENTH+BEAT*0.7));
+      const drift = -b.span*0.5*u*b.dir;
+      const enter = (1-arrive)*b.dir*1080;
+      b.node.style.transform = `translateX(${(drift+enter).toFixed(1)}px)`;
+      b.node.parentNode.style.opacity = String(arrive);
+    });
+    sA.style.clipPath = uIn(t,ALL5) < 1 ? wipePath(uIn(t,ALL5), 1) : 'none';
+  }
+
+  // ---- THE QUESTION -------------------------------------------------------
+  // Each line rises out of its own clipped box, one per eighth, then the bar
+  // holds and nothing else happens. The stillness is the content.
+  if(t>=QUES[0] && t<QUES[1]+EIGHTH){
+    qEls.forEach((e,i)=>{
+      const u = easeOut(seg(t, QUES[0]+EIGHTH+i*EIGHTH, QUES[0]+EIGHTH+i*EIGHTH+BEAT));
+      e.style.transform = `translateY(${((1-u)*150).toFixed(1)}px)`;
+    });
+    sQ.style.clipPath = uIn(t,QUES) < 1 ? wipePath(uIn(t,QUES), -1) : 'none';
+  }
+
+  // ---- THE END CARD -------------------------------------------------------
+  // The mark lands, holds for two beats, and then the film cuts back into the
+  // dark jar it opened on — so the last frame is the first frame.
+  if(t>=ENDC[0]){
+    const m = easeOut(seg(t, ENDC[0]+SIXTEENTH, ENDC[0]+BEAT));
+    eMark.style.transform = `translateY(${((1-m)*90).toFixed(1)}px)`;
+    eMark.style.opacity = String(m);
+    // the dot lands a beat after the name, and it is the only rust on screen
+    const dm = easeOut(seg(t, ENDC[0]+BEAT, ENDC[0]+BEAT*1.5));
+    eDot.style.left = px(84 + eMark.getBoundingClientRect().width + 6);
+    eDot.style.opacity = String(dm);
+    eDot.style.transform = `scale(${(0.4+0.6*dm).toFixed(3)})`;
+    // AND THE LOOP IS A CUT. Crossfading a parchment end card into a frame
+    // that is 95% black passes through a washed grey for half a beat and looks
+    // like a fade to nothing. This film cuts — the shutter did, and so does
+    // this. Two sixteenths of the dark jar, and the last frame is the first.
+    eLoop.style.opacity = t >= ENDC[1]-SIXTEENTH*2 ? '1' : '0';
+    sE.style.clipPath = uIn(t,ENDC) < 1 ? wipePath(uIn(t,ENDC), 1) : 'none';
   }
 
   // ---- T7 · painted frame -------------------------------------------------

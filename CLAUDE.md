@@ -171,7 +171,9 @@ what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
 ## The pitch film — "It isn't moving yet"
 
-`projects/003-it-isnt-moving-yet/` is **at gate 1**, and it is the one project here with
+`projects/003-it-isnt-moving-yet/` has **all 18 bars built** — Act I in Blender, everything
+after the bloom in `video.html`. What remains is finish, not structure: Act I at full
+resolution on a GPU, the soundtrack off `sound.py`, and a grade. It is the one project here with
 **two stacks in one film**: Act I is Blender/Cycles (`source/blender/`), everything after
 the bloom is the 001 HTML engine (`source/video.html`). It is **not a numbered study** —
 the directory is numbered for ordering only; the studies are the craft, this is the offer.

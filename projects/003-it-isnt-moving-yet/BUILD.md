@@ -224,11 +224,24 @@ the back half.
 | 13 | T3 torn collage | hot red | Seven torn fragments slam in at 6–14°, tape, and the red block wipes the whole frame twice inside the bar. |
 | 14 | T9 ink on one colour | mustard | Black line on flat mustard, drawn on with `stroke-dashoffset`. |
 | 15 | T7 painted frame | the paint engine | A bristled brush wipe reveals the painting, which keeps breathing after it lands. |
+| 16 | all five at once | — | Five horizontal bands, one technique each, sliding in **alternating** directions. Five bands drifting the same way is a texture scrolling; five opposing each other is five things happening at once. |
+| 17 | the question returns | — | Each line rises out of its own clipped box, one per eighth, and then the bar holds. **Nothing is added.** |
+| 18 | `teti.` and the loop | rust | The name lands, the dot arrives a beat later and is the only rust on screen, then the film **cuts** back to the dark jar. |
 
 **Each entry transition is the technique announcing itself** — the grid arrives as tiles
 snapping, the collage as a torn wipe, the ink as a flood. A generic dissolve between them
 would make the five read as clips; a transition built from the technique's own grammar is
 one film changing voice.
+
+**Bar 16 rebuilds its five bands rather than reusing the scenes.** A technique scaled down
+to a fifth of the frame stops being the technique — T5's entire character is a shape too
+big for its frame, and shrunk into a band it is just a small picture. Each band is its
+technique's *signature* at band scale.
+
+**The loop is a cut, not a crossfade.** Dissolving a parchment end card into a frame that
+is 95% black passes through a washed grey for half a beat and reads as a fade to nothing.
+The film cuts — the shutter does, and so does this: two sixteenths of the dark jar, so the
+last frame is the first frame.
 
 **T9 was the scheduling risk and it is solved.** The brief flagged ink-on-one-colour as
 the only asset code teti already owns could not produce, because it needs hand-drawn line
