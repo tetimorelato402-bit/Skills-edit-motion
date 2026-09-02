@@ -92,7 +92,7 @@ def mesh_from(name, verts, faces, mat=None):
     return ob
 
 
-def blade(length, halfwidth, cup, bend, nu=13, nv=5):
+def blade(length, halfwidth, cup, bend, nu=13, nv=5, fullness=0.7, crimp=0.0):
     """
     One leaf or petal, generated rather than modelled.
 
@@ -104,12 +104,18 @@ def blade(length, halfwidth, cup, bend, nu=13, nv=5):
     verts, faces = [], []
     for i in range(nu):
         u = i / (nu - 1)
-        w = halfwidth * (math.sin(math.pi * u) ** 0.7) * (1.0 - 0.25 * u)
+        w = halfwidth * (math.sin(math.pi * u) ** fullness) * (1.0 - 0.25 * u)
         drop = bend * (u ** 2)
         for j in range(nv):
             v = j / (nv - 1) * 2 - 1
             x = v * w
-            verts.append((x, u * length, -drop - cup * (x ** 2)))
+            # A poppy petal comes out of the pod CREASED and opens by
+            # uncreasing. The crimp is a standing wave across the width,
+            # strongest at mid-length where the petal is widest — it is the
+            # single feature that separates a poppy from a tulip, and it is
+            # what makes the opening read as unfolding rather than scaling.
+            crease = crimp * math.sin(v * math.pi * 2.5) * math.sin(math.pi * u) * halfwidth
+            verts.append((x, u * length, -drop - cup * (x ** 2) + crease))
     for i in range(nu - 1):
         for j in range(nv - 1):
             a = i * nv + j
@@ -125,7 +131,14 @@ class Scene:
         wipe()
         self.mat_stem = principled("stem", **{"Base Color": DEAD_STEM, "Roughness": 0.72})
         self.mat_leaf = principled("leaf", **{"Base Color": DEAD_LEAF, "Roughness": 0.62})
-        self.mat_petal = principled("petal", **{"Base Color": PETAL, "Roughness": 0.44})
+        # Poppy petals are thin and translucent — backlit they glow rather than
+        # simply being lit, which is the entire reason for a rim key in a dark
+        # scene. Without transmission they read as painted card.
+        self.mat_petal = principled(
+            "petal", **{"Base Color": PETAL, "Roughness": 0.38,
+                        "Transmission Weight": 0.38, "IOR": 1.36})
+        self.mat_eye = principled(
+            "eye", **{"Base Color": (0.022, 0.014, 0.012, 1.0), "Roughness": 0.55})
         self.mat_glass = principled(
             "glass", **{"Base Color": (0.86, 0.88, 0.84, 1.0), "Roughness": 0.045,
                         "IOR": 1.45, "Transmission Weight": 1.0})
@@ -227,28 +240,77 @@ class Scene:
 
     def _flower(self):
         """
-        Eight petals, closed into a bud and opening on the last two beats. The
-        bud is not a separate object — it is these petals folded up, so the
-        opening is continuous and there is nothing to swap.
+        A POPPY, and the choice is structural rather than decorative.
+
+        Its bud is a nodding grey-green pod that reads as dead; the head LIFTS
+        before it opens, which is anticipation happening in the plant itself;
+        and the petals come out creased and open by uncreasing. A tulip bud
+        already looks like a flower and a tulip opens by scaling — neither
+        carries "a dead thing coming alive" the way this does.
+
+        Everything hangs off `self.head`, an empty at the top of the stem, so
+        the nod is one rotation rather than five objects kept in sync.
         """
+        bpy.ops.object.empty_add(type='PLAIN_AXES', location=(0, 0, 0.430))
+        self.head = bpy.context.object
+        self.head.name = "head"
+
+        def child(ob):
+            ob.parent = self.head
+            ob.matrix_parent_inverse = self.head.matrix_world.inverted()
+
+        # A real poppy has four petals. Four MODELLED petals do not work: from a
+        # front-on camera you see two face-on and two edge-on, and the open
+        # flower reads as a pair of blades sticking out sideways rather than as
+        # a bowl. Six wide, heavily overlapping petals give the same silhouette
+        # a poppy has — a continuous cup — from any angle. Botany loses to the
+        # camera here.
         self.petals = []
-        n = 8
-        for i in range(n):
-            v, f = blade(0.105, 0.038, 6.0, 0.012)
+        NP = 6
+        for i in range(NP):
+            v, f = blade(0.086, 0.078, 3.0, 0.008, nu=17, nv=11,
+                         fullness=0.38, crimp=0.26)
             ob = mesh_from(f"petal{i}", v, f, self.mat_petal)
             ob.location = (0, 0, 0.430)
-            ob.rotation_euler = (0, 0, i / n * math.tau)
+            ob.rotation_euler = (0, 0, (i / NP) * math.tau + math.radians(30))
             ob.scale = (0, 0, 0)
+            child(ob)
             self.petals.append(ob)
-        # the calyx — a small dark cup the petals sit in, so the bud has a base
-        v, f = blade(0.030, 0.016, 6.0, 0.004)
+
+        # the pod: two sepals that split and fall away as the flower opens
         self.calyx = []
-        for i in range(5):
-            ob = mesh_from(f"calyx{i}", v, f, self.mat_stem)
-            ob.location = (0, 0, 0.428)
-            ob.rotation_euler = (math.radians(28), 0, i / 5 * math.tau)
+        for i in range(2):
+            v, f = blade(0.062, 0.042, 4.0, 0.008, fullness=0.38)
+            ob = mesh_from(f"sepal{i}", v, f, self.mat_stem)
+            ob.location = (0, 0, 0.424)
+            ob.rotation_euler = (math.radians(16), 0, i * math.pi)
             ob.scale = (0, 0, 0)
+            child(ob)
             self.calyx.append(ob)
+
+        # the dark boss at the centre, and a ring of stamens around it — the
+        # black eye is most of what makes a red flower read as a poppy
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=0.015, location=(0, 0, 0.4345))
+        boss = bpy.context.object
+        boss.name = "boss"
+        boss.scale = (1, 1, 0.62)
+        boss.data.materials.append(self.mat_eye)
+        child(boss)
+        self.boss = boss
+
+        self.stamens = []
+        for i in range(28):
+            a = i / 28 * math.tau
+            bpy.ops.mesh.primitive_cylinder_add(
+                radius=0.0011, depth=0.026,
+                location=(0.020 * math.cos(a), 0.020 * math.sin(a), 0.4395))
+            st = bpy.context.object
+            st.rotation_euler = (math.radians(13) * math.cos(a + math.pi),
+                                 math.radians(13) * math.sin(a), 0)
+            st.data.materials.append(self.mat_eye)
+            st.scale = (0, 0, 0)
+            child(st)
+            self.stamens.append(st)
 
     def _lights(self):
         """
@@ -319,12 +381,31 @@ class Scene:
             u = ease_out(seg(t, start, start + BEAT * 1.5))
             ob.scale = (u, u, u)
 
-        # the bud swells, then the flower opens
+        # THE NOD. The head hangs over while the pod swells, then lifts to
+        # upright just before it opens. This is anticipation, performed by the
+        # plant rather than applied to it — and it is the reason the opening
+        # lands: the head arrives, holds for a beat, and only then breaks.
         swell = ease_out(seg(t, *BUD))
-        for ob in self.calyx:
-            ob.scale = (swell, swell, swell)
+        # It lifts to -20 degrees, not to level. The camera sits below the
+        # flower, so a head that comes fully upright presents the open bowl
+        # edge-on and the poppy reads as a flat squashed disc. Leaning it
+        # toward the lens is also what a real flower does — they face light.
+        lift = ease_in_out(seg(t, BUD[0] + BEAT, OPEN[0]))
+        self.head.rotation_euler = (math.radians(-74 + 54 * lift), 0, 0)
 
         opening = ease_in_out(seg(t, *OPEN))
+        for ob in self.calyx:
+            # the two sepals split back and drop away as the petals emerge
+            ob.scale = (swell, swell, swell)
+            ob.rotation_euler = (math.radians(16 + 96 * opening),
+                                 0, ob.rotation_euler.z)
+
+        for st in self.stamens:
+            u = ease_out(seg(t, OPEN[0] + BEAT * 0.5, OPEN[1]))
+            st.scale = (u, u, u)
+
+        self.boss.scale = (swell, swell, swell * 0.62)
+
         for i, ob in enumerate(self.petals):
             ob.scale = (swell, swell, swell)
             # CLOSED IS HIGH PITCH. The blade is generated along +Y and pitch
@@ -335,7 +416,7 @@ class Scene:
             # 96 -> 18 degrees, not 96 -> -8. Taken all the way past flat the
             # petals reflex right back and the flower reads as a parasol; a
             # flower that has just opened still has its petals lifting.
-            pitch = math.radians(96 - 78 * opening)
+            pitch = math.radians(104 - 74 * opening)
             ob.rotation_euler = (pitch, 0, i / len(self.petals) * math.tau)
 
         # dead to alive, in the material rather than in a swap

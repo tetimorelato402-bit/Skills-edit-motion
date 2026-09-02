@@ -28,6 +28,8 @@ with no conversion.
 | `scripts/check-bloom.py` | Asserts the bloom only ever grows. Read why below. |
 | `source/blender/plant.py` | Act I. Builds the scene, and `set_time(t)` moves it. |
 | `source/blender/render_plant.py` | Cycles CPU, stills or a range. |
+| `scripts/handoff.py` | Projects the flower head and extracts its palette. |
+| `scripts/brushplate.py` | The grayscale brush plate the bloom is textured with. |
 
 ```sh
 python3 source/render.py --out ../outputs/pv --times 0,0.96,1.32,1.86,2.40   # stills
@@ -143,6 +145,25 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
 - **A jar has to be mostly empty to read as glass.** 13cm of water in a 24cm jar made the
   body an opaque black cylinder that looked like a tin can. A finger of water — 4cm — lets
   the key light through the body, which is the only reason to use glass at all.
+- **Four modelled petals do not make a poppy on camera.** A real poppy has four. Modelled
+  as four, a front-on camera sees two face-on and two edge-on, and the open flower reads
+  as a pair of blades sticking out sideways instead of a bowl. Six wide, heavily
+  overlapping petals give the silhouette a poppy actually has. Botany loses to the camera.
+- **The head must lift to about −20°, not to level.** The camera sits below the flower, so
+  a head that comes fully upright presents the open bowl edge-on and the poppy reads as a
+  flat squashed disc. Leaning it toward the lens is also what a real flower does.
+- **A low-contrast paper plate does nothing over saturated colour.** The bloom's first
+  texture pass reused 001's paper and ochre plates as overlays; on the cream ground of the
+  old opening that worked, but over vermilion there is no value range left to push and at
+  1:1 the paint was flat vector fill with a faint weave on it. `scripts/brushplate.py`
+  builds a neutral-grey plate carrying **only value** (σ 53), so in `overlay` it carves
+  brush strokes into any hue without shifting it — the palette rule expressed as a
+  texture.
+- **One full-frame plate over fifty overlapping petals reads as WOOD.** Every petal gets
+  the same grain in the same place, so the striations run the whole height of the frame.
+  A second copy at 1.6× and mirrored breaks it up. Petals also take a per-petal value
+  jitter (never hue), because two overlapping petals drawn from the same eight-entry list
+  are otherwise an identical flat fill and their shared edge vanishes.
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a

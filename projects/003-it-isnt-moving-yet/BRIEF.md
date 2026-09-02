@@ -52,15 +52,28 @@ field, no send button, no interface of any kind. The question appears as pure ty
 the dark. There is now no way to mistake this for "I asked AI to…" content, because
 there is no AI on screen.
 
+- **The flower is a POPPY**, and every reason is a production reason. Its bud is a
+  nodding grey-green pod that genuinely reads as dead, where a tulip bud already looks
+  like a flower. Its head **lifts before it opens** — anticipation performed by the plant
+  rather than applied to it, which is the exact principle the whole series is about. Its
+  petals emerge **creased and open by uncreasing**, which is the film's thesis carried out
+  by a flower. They are translucent, so a backlight makes them glow in a dark frame. And
+  poppy red is already the accent, so the 2D paint does not have to match the flower — it
+  is the same colour because it came from it. *(Runner-up, banked: a hyacinth bulb forced
+  in the jar neck, roots growing down into the water.)*
 - **Seven bars, `bt(0)`–`bt(28)`, 13.44s.** Nearly half the film is dark and slow before
   anything fast happens. That is the contrast the second half is spending.
-- **The bloom origin moves from the send button to the flower head.** The paint
-  detonation already built is reused unchanged apart from its origin — the 3D flower
-  opens, and the 2D paint erupts out of it. That handoff *is* the transition from the
-  slow act to the fast one, and it is why the plant does not need to be composited into
-  anything: it simply gets covered.
-- **The plant's rust petals are the same accent as the paint.** The 3D act and the 2D act
-  share one colour so the cut between worlds is not a cut between films.
+- **The bloom erupts from the flower head, and both the position and the palette are
+  extracted rather than typed.** `scripts/handoff.py` projects the flower head through
+  Act I's actual camera — (540, 450), dead centre, 23% down — so nudging the Blender
+  camera cannot silently leave the paint starting somewhere that is not the flower. It
+  then k-means clusters the rendered poppy and lifts the result **in value only**, which
+  is the same method that produced 001's palette from teti's oil portrait and the same
+  rule stated in `CLAUDE.md`. The paint is the flower's colour because it *is* the
+  flower's colour.
+- **The plant is not cut away from — it is covered.** That is why the Blender act never
+  needs compositing against the 2D world: they share exactly one frame, and the paint
+  takes it.
 
 ## The question — and why it is never answered
 
