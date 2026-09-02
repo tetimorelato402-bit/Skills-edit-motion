@@ -186,6 +186,16 @@ answered on screen.
 
 Load-bearing for it, if it gets built:
 
+- **All five techniques show the SAME POPPY.** Identical content, five languages — that
+  is the demonstration, and it is what stops the back half being five unrelated clips.
+  Each technique's entry transition is the technique announcing itself (the grid snaps in
+  as tiles, the collage arrives as a torn wipe, the ink floods); a generic dissolve
+  belongs to no technique and would undo it. **T9's ink line is generated from the
+  flower's own geometry** — the same petal profile and projected axes the bloom uses —
+  which is what turned the film's one un-buildable asset into code.
+- **A scene must stay visible an eighth past its own bar.** The incoming wipe reveals over
+  the outgoing picture; cut the old scene at its last frame and the wipe uncovers the bare
+  page, flashing empty parchment between every technique.
 - **The ground never leaves the warm family; the accent may.** Five techniques each get
   their own accent colour, which is the only sanctioned exception to the palette rule
   above — bone and umber stay constant under all five, as do the oil-plate surface and the

@@ -209,6 +209,34 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
 - **Tilting the shaft has to be toward the camera.** Tilted away from the lens for the
   birds-eye, the poppy is backlit and goes dark at exactly the moment it should be at its
   brightest — correctly lit, and unusable.
+## The five techniques
+
+Bars 11–15, one bar each, in `video.html`. **Every one of them shows the same poppy** —
+the Blender frame the film has been looking at since bar 7. That is the demonstration:
+identical content, five languages. It is also what lets the film claim range without
+becoming a showreel of five unrelated clips, and it carries the flower straight through
+the back half.
+
+| Bar | Technique | Accent | What it does |
+|---|---|---|---|
+| 11 | T5 white space editorial | rust | One petal at twice frame height crossing an otherwise empty frame. The technique is the imbalance. |
+| 12 | T6 modular grid | signal blue | The frame becomes 3×5 cells and the flower is dealt across them, quantised to sixteenths; a blue block crosses and occludes. |
+| 13 | T3 torn collage | hot red | Seven torn fragments slam in at 6–14°, tape, and the red block wipes the whole frame twice inside the bar. |
+| 14 | T9 ink on one colour | mustard | Black line on flat mustard, drawn on with `stroke-dashoffset`. |
+| 15 | T7 painted frame | the paint engine | A bristled brush wipe reveals the painting, which keeps breathing after it lands. |
+
+**Each entry transition is the technique announcing itself** — the grid arrives as tiles
+snapping, the collage as a torn wipe, the ink as a flood. A generic dissolve between them
+would make the five read as clips; a transition built from the technique's own grammar is
+one film changing voice.
+
+**T9 was the scheduling risk and it is solved.** The brief flagged ink-on-one-colour as
+the only asset code teti already owns could not produce, because it needs hand-drawn line
+work. The line is instead generated from the flower's own geometry — the same petal
+profile and the same six projected axes the paint bloom uses — and drawn on with
+`stroke-dashoffset`. It is hand-drawn in the sense that matters: nothing was traced, and
+it is the same flower.
+
 ## Making it read as ONE flower
 
 The film asks a viewer to follow a single object through a growth, a camera arc, a cut and
@@ -238,6 +266,15 @@ sixteenth of black; `video.html`'s local time 0 IS `bt(32)`, the frame the shutt
 
 ---
 
+- **Every scene must outlive its own bar by an eighth.** Each technique enters through a
+  bristled wipe of its own colour, and a wipe reveals the incoming picture *over* the
+  outgoing one. Cutting the previous scene at its last frame leaves the wipe uncovering
+  the bare page, so between every pair of techniques the film flashed empty parchment —
+  which reads as a missing scene rather than as a bug, and is easy to stare straight past.
+- **A texture at full strength eats its own subject.** T7's brush plate at 0.78 overlay
+  turned the painted poppy into an abstract fire: the flower was still there and nobody
+  could see it. The paint is a SURFACE (0.20 / 0.16 / 0.18 with the weave under it); the
+  poppy is the subject.
 - **Playwright's bundled ffmpeg is built `--disable-everything`.** It exists to write
   webm screen recordings: it cannot demux mp4 and has no h264 decoder, so it fails on the
   repo's own renders with "Invalid data found when processing input" — which reads like a

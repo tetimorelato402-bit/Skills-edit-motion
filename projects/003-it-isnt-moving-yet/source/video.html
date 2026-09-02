@@ -46,7 +46,7 @@
 // written in bt(), never in seconds.
 const BPM=125, BEAT=60/BPM, BAR=4*BEAT;     // 0.48, 1.92
 const bt=n=>n*BEAT;
-const SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
+const EIGHTH=BEAT/2, SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 
 // LOCAL TIME 0 IS FILM TIME bt(32) — the frame the shutter opens on. Act I
 // runs 0 to bt(32) in Blender and ends on a sixteenth of black; this file
@@ -54,7 +54,20 @@ const SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 // with nothing to trim and nothing to overlap.
 const IGNITE  = 0;
 const BLOOM   = [0, bt(5)];     // five beats exactly: 2.4s of detonation
-const DUR     = bt(6);          // 2.88s — the bloom plus a little settle
+
+// THE FIVE. One bar each, on the bar line, in the order the brief fixed:
+// engineered, systematic, angry, intimate, human. Every one of them shows the
+// SAME POPPY. That is the whole demonstration — identical content, five
+// languages — and it is why the film can claim range without ever becoming a
+// showreel of five unrelated clips. It also keeps the flower running all the
+// way through the back half, which is the continuity the front half spent
+// fifteen seconds establishing.
+const T5 = [bt( 8), bt(12)];    // white space editorial  — rust
+const T6 = [bt(12), bt(16)];    // modular grid           — signal blue
+const T3 = [bt(16), bt(20)];    // torn collage           — hot red on cream
+const T9 = [bt(20), bt(24)];    // ink on one colour      — mustard
+const T7 = [bt(24), bt(28)];    // painted frame          — the paint engine
+const DUR     = bt(28);         // 13.44s — the bloom and the five
 window.DUR = DUR;
 
 // ---- easing ---------------------------------------------------------------
@@ -79,6 +92,18 @@ function el(tag,parent,style,text){
 }
 
 const stage=document.getElementById('stage');
+
+// The accents. The GROUND never leaves the warm family — every technique sits
+// on the same parchment and the same weave — and only the accent moves. That
+// single rule is what stops five palettes reading as five different films.
+const CREAM='#EFE3CC', INK='#2B100A';
+const AC = {
+  t5:'#A8341A',   // rust
+  t6:'#2C5FA8',   // signal blue
+  t3:'#D8452A',   // hot red
+  t9:'#B8843A',   // mustard
+  t7:'#7A2E52',   // the paint's own plum, barely used
+};
 
 // ===========================================================================
 //  GROUND — canvas weave over parchment. The surface never changes anywhere
@@ -361,9 +386,322 @@ function petalPath(p, u, scale){
 }
 
 // ===========================================================================
+//  THE FIVE.
+//
+//  One scene per bar, each a container that is simply hidden when its bar is
+//  not running. Every scene shows the same poppy — the Blender frame the film
+//  has been looking at since bar 7 — so what changes between bars is the
+//  LANGUAGE, never the subject.
+//
+//  Each scene's entry transition is the technique announcing itself: the grid
+//  arrives as tiles snapping, the collage as a torn wipe, the ink as a flood.
+//  A generic crossfade between them would be five clips with dissolves; a
+//  transition made of the technique's own grammar is one film changing voice.
+// ===========================================================================
+
+const POPPY = "url('tex/act1_last.png')";
+
+function scene(){
+  const d = el('div',stage,{position:'absolute',inset:'0',overflow:'hidden',
+    display:'none'});
+  // the constant ground: parchment and the same weave under every technique
+  el('div',d,{position:'absolute',inset:'0',background:CREAM});
+  el('div',d,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+    backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.30'});
+  return d;
+}
+const show = (d,on) => { d.style.display = on ? 'block' : 'none'; };
+
+// A bristled edge profile, reused for every torn and brushed edge in the film.
+// Straight-edged wipes read as software; this is the same trick as 001's paint
+// wipe and it is what makes a hard edge look like it was made by a hand.
+function edgeProfile(n, amp){
+  const lobes=[[rng(0.4,1.0)*amp,rng(0,6.28),2],[rng(0.3,0.7)*amp,rng(0,6.28),5],
+               [rng(0.15,0.4)*amp,rng(0,6.28),11],[rng(0.06,0.2)*amp,rng(0,6.28),23]];
+  const out=[];
+  for(let i=0;i<n;i++){
+    const u=i/(n-1); let v=0;
+    for(const [a,ph,f] of lobes) v += a*Math.sin(u*Math.PI*2*f+ph);
+    out.push(v);
+  }
+  return out;
+}
+
+// A vertical wipe with a bristled front, as a clip-path. `p` is 0..1 across the
+// frame; `dir` +1 sweeps right, -1 sweeps left.
+const WIPE = edgeProfile(64, 34);
+function wipePath(p, dir){
+  const pts=[];
+  const x = dir>0 ? p*1180-60 : 1140-p*1180;
+  for(let i=0;i<WIPE.length;i++){
+    const y = i/(WIPE.length-1)*1920;
+    pts.push(px(Math.round(x+WIPE[i]))+' '+px(Math.round(y)));
+  }
+  if(dir>0) pts.push('0px 1920px','0px 0px'); else pts.push('1080px 1920px','1080px 0px');
+  return 'polygon('+pts.join(',')+')';
+}
+
+// ---------------------------------------------------------------- T5
+// WHITE SPACE EDITORIAL. Extreme scale on near-empty ground: one petal, twice
+// the height of the frame, crossing it. The technique is the imbalance — most
+// of the frame is nothing, and then one object is far too big for it.
+const s5 = scene();
+const s5petal = el('div',s5,{position:'absolute',width:'760px',height:'2600px',
+  left:'160px',top:'-340px',background:AC.t5,
+  backgroundImage:POPPY,backgroundSize:'1500px 2666px',
+  backgroundPosition:'-370px -33px',backgroundBlendMode:'multiply'});
+const S5EDGE = edgeProfile(72, 26);
+(function(){
+  const pts=[];
+  for(let i=0;i<S5EDGE.length;i++){
+    const u=i/(S5EDGE.length-1);
+    const w = Math.pow(Math.sin(Math.PI*u), 0.42);
+    pts.push((50 - w*50 + S5EDGE[i]*0.06).toFixed(1)+'% '+(u*100).toFixed(1)+'%');
+  }
+  for(let i=S5EDGE.length-1;i>=0;i--){
+    const u=i/(S5EDGE.length-1);
+    const w = Math.pow(Math.sin(Math.PI*u), 0.42);
+    pts.push((50 + w*50 - S5EDGE[i]*0.06).toFixed(1)+'% '+(u*100).toFixed(1)+'%');
+  }
+  s5petal.style.clipPath='polygon('+pts.join(',')+')';
+})();
+const s5micro = el('div',s5,{position:'absolute',left:'84px',top:'1780px',
+  color:'#8B8475',fontFamily:"'PlexMono',monospace",fontSize:'22px',
+  fontWeight:'500',letterSpacing:'0.22em',textTransform:'uppercase'},'one');
+
+// ---------------------------------------------------------------- T6
+// MODULAR GRID. The frame becomes cells and the flower is dealt out across
+// them. Everything snaps on sixteenths — nothing in this bar is allowed to
+// move freely, which is the whole character of the technique.
+const s6 = scene();
+const GC = 3, GR = 5, GW = 1080/GC, GH = 1920/GR;
+const s6tiles = [];
+for(let r=0;r<GR;r++) for(let c=0;c<GC;c++){
+  const t = el('div',s6,{position:'absolute',left:px(c*GW),top:px(r*GH),
+    width:px(GW),height:px(GH),backgroundImage:POPPY,
+    // The plate is scaled up and offset so every cell samples the LIT flower.
+    // At 1:1 the top row lands on the black surround and those tiles read as
+    // holes punched in the grid rather than as cells of a picture.
+    backgroundSize:'1900px 3378px',
+    backgroundPosition:px(-c*GW*1.35-330)+' '+px(-r*GH*1.35-660),opacity:'0'});
+  s6tiles.push({node:t, r, c, order:(r*GC+c*7)%(GC*GR)});
+}
+// the block that travels across and occludes — the move worth stealing outright
+const s6block = el('div',s6,{position:'absolute',top:px(2*GH),left:'0',
+  width:px(GW),height:px(GH),background:AC.t6});
+
+// ---------------------------------------------------------------- T3
+// TORN COLLAGE. Nothing is aligned and that is the point: every fragment
+// arrives between 6 and 14 degrees off axis, and a colour block wipes the whole
+// frame between beats. The loudest bar in the film.
+const s3 = scene();
+const s3frag = [];
+for(let i=0;i<7;i++){
+  const w = 300+rng(0,420), h = 240+rng(0,460);
+  const f = el('div',s3,{position:'absolute',width:px(w),height:px(h),
+    left:px(rng(-40,1080-w+40)),top:px(rng(60,1920-h-60)),
+    backgroundImage:POPPY,backgroundSize:'1620px 2880px',
+    backgroundPosition:px(-rng(0,1620-w))+' '+px(-rng(0,2880-h)),
+    boxShadow:'0 18px 40px rgba(43,16,10,0.34)'});
+  const e = edgeProfile(30, 22), pts=[];
+  for(let k=0;k<30;k++) pts.push((0+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
+  for(let k=29;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
+  f.style.clipPath='polygon('+pts.join(',')+')';
+  s3frag.push({node:f, rot:(rng(0,1)<0.5?-1:1)*(6+rng(0,8)), lag:i/7*0.62});
+}
+const s3tape = [];
+for(let i=0;i<4;i++){
+  s3tape.push(el('div',s3,{position:'absolute',width:px(150+rng(0,120)),height:'46px',
+    left:px(rng(60,820)),top:px(rng(180,1640)),background:'rgba(239,227,204,0.80)',
+    transform:`rotate(${(rng(0,1)<0.5?-1:1)*(8+rng(0,14))}deg)`,opacity:'0'}));
+}
+const s3block = el('div',s3,{position:'absolute',inset:'0',background:AC.t3});
+
+// ---------------------------------------------------------------- T9
+// INK ON ONE COLOUR. Two colours in the entire bar: black line on flat mustard.
+// The poppy is DRAWN rather than photographed — the outline is generated from
+// the same petal profile the flower itself uses, and the strokes draw on with
+// stroke-dashoffset. This is the technique the brief flagged as the one that
+// would blow the schedule because it needs hand-drawn line work; generating the
+// line from the model's own geometry is what makes it buildable in code.
+const s9 = scene();
+const s9field = el('div',s9,{position:'absolute',inset:'0',background:AC.t9});
+const NS='http://www.w3.org/2000/svg';
+const s9svg = document.createElementNS(NS,'svg');
+s9svg.setAttribute('viewBox','0 0 1080 1920');
+Object.assign(s9svg.style,{position:'absolute',inset:'0',width:'1080px',height:'1920px'});
+s9.appendChild(s9svg);
+const s9paths = [];
+(function(){
+  const cx=540, cy=920;
+  // six petals, drawn as closed outlines on the flower's own axes
+  for(let i=0;i<6;i++){
+    const a = PETAL_AXES[i]*Math.PI/180;
+    const e = edgeProfile(26, 10), d=[];
+    for(let k=0;k<26;k++){
+      const u=k/25;
+      // Narrower and more sharply tapered. At 250 wide against a 430 length
+      // the outlines were near-circles and the drawing read as overlapping
+      // rings rather than as a flower; a petal is long and comes to a point.
+      const w = Math.pow(Math.sin(Math.PI*u),0.72)*165 + e[k];
+      const L = u*430;
+      const x = cx + Math.cos(a)*L - Math.sin(a)*w;
+      const y = cy + Math.sin(a)*L + Math.cos(a)*w;
+      d.push((k?'L':'M')+x.toFixed(0)+' '+y.toFixed(0));
+    }
+    for(let k=25;k>=0;k--){
+      const u=k/25;
+      // Narrower and more sharply tapered. At 250 wide against a 430 length
+      // the outlines were near-circles and the drawing read as overlapping
+      // rings rather than as a flower; a petal is long and comes to a point.
+      const w = Math.pow(Math.sin(Math.PI*u),0.72)*165 + e[k];
+      const L = u*430;
+      d.push('L'+(cx + Math.cos(a)*L + Math.sin(a)*w).toFixed(0)+' '+
+                 (cy + Math.sin(a)*L - Math.cos(a)*w).toFixed(0));
+    }
+    s9paths.push(d.join(' ')+' Z');
+  }
+  // the dark centre, and a stem falling out of frame
+  s9paths.push('M'+(cx-92)+' '+cy+' a92,78 0 1,0 184,0 a92,78 0 1,0 -184,0 Z');
+  s9paths.push('M'+cx+' '+(cy+80)+' C '+(cx+70)+' '+(cy+430)+', '+(cx-70)+' '+(cy+700)+', '+(cx+26)+' 1920');
+})();
+const s9els = s9paths.map(d=>{
+  const el2 = document.createElementNS(NS,'path');
+  el2.setAttribute('d',d);
+  el2.setAttribute('fill','none');
+  el2.setAttribute('stroke',INK);
+  el2.setAttribute('stroke-width','9');
+  el2.setAttribute('stroke-linecap','round');
+  s9svg.appendChild(el2);
+  const L = el2.getTotalLength();
+  el2.style.strokeDasharray = L;
+  return {node:el2, len:L};
+});
+
+// ---------------------------------------------------------------- T7
+// PAINTED FRAME. The one technique that is unmistakably teti's, because the
+// engine for it already exists. The poppy is revealed by a bristled brush wipe
+// and carries the oil plates and the brush plate at full strength, so it reads
+// as painted rather than as a photograph with a texture on it.
+const s7 = scene();
+const s7img = el('div',s7,{position:'absolute',inset:'0',backgroundImage:POPPY,
+  backgroundSize:'1180px 2098px',backgroundPosition:'-50px -89px'});
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+  backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.20'});
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+  backgroundSize:'1730px 3070px',backgroundPosition:'-410px -700px',
+  transform:'scaleX(-1)',mixBlendMode:'soft-light',opacity:'0.16'});
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/plate_paper.png')",
+  backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.18'});
+// the weave under it all, so the painting sits on canvas rather than on glass
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+  backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.34'});
+
+const SCENES = [
+  {d:s5, at:T5}, {d:s6, at:T6}, {d:s3, at:T3}, {d:s9, at:T9}, {d:s7, at:T7},
+];
+
+// ===========================================================================
 //  renderFrame — one deterministic function of t. No CSS animation anywhere:
 //  CSS animations are wall-clock based and would not render reproducibly.
 // ===========================================================================
+// Local progress within a bar, and the two eighths that top and tail it. Every
+// technique enters and leaves inside its own bar — there are no cross-fades
+// between scenes, because a dissolve is the one transition that belongs to no
+// technique and would make the five read as clips rather than as one film
+// changing voice.
+const uIn  = (t,at) => seg(t, at[0], at[0]+EIGHTH);
+const uOut = (t,at) => seg(t, at[1]-EIGHTH, at[1]);
+const uAll = (t,at) => seg(t, at[0], at[1]);
+
+function drawFive(t){
+
+  // ---- T5 · white space editorial ---------------------------------------
+  // One petal, twice the height of the frame, crossing left to right. It never
+  // stops in the middle: the technique is the imbalance, and a shape that
+  // settles centred is a composition rather than an imbalance.
+  if(t>=T5[0] && t<T5[1]){
+    const u = uAll(t,T5);
+    // -520 to +430, and eased OUT rather than in-out. An ease-in-out across a
+    // 1900px travel spends the bar lingering at both ends, which are both off
+    // frame — the technique is one enormous object crossing an empty frame,
+    // not an empty frame with something briefly passing behind it.
+    const x = -520 + 950*easeOut(u);
+    s5petal.style.transform = `translateX(${x.toFixed(1)}px) rotate(${(-9+14*u).toFixed(2)}deg)`;
+    // it arrives THROUGH a rust wipe — the accent enters before the object does
+    s5.style.clipPath = uIn(t,T5) < 1 ? wipePath(uIn(t,T5), 1) : 'none';
+    s5micro.style.opacity = String(seg(t, T5[0]+EIGHTH, T5[0]+BEAT));
+  }
+
+  // ---- T6 · modular grid -------------------------------------------------
+  // The cells deal themselves in on sixteenths, out of order, and the block
+  // crosses the frame occluding whatever is behind it. Nothing here moves
+  // freely; every value below is quantised to a sixteenth before it is used.
+  if(t>=T6[0] && t<T6[1]){
+    const q = Math.floor((t-T6[0])/SIXTEENTH);          // which sixteenth we are on
+    for(const tl of s6tiles){
+      const on = q >= tl.order && q < 15 - Math.floor(tl.order/4);
+      tl.node.style.opacity = on ? '1' : '0';
+      // tiles slide in from their own row's edge, snapped, never eased
+      const off = on ? 0 : (tl.c%2 ? 70 : -70);
+      tl.node.style.transform = `translateX(${off}px)`;
+    }
+    const bq = Math.max(0, Math.min(12, q-1)) / 12;
+    s6block.style.transform = `translateX(${(bq*1080-GW/2).toFixed(0)}px)`;
+    s6block.style.opacity = q>0 && q<14 ? '1' : '0';
+    s6.style.clipPath = uIn(t,T6) < 1 ? wipePath(uIn(t,T6), -1) : 'none';
+  }
+
+  // ---- T3 · torn collage -------------------------------------------------
+  // Fragments slam in crooked, one per eighth, and the red block wipes the
+  // whole frame twice inside the bar. Deliberate roughness: nothing lines up
+  // with anything, and nothing eases.
+  if(t>=T3[0] && t<T3[1]){
+    for(const f of s3frag){
+      const u = seg(t, T3[0]+f.lag*BEAT*2, T3[0]+f.lag*BEAT*2+BEAT*0.4);
+      f.node.style.opacity = u>0 ? '1' : '0';
+      const s2 = 0.86 + 0.14*easeOut(u);
+      f.node.style.transform = `rotate(${f.rot}deg) scale(${s2.toFixed(3)})`;
+    }
+    s3tape.forEach((tp,i)=>{
+      tp.style.opacity = seg(t, T3[0]+BEAT*(1+i*0.4), T3[0]+BEAT*(1.2+i*0.4)) > 0 ? '1':'0';
+    });
+    // two hard colour wipes, on beats 2 and 4 — the block owns the frame for
+    // an eighth each time and the collage is rebuilt behind it
+    const w1 = seg(t, T3[0]+BEAT*1.0, T3[0]+BEAT*1.5);
+    const w2 = seg(t, T3[0]+BEAT*3.0, T3[0]+BEAT*3.5);
+    const w = w1>0 && w1<1 ? w1 : (w2>0 && w2<1 ? w2 : -1);
+    s3block.style.display = w<0 ? 'none' : 'block';
+    if(w>=0) s3block.style.clipPath = wipePath(w<0.5 ? w*2 : (1-(w-0.5)*2), 1);
+    s3.style.clipPath = uIn(t,T3) < 1 ? wipePath(uIn(t,T3), 1) : 'none';
+  }
+
+  // ---- T9 · ink on one colour --------------------------------------------
+  // The line draws itself on, petal by petal, then the whole drawing lifts off
+  // the mustard. Two colours in the bar and nothing else — the restraint is
+  // the technique.
+  if(t>=T9[0] && t<T9[1]){
+    s9els.forEach((e,i)=>{
+      const u = easeOut(seg(t, T9[0]+EIGHTH+i*SIXTEENTH*1.4,
+                              T9[0]+EIGHTH+i*SIXTEENTH*1.4+BEAT*1.1));
+      e.node.style.strokeDashoffset = (e.len*(1-u)).toFixed(1);
+      e.node.style.opacity = String(1 - uOut(t,T9));
+    });
+    s9.style.clipPath = uIn(t,T9) < 1 ? wipePath(uIn(t,T9), -1) : 'none';
+  }
+
+  // ---- T7 · painted frame -------------------------------------------------
+  // A bristled brush wipe reveals the painting, and the paint keeps breathing
+  // after it lands — a painted frame that holds perfectly still is a scan.
+  if(t>=T7[0] && t<T7[1]){
+    const u = uAll(t,T7);
+    s7img.style.clipPath = wipePath(Math.min(1, seg(t,T7[0],T7[0]+BEAT*1.4)), 1);
+    const k = 1.0 + 0.045*u;
+    s7img.style.transform = `scale(${k.toFixed(4)}) rotate(${(u*0.6).toFixed(2)}deg)`;
+  }
+}
+
+
 window.renderFrame = function(t){
 
   // Act I is a rendered frame, not an element tree — nothing to position. The
@@ -380,6 +718,24 @@ window.renderFrame = function(t){
     p.node.style.clipPath = petalPath(p, u, 1);
     p.node.style.opacity  = String(p.op);
   }
+
+  // --- the five ----------------------------------------------------------
+  // Everything past the bloom lives here. The bloom's own layers are hidden the
+  // moment the first technique starts, so nothing from bar 10 is still being
+  // composited underneath bar 11.
+  // EVERY SCENE OUTLIVES ITS OWN BAR BY AN EIGHTH.
+  //
+  // Each technique enters through a bristled wipe of its own colour, and a wipe
+  // has to reveal the incoming picture OVER the outgoing one. Cutting the
+  // previous scene at its last frame leaves the wipe uncovering the bare page
+  // instead — so between every pair of techniques the film flashed a frame of
+  // empty parchment, which looked like a missing scene rather than a bug.
+  // Scenes are in DOM order, so the incoming one is already on top.
+  const inFive = t >= T5[0] + EIGHTH;
+  act1.style.display = inFive ? 'none' : 'block';
+  bloomLayer.style.display = inFive ? 'none' : 'block';
+  for(const s of SCENES) show(s.d, t >= s.at[0] && t < s.at[1] + EIGHTH);
+  if(inFive) drawFive(t);
 
   // the paint skin rides the bloom's own progress
   const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.40);
