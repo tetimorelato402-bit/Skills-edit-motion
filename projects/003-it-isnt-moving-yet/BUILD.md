@@ -63,8 +63,16 @@ checkout does not hand bash a `\r` on every line. Everything below runs in
 
 ```sh
 winget install Git.Git Python.Python.3.11              # once; then open a NEW Git Bash
-git clone https://github.com/tetimorelato402-bit/skills-edit-motion.git
+# A SLIM clone: the repo carries ~300 MB of finished mp4s from every study and
+# a full clone dropped twice on a home connection. This fetches only this film's
+# sources (~9 MB) — blobs on demand, one branch, no outputs/ — and builds fine.
+git clone --filter=blob:none --depth 1 --single-branch \
+    --branch claude/motion-editors-video-concept-fz6opf --no-checkout \
+    https://github.com/tetimorelato402-bit/skills-edit-motion.git
 cd skills-edit-motion
+git sparse-checkout init --no-cone
+git sparse-checkout set '/*' '!/*/' '!/skills-main.zip' \
+    '/projects/003-it-isnt-moving-yet/' '!/projects/003-it-isnt-moving-yet/outputs/'
 git checkout claude/motion-editors-video-concept-fz6opf
 cd projects/003-it-isnt-moving-yet
 py -3.11 -m venv .venv && source .venv/Scripts/activate   # bpy 4.5 needs 3.11 EXACTLY
