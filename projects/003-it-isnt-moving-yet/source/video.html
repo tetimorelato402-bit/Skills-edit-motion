@@ -805,11 +805,27 @@ for(const k in TECH){
   TECH[k].style.display = 'block';
   PANEL[k] = wrap;
 }
+// A FULL-FRAME PANEL STILL GETS CROPPED INTO — it just has to be zoomed to do
+// it. Cropping fixed the stacked sections, where a panel is a window onto part
+// of a scene, and did nothing at all for the five STATED full-frame, because a
+// full panel has nothing to crop: it shows the technique exactly as authored.
+// And as authored these are sparse — T5 is one object crossing a bare page, T6
+// deals its tiles in and out. That was fine when each had a whole bar to
+// breathe in the old sequence; two beats each, straight out of the drop, it
+// read as eight beats of empty parchment at the loudest point in the film.
+//
+// So a full-frame appearance is shown at 1.28x from its centre, which throws
+// away 22% at each edge and lets the composition fill the frame. It is the same
+// move as the sub-panels — crop in, do not scale out — applied to the one case
+// that had no room to make it.
 function place(k, x, y, w, h){
+  const zoom = (w === 1080 && h === 1920) ? 1.28 : 1.0;
   PANEL[k].style.clipPath =
     `inset(${y}px ${1080-(x+w)}px ${1920-(y+h)}px ${x}px)`;
+  TECH[k].style.transformOrigin = '540px 960px';
   TECH[k].style.transform =
-    `translate(${(x + w/2 - 540).toFixed(1)}px,${(y + h/2 - 960).toFixed(1)}px)`;
+    `translate(${(x + w/2 - 540).toFixed(1)}px,${(y + h/2 - 960).toFixed(1)}px)`
+    + (zoom !== 1 ? ` scale(${zoom})` : '');
 }
 
 // ===========================================================================
@@ -997,23 +1013,64 @@ const CUTS = [
 
 function drawBarrage(t){
   const b = t / BEAT;
-  let cur = null, curAt = 0, nextAt = 1e9;
+  let cur = null, curAt = 0, nextAt = 1e9, prev = null, prevAt = 0;
   for(let i=0;i<CUTS.length;i++){
-    if(b >= CUTS[i][0]){ cur = CUTS[i][1]; curAt = CUTS[i][0];
+    if(b >= CUTS[i][0]){ prev = cur; prevAt = curAt;
+                         cur = CUTS[i][1]; curAt = CUTS[i][0];
                          nextAt = i+1<CUTS.length ? CUTS[i+1][0] : 48; }
   }
+  // AND THE OUTGOING TECHNIQUE OUTLIVES THE CUT BY AN EIGHTH.
+  //
+  // This is the rule CLAUDE.md already records from the first build of the back
+  // half, and rewriting the scheduler as a cut list quietly broke it again: an
+  // entry wipe REVEALS the incoming picture over the outgoing one, so hiding
+  // the outgoing on the frame the cut lands means the wipe uncovers bare
+  // parchment. Measured at 100% empty on the first frame of T3 and T7.
+  //
+  // The previous cut is held underneath for the length of the wipe, with the
+  // incoming panels lifted above it — DOM order alone cannot be trusted here,
+  // because which technique is on top depends on which two happen to be cutting.
   const live = new Set();
+  if(prev && (t - curAt*BEAT) < EIGHTH){
+    const pspan = (curAt - prevAt) * BEAT;
+    const pu = 0.15 + 0.70 * clamp((t - prevAt*BEAT) / pspan, 0, 1);
+    for(const [k, r] of prev){
+      live.add(k);
+      place(k, r.x, r.y, r.w, r.h);
+      PANEL[k].style.zIndex = '1';
+      show(PANEL[k], true);
+      DRAW[k](pu, 1);
+    }
+  }
   if(cur){
     // An appearance's progress runs across the whole hold, so a two-beat
     // appearance plays its technique at twice the speed of a four-beat one.
     // That is the barrage: the same motion, compressed, is what "faster" means
     // here — not a different animation with fewer frames in it.
     const span = (nextAt - curAt) * BEAT;
-    const u = clamp((t - curAt*BEAT) / span, 0, 1);
+    // EVERY APPEARANCE STARTS 15% IN, and that is not a fudge.
+    //
+    // Each technique's own animation begins from nothing: T3's fragments slam
+    // in on a stagger, T7's brush wipe reveals from zero width. Over a whole
+    // bar that opening emptiness is the technique arriving. Over two beats it
+    // is a dead frame — measured at 100% bare ground on the first frame of both
+    // T3 and T7, at the loudest point in the film.
+    //
+    // Starting the internal clock at 0.15 means a language ARRIVES ALREADY
+    // HAPPENING, which is also what a cut should do: the entry wipe uncovers
+    // something in motion rather than an empty page about to have something
+    // put on it.
+    // ...and it stops 15% SHORT, too. The techniques empty out at BOTH ends:
+    // T6's tiles deal themselves in and then back out, so at u=1 there are none
+    // left on screen. Over a bar that tail is the technique leaving. Over two
+    // beats it is another dead frame. The internal clock runs 0.15 -> 0.85, so
+    // a language is only ever seen while it is doing something.
+    const u = 0.15 + 0.70 * clamp((t - curAt*BEAT) / span, 0, 1);
     const ein = clamp((t - curAt*BEAT) / EIGHTH, 0, 1);
     for(const [k, r] of cur){
       live.add(k);
       place(k, r.x, r.y, r.w, r.h);
+      PANEL[k].style.zIndex = '2';
       show(PANEL[k], true);
       DRAW[k](u, ein);
     }
