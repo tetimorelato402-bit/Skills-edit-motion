@@ -103,6 +103,16 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   evaluates out of order hits this: a re-rendered range, a preview at scattered times, an
   extraction script. `set_time` being a pure function of `t` is the whole reason this file
   has no keyframes; that has to include the lights.
+- **Two builds racing produce an mp4 that PROBES fine and will not decode.** Two instances
+  of `build.sh` overlapped once and both wrote `outputs/it-isnt-moving-yet.mp4`. The result
+  reported a correct 50.23s duration and two valid streams to `ffprobe` — and threw
+  `Invalid NAL unit size` / `Error splitting the input into NAL units` the moment anything
+  tried to decode it. The frame stages are individually safe (they resume, and rewriting a
+  frame with the same frame is harmless); the ENCODE is not, because two writers share one
+  output path. `build.sh` takes an exclusive `flock` and refuses to start a second run.
+- **Verify a render by DECODING it, not by probing it.** `ffprobe`-style header checks
+  passed on a file that was structurally broken all the way through. `ffmpeg -v error -i
+  out.mp4 -f null -` walks every frame and prints nothing when the file is sound.
 - **Put the assertion in the watcher, not in your head.** This was caught because the
   monitor waiting on the plate measured how much of it came back dark and printed
   `dark 96% (want ~10%)`. The render succeeded, wrote a valid PNG, and reported nothing

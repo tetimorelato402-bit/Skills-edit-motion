@@ -18,6 +18,25 @@
 # ============================================================================
 set -e
 cd /home/user/Skills-edit-motion/projects/003-it-isnt-moving-yet
+
+# ---------------------------------------------------------------------------
+#  ONE BUILD AT A TIME.
+#
+#  Two instances of this script ran concurrently once — the second started
+#  while the first was still going — and they raced on the final mux. Both
+#  wrote outputs/it-isnt-moving-yet.mp4, the file ended up with interleaved NAL
+#  units, and ffprobe still reported a correct 50.23s duration and two valid
+#  streams. It only failed when something tried to DECODE it.
+#
+#  The frame stages are individually safe (they resume, and rewriting a frame
+#  with the same frame is harmless); the encode is not, because two writers
+#  share one output path.
+# ---------------------------------------------------------------------------
+exec 9>/tmp/.build-003.lock
+if ! flock -n 9; then
+  echo "another build is already running — refusing to start a second"
+  exit 1
+fi
 P=$(pwd)
 BEAT=$(python3 -c "print(60/129)")
 A_END=$(python3 -c "print(round(44*60/129*24))")      # 491
