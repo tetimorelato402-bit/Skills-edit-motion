@@ -158,13 +158,25 @@ def main():
     cam = scene.cam
     keep = (cam.location.copy(), cam.rotation_euler.copy())
     head = scene.head_at
-    # 45 degrees above, and CLOSE — 26cm, where the frame is 9.6cm tall and a
-    # 17cm flower more than covers it. The first pass sat level with the head at
-    # 30cm and photographed the underside of the bowl with the stem running
-    # through it and black across the bottom third: every technique cropping
-    # into that got darkness. A plate has one job, which is to be flower in
-    # every pixel.
-    cam.location = head + Vector((0.0, -0.18, 0.19))
+    # NEARLY OVERHEAD, at 32cm. Measured, after two wrong guesses:
+    #
+    #   level, 30cm  — the underside of the bowl with the stem through it and
+    #                  black across the bottom third.       54% of frame dark
+    #   45 deg, 26cm — inside the flower. The lens sits within a 17cm bowl and
+    #                  photographs petal interiors.         top half black
+    #   50 deg, 46cm — a real flower, correctly framed, and still 42% black,
+    #                  because a flower lit by one beam in a dark room HAS
+    #                  black around it. That is the film's look and it cannot
+    #                  be framed away from side-on.
+    #
+    # Straight down is the answer, and it is the one the back half was always
+    # built on: from above, the petals radiate and cover the frame edge to edge,
+    # so there is no "around" left to be dark. 86 degrees at 32cm measures 10%
+    # dark, against 42-54% for every side view. This is not the birds-eye
+    # sneaking back into the film — it is a still, used as a texture, cropped
+    # and recoloured by every technique that touches it.
+    cam.location = head + Vector((0.0, -0.32 * math.cos(math.radians(86)),
+                                  0.32 * math.sin(math.radians(86))))
     aim_at(cam, head)
     bpy.context.view_layer.update()
     plate = os.path.join(OUT, "poppy.png")
