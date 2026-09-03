@@ -1128,9 +1128,9 @@ class Scene:
             w = self.words['do you']
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
-            w.scale = (0.34, 0.34, 0.34)
+            w.scale = (0.075, 0.075, 0.075)                 # ~0.25m wide in a 0.23m frame
             w.rotation_euler = (0, 0, 0)                     # flat on the floor
-            w.location = (0.0, -0.20, 0.003)
+            w.location = (0.0, -0.22, 0.003)
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
@@ -1166,9 +1166,9 @@ class Scene:
             w = self.words['make']
             w.data.font = self.font_black
             w.data.materials[0] = self.type_mats['paper']
-            w.scale = (0.52, 0.52, 0.52)
+            w.scale = (0.13, 0.13, 0.13)                    # 0.29m: fits the 0.31m frame at 1.5m
             w.rotation_euler = (math.radians(90), 0, math.radians(-7))
-            w.location = (0.28, 0.34, 0.44)
+            w.location = (0.05, 0.34, 0.60)
             # handheld
             if camera:
                 self.cam.location = (0.22 + (h(1, 3) - 0.5) * 0.02, -1.15, 0.55 + (h(2, 3) - 0.5) * 0.015)
@@ -1183,9 +1183,9 @@ class Scene:
             w.data.font = self.font_reg
             w.data.materials[0] = self.type_mats['ink']
             w.data.align_x = 'LEFT'
-            w.scale = (0.036, 0.036, 0.036)
+            w.scale = (0.022, 0.022, 0.022)                 # 0.21m, inside a 0.30m frame
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (-0.42, -0.12, 0.20)
+            w.location = (-0.125, -0.12, 0.17)
             if camera:
                 self.cam.location = (0.0, -1.55, 0.50)
                 aim_at(self.cam, H)
@@ -1204,7 +1204,7 @@ class Scene:
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['paper']
             w.data.extrude = 0.0015
-            w.scale = (0.058, 0.058, 0.058)
+            w.scale = (0.024, 0.024, 0.024)
             # ON THE PETAL. Not parented — the petal's local frame has its
             # cupped face on -Z and the text vanished behind it. It is placed
             # in world space a hair off the petal's surface, on whichever face
@@ -1214,10 +1214,16 @@ class Scene:
             if camera:
                 self.cam.location = (0.30 - 0.15 * pu, -1.30 + 0.45 * pu, 0.55 - 0.05 * pu)
             bpy.context.view_layer.update()
-            pet = self.petals[3]
+            # petal 3 was a guess, and it turned out to be the one under the
+            # bowl with two others over it. The front petal is whichever has
+            # its blade's midpoint nearest the lens — that changes with the
+            # push-in, so it is found every frame, not fixed.
+            camv = Vector(self.cam.location)
+            pet = min(self.petals[1:],
+                      key=lambda q: ((q.matrix_world @ Vector((0, 0.045, 0))) - camv).length)
             M = pet.matrix_world
-            a = M @ Vector((0.0, 0.042, 0.012))
-            b = M @ Vector((0.0, 0.042, -0.012))
+            a = M @ Vector((0.0, 0.046, 0.016))
+            b = M @ Vector((0.0, 0.046, -0.016))
             cam = Vector(self.cam.location)
             w.location = a if (a - cam).length < (b - cam).length else b
             w.rotation_euler = M.to_euler()
@@ -1307,9 +1313,9 @@ class Scene:
             w = self.words[LAST_WORD]
             w.data.font = self.font_black
             w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
-            w.scale = (0.9, 0.9, 0.9)
+            w.scale = (0.16, 0.16, 0.16)                    # 0.53m: the whole word, at 2.4m
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (0.0, 0.85, 0.36)
+            w.location = (0.0, 0.85, 0.42)
             self.cam.location = (0.0, -1.55, 0.52)
             aim_at(self.cam, H + Vector((0, 0, 0.08)))
             return
