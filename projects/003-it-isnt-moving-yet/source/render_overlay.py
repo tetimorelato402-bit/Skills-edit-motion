@@ -19,11 +19,16 @@ rewritten, so this is safe to re-run.
 """
 import argparse
 import os
+import tempfile
+from pathlib import Path
 
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+# The container's Chromium, when it is there. Anywhere else (a desktop after
+# `playwright install chromium`) Playwright's own copy is used — passing a
+# path that does not exist is a hard error, not a fallback.
+CHROME = os.environ.get("CHROME", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
 
 
 def main():
@@ -31,19 +36,21 @@ def main():
     ap.add_argument("--html", required=True)
     ap.add_argument("--frames", required=True)
     ap.add_argument("--fps", type=int, default=24)
-    ap.add_argument("--tmp", default="/tmp/_overlay")
+    ap.add_argument("--tmp", default=os.path.join(tempfile.gettempdir(), "_overlay"))
     args = ap.parse_args()
     os.makedirs(args.tmp, exist_ok=True)
 
     with sync_playwright() as p:
-        br = p.chromium.launch(executable_path=CHROME,
-                               args=["--force-color-profile=srgb",
-                                     "--font-render-hinting=none"])
+        launch = dict(args=["--force-color-profile=srgb",
+                            "--font-render-hinting=none"])
+        if os.path.exists(CHROME):
+            launch["executable_path"] = CHROME
+        br = p.chromium.launch(**launch)
         pg = br.new_page(viewport={"width": 1080, "height": 1920},
                          device_scale_factor=1)
         errors = []
         pg.on("pageerror", lambda e: errors.append(str(e)))
-        pg.goto("file://" + os.path.abspath(args.html))
+        pg.goto(Path(args.html).resolve().as_uri())   # a real file: URL on Windows too
         pg.wait_for_function("window.renderFrame !== undefined")
         pg.evaluate("document.fonts.ready")
         dur = pg.evaluate("window.DUR")

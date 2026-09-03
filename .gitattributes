@@ -1,2 +1,8 @@
 .claude/skills/**/*.md linguist-detectable
 README.md linguist-documentation
+# Git for Windows defaults to CRLF on checkout; bash and python then see \r at
+# the end of every line ("$'\r': command not found"). Keep these as LF everywhere.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.html text eol=lf
+*.md   text eol=lf

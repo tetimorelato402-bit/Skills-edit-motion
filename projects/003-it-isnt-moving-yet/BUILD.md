@@ -52,6 +52,40 @@ actually missing, and the frame directory carries a signature of `plant.py` + `R
 range after a change that only touches one section, delete those frames and run
 `build.sh` again; it fills the gap and nothing else.
 
+## Rendering on the desktop (Windows, an RTX card)
+
+The same scripts, on the card. `render_plant.py` picks OptiX/CUDA when a GPU is
+present and says so (`cycles device: OPTIX`); `build.sh` and `assemble.sh` find
+whichever python this OS has; the overlay uses Playwright's own Chromium when the
+container's is not there; `.gitattributes` pins the scripts to LF so a Windows
+checkout does not hand bash a `\r` on every line. Everything below runs in
+**Git Bash** (installed with Git for Windows) — not PowerShell, not cmd.
+
+```sh
+winget install Git.Git Python.Python.3.11              # once; then open a NEW Git Bash
+git clone https://github.com/tetimorelato402-bit/skills-edit-motion.git
+cd skills-edit-motion
+git checkout claude/motion-editors-video-concept-fz6opf
+cd projects/003-it-isnt-moving-yet
+py -3.11 -m venv .venv && source .venv/Scripts/activate   # bpy 4.5 needs 3.11 EXACTLY
+pip install bpy==4.5.13 imageio-ffmpeg pillow numpy playwright && playwright install chromium
+cp /c/Users/<you>/Downloads/gracias_a_ti_beat_129bpm_luifer.mp3 audio/gracias-a-ti-129.mp3
+python source/blender/render_plant.py --res 540 --samples 24 --out outputs/pv --times 23.7   # must print "cycles device: OPTIX"
+RES=1080 SAMPLES=64 bash build.sh
+python scripts/verify-film.py
+```
+
+Things that bite on Windows and are already handled, in case one of them comes
+back: `python3` in Git Bash is frequently the Microsoft Store stub, which opens
+a shop window instead of Python — the scripts prefer `python` on Windows and
+`PY=/path/to/python.exe` overrides them; `flock` does not exist there, so the
+one-build-at-a-time lock is skipped rather than failing; a venv on Windows makes
+`python.exe`, not `python3.exe`; `bpy` wheels exist for 3.11 only, so 3.12/3.13
+gives "no matching distribution" and the fix is the 3.11 venv, not a newer bpy.
+The audio track is gitignored and has to be copied in by hand. Blender 5.2
+installed on the machine is NOT what renders — the pip `bpy` 4.5 module is,
+same as the container, so the two renders match.
+
 ## Act I — Blender in this container
 
 ```sh

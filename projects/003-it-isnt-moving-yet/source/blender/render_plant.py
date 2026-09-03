@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 """
-Render Act I from plant.py — stills or a frame range, Cycles on CPU.
+Render the film from plant.py — stills or a frame range, Cycles.
 
-There is no GPU in this container (`/dev/dri` is absent) and EEVEE only runs
-through llvmpipe, which measured SLOWER than Cycles on a trivial scene, so
-Cycles CPU is the only real path here. That is fine for stills and for low-res
-motion tests; a full-resolution sequence is a desktop job.
+Cycles picks the GPU when one is there (OptiX on an RTX card, else CUDA, else
+HIP/Metal/oneAPI) and falls back to CPU otherwise; `DEVICE=CPU` in the
+environment forces CPU. The cloud container has no GPU (`/dev/dri` is absent)
+and EEVEE only runs there through llvmpipe, which measured SLOWER than Cycles,
+so on that machine CPU is the only real path — fine for stills and low-res
+motion tests. A full-resolution sequence is a desktop job, and on a desktop this
+same script uses the card.
 
   python3 render_plant.py --times 0,4,8,11.5,13.4 --res 540 --samples 48
   python3 render_plant.py --fps 30 --res 1080 --samples 128 --out frames
@@ -21,10 +24,41 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from plant import ACT_I_END, Scene
 
 
+def pick_device():
+    """
+    Enable the best GPU backend the build has, or CPU. Returns the name used.
+
+    The preferences object is what decides; setting `scene.cycles.device =
+    'GPU'` with no device enabled in preferences silently renders on CPU, so
+    the two are set together here and reported once.
+    """
+    if os.environ.get("DEVICE", "").upper() == "CPU":
+        return 'CPU'
+    addon = bpy.context.preferences.addons.get('cycles')
+    if addon is None:
+        return 'CPU'
+    cp = addon.preferences
+    for kind in ('OPTIX', 'CUDA', 'HIP', 'METAL', 'ONEAPI'):
+        try:
+            cp.compute_device_type = kind
+        except TypeError:
+            continue                      # this build has no such backend
+        cp.get_devices()
+        gpus = [d for d in cp.devices if d.type == kind]
+        if not gpus:
+            continue
+        for d in cp.devices:
+            d.use = d.type == kind        # GPU only: hybrid CPU+GPU is slower
+        return kind
+    return 'CPU'
+
+
 def configure(res, samples):
     sc = bpy.context.scene
     sc.render.engine = 'CYCLES'
-    sc.cycles.device = 'CPU'
+    dev = pick_device()
+    sc.cycles.device = 'CPU' if dev == 'CPU' else 'GPU'
+    print(f"  cycles device: {dev}", flush=True)
     sc.cycles.samples = samples
     sc.cycles.use_denoising = True
     # Glass is the expensive part of this shot. Four transmission bounces is
