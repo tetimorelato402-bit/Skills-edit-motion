@@ -15,40 +15,42 @@ at the top first, the premise changed after the interview.
 
 ## The stack
 
-The **001 engine**, not 002's Remotion: `video.html` + `render.py`, one deterministic
-`window.renderFrame(t)`, no CSS animation anywhere. The reason is the paint — `paint.py`
-and the oil plates in `tex/` are what make this film teti's rather than anyone's, and
-they already live in this pipeline. Same 125 BPM grid as 001, so `sound.py` transfers
-with no conversion.
+**One Blender film.** `plant.py` builds the whole scene once — the dark room, the plant,
+the jar, the beam, and a studio (cyclorama, a four-light rig, five looks' materials, the
+question as 3D type) that is hidden and unlit until `bt(44)` — and `set_time(t)` moves
+everything for time `t`. There are no keyframes; the 129 BPM grid is the only clock.
+`render_plant.py` drives Cycles a frame at a time. The 2D half that used to carry the
+back half (`video.html`, the paint bloom, `handoff.py`'s join) is in `source/attic/` with
+a README saying why; nothing calls it.
 
 | File | What it is |
 |---|---|
-| `source/video.html` | The film. Frame 0 and the bloom, on the 125 BPM grid. |
-| `source/render.py` | Headless Chromium, frame by frame. Fails loudly on a page error. |
-| `source/paint.py` | The oil plates, from 001. `OUT` now writes next to itself. |
-| `source/fonts/` | Inter + IBM Plex Mono, self-hosted. |
-| `scripts/check-bloom.py` | Asserts the bloom only ever grows. Read why below. |
-| `source/blender/plant.py` | Act I. Builds the scene, and `set_time(t)` moves it. |
-| `source/blender/render_plant.py` | Cycles CPU, stills or a range. |
-| `scripts/handoff.py` | Projects the flower head and its petal axes, and extracts its palette. |
-| `scripts/brushplate.py` | The grayscale brush plate the bloom is textured with. |
+| `source/blender/plant.py` | The film. Builds the scene, and `set_time(t)` moves it — lights, camera, materials, type. |
+| `source/blender/render_plant.py` | Cycles CPU/GPU, stills (`--times`) or a range (`--start/--end`). |
+| `source/question.html` + `source/render_overlay.py` | The question, typeset in Chromium and composited over Act I's frames. Self-hosted Inter. |
+| `source/fonts/` | Inter + IBM Plex Mono, `.woff2` for the overlay and `.ttf` for Blender's FONT objects. |
+| `build.sh` | The whole build, resumable, single-instance. `RES` and `SAMPLES` from the environment. |
+| `assemble.sh` | Conform to 1080x1920/30, cut the track under it from 46.555 s, loudnorm, decode check. |
+| `scripts/verify-film.py` | Frames present, lit where lit, loop pixel-exact, mp4 decodes, silence under the fall, contact sheet. |
+| `scripts/track.py` | Measured the tempo and found the two silences. `audio/README.md` has the numbers. |
+| `scripts/brushplate.py` | The grey brush plate the painted look's impasto is built on. |
+| `scripts/handoff.py`, `scripts/check-bloom.py` | Retired with the 2D half. They still run; nothing needs them. |
 
 ```sh
-python3 source/render.py --out ../outputs/pv --times 0,0.96,1.32,1.86,2.40   # stills
-python3 scripts/check-bloom.py outputs/pv                                     # regression
-python3 source/render.py --out source/frames120 --fps 120                     # ~6 min
+pip install bpy==4.5.13 imageio-ffmpeg pillow numpy playwright && playwright install chromium
+python3 source/blender/render_plant.py --res 540 --samples 24 --out outputs/pv \
+    --times 12.5,20.0,23.7,25.6,26.5,32.8,47.0            # stills at the moments that matter
+bash build.sh                                             # 540 px / 24 samples: ~4-5 h on four CPU cores
+RES=1080 SAMPLES=64 bash build.sh                         # the desktop, on a GPU: well under an hour
+python3 scripts/verify-film.py                            # before believing any of it
 ```
 
-Then the house shutter — render at 120, average three frames down to 30. There is no
-system ffmpeg in this container and Playwright's is useless (see below), so:
-
-```sh
-FF=$(python3 -c "import imageio_ffmpeg;print(imageio_ffmpeg.get_ffmpeg_exe())")
-$FF -y -framerate 120 -i source/frames120/f%05d.png \
-  -filter_complex "[0:v]tmix=frames=3:weights='1 2 1',fps=30,noise=alls=2:allf=t+u,format=yuv420p[v]" \
-  -map "[v]" -c:v libx264 -profile:v high -crf 17 -preset slow \
-  -movflags +faststart outputs/gate-bloom.mp4
-```
+`build.sh` renders to `outputs/film/`, composites the question, and calls `assemble.sh`,
+which writes `outputs/it-isnt-moving-yet.mp4`. Every stage resumes from the first frame
+actually missing, and the frame directory carries a signature of `plant.py` + `RES/SAMPLES`
+— change any of them and the directory is cleared rather than resumed into. To re-render a
+range after a change that only touches one section, delete those frames and run
+`build.sh` again; it fills the gap and nothing else.
 
 ## Act I — Blender in this container
 
