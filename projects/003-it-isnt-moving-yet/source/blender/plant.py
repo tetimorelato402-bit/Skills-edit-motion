@@ -1127,7 +1127,7 @@ class Scene:
                 rm.octree_depth = depth
             w = self.words['do you']
             w.data.font = self.font_bold
-            w.data.materials[0] = self.type_mats['blue']
+            w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
             w.scale = (0.34, 0.34, 0.34)
             w.rotation_euler = (0, 0, 0)                     # flat on the floor
             w.location = (0.0, -0.20, 0.003)

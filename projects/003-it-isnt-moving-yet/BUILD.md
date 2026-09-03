@@ -413,6 +413,17 @@ What each look actually is, mechanically:
 
 **Gotchas already paid for in the studio:**
 
+- **Size type to the FRAME, not the room.** A 65 mm lens on a vertical-fit 24 mm sensor in
+  9:16 gives a frame only **0.21 × distance** wide: 30 cm across at the flower, 23 cm at the
+  grid's floor label. Every word was first placed in scene-metres — a 1.1 m floor label, a
+  caption 42 cm off-axis in a ±15 cm frame, a petal word twice the length of its petal — and
+  none of it was in shot. Three rounds of "the type isn't rendering" were the type rendering
+  perfectly, out of frame. Only *how* stays deliberately wider than the frame, because it
+  crosses.
+- **The petal that carries the word is found every frame, not chosen.** Petal 3 was a guess
+  and turned out to sit under the bowl with two petals over it. The front petal is whichever
+  has its blade midpoint nearest the lens, and it changes as the painted look's camera pushes
+  in.
 - **`STUDIO_GAIN` exists because the film's exposure was set for one 620 W spot in a black
   room.** Four soft sources at 500–900 W plus a cyc bouncing all of it back put every look
   about a stop and a half over: plum rendered as dusty pink, signal blue as powder, the
