@@ -6,7 +6,7 @@ Built the way the rest of this repo is built: there are NO KEYFRAMES. The scene
 is constructed once and `set_time(t)` positions every element for time `t`, the
 same contract as `window.renderFrame(t)` in video.html. Blender's animation
 system is a second source of truth and a second thing to keep in sync with the
-125 BPM grid; a pure function of t is neither.
+129 BPM grid; a pure function of t is neither.
 
 The plant is the film's question made literal. "How do you make ideas that
 aren't alive, alive?" — this is a dead thing becoming alive, in the dark, slowly,
@@ -25,8 +25,12 @@ from mathutils import Vector
 # Identical to video.html and to 001. Act I is seven bars: the jar sits in the
 # dark for a bar, the stem climbs for five, the bud swells, and the flower opens
 # on the last beat — where the paint bloom takes the frame.
-BPM = 125
-BEAT = 60.0 / BPM          # 0.48
+# 129, not 125, and it is not a preference — it is the tempo of the track the
+# film is cut to (Luifer, "Gracias a Ti", measured at 129.000 BPM exactly).
+# Every constant below is written in bt(), so the whole act re-times off this
+# one number; nothing else in this file needed touching when it changed.
+BPM = 129
+BEAT = 60.0 / BPM          # 0.46512
 BAR = 4 * BEAT             # 1.92
 bt = lambda n: n * BEAT
 
@@ -34,23 +38,61 @@ DARK      = (bt(0),  bt(4))    # the beam finds the floor; the jar is barely the
 CLIMB     = (bt(4),  bt(22))   # the stem grows
 BUD       = (bt(19), bt(25))   # the bud forms and swells
 OPEN      = (bt(25), bt(27))   # the flower opens, IN the beam
-ARC       = (bt(27), bt(29))   # up and over: the flower becomes a rosette
-PUSH      = (bt(29), bt(31))   # then down into it until the petals own the frame
-SHUTTER   = (bt(32) - BEAT / 4, bt(32))    # one sixteenth of black. A blink.
-ACT_I_END = bt(32)             # 15.36s — eight bars
+HOLD      = (bt(27), bt(37))   # open, and the room going out around it
+DETACH    = (bt(37), bt(38))   # one petal peels, on the last beat of music
+FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
+ACT_I_END = bt(44)             # 20.465s — eleven bars
 
-# THE ARC IS THE WHOLE TRANSITION.
+# WHERE THE BIRDS-EYE ARC USED TO BE.
 #
-# A poppy seen from directly above is petals radiating from a dark centre —
-# which is the same image as the paint detonation that follows it. Side-on they
-# are two different pictures that have to be joined; from above they are one
-# picture in two media, and the cut stops being a transition and becomes a
-# SUBSTITUTION. Coming down into the petals until they fill the frame also
-# strips out the jar, the table and every cue to scale, so the last 3D frame is
-# already nearly abstract before the paint touches it.
+# Bars 8-11 were a camera arc up over the open flower to a plan view and then a
+# push into the petals, and BRIEF.md called it the best structural idea in the
+# film: a poppy from above is petals radiating from a dark centre, which is the
+# paint detonation's own picture, so the cut became a substitution.
 #
-# The black between them is a SIXTEENTH, not a beat. Long enough to read as an
-# event; far too short to throw away the match the arc just built.
+# It is gone, and what replaces it is better for a reason the arc could not
+# reach. The arc was the CAMERA doing something. A petal letting go is the
+# FLOWER doing something — and the film is about things that are not alive
+# becoming alive, so every beat it can hand to the subject instead of the rig
+# is a beat that argues its own case. The substitution survives intact: the
+# studio still erupts out of the last lit frame, it is just a petal now rather
+# than a rosette, and handoff.py projects whatever is there.
+#
+# It also buys the one thing the arc never had: an object that can come back.
+# The film ends on a second petal falling, and it falls into the jar it grew
+# from. You cannot loop a camera move. You can loop a petal.
+
+# THE FALL IS THE WHOLE TRANSITION.
+#
+# One petal lets go and drops through three bars of near-silence, lit by a beam
+# that has closed down to just it. Everything else in the room is gone. It is
+# the quietest the film ever gets and it sits immediately before the loudest,
+# which is the only reason the studio reads as an explosion rather than as a
+# busy section.
+#
+# The petal falls in its OWN colour — the vermilion it has been since it opened
+# — and twice on the way down the whole frame glitches into one of the styles
+# that is coming, for two frames, and snaps back. That is the film showing its
+# hand: the fault the stem had in bar 2 has reached the flower, and this time it
+# is not a colour, it is a whole language.
+#
+# There is no black before the studio. The petal is still on screen when the
+# paint erupts out of it, because the substitution is the point: one object,
+# two media, no seam. handoff.py projects whatever the last lit frame holds.
+#
+# AND THE TRACK WROTE THESE NUMBERS, NOT ME.
+#
+# The film is cut to Luifer's "Gracias a Ti" from 46.555s (its bar 25). That
+# track has a HARD DIGITAL SILENCE — not a fade, a stop — running its beats
+# 138 to 144, which lands at exactly bt(38) to bt(44) of the film. So:
+#
+#   bt(37)  the petal starts to peel, on the last beat of music there is
+#   bt(38)  it lets go AND the music stops, in the same frame
+#   bt(44)  the music slams back in on the downbeat, and the paint detonates
+#
+# Six beats of a petal falling through total silence, and the boom catches it.
+# DETACH is one beat long and sits where it sits because of the track; do not
+# move it without re-deriving it from the audio.
 
 # ---------------------------------------------------------------- palette
 # The ground never leaves the warm family. The living green is the plant's own
@@ -93,6 +135,12 @@ def ease_out(u):
 
 def ease_in_out(u):
     return 4 * u ** 3 if u < 0.5 else 1 - ((-2 * u + 2) ** 3) / 2
+
+
+def ease_in(u):
+    # For things that come apart. A petal starts letting go slowly and is
+    # gone quickly, which is the opposite shape to anything that grows.
+    return u ** 3
 
 
 # ---------------------------------------------------------------- scaffolding
@@ -418,6 +466,21 @@ class Scene:
             child(ob)
             self.petals.append(ob)
 
+        # THE FALLER.
+        #
+        # A seventh petal, identical to the six but NOT parented to the head, so
+        # it can be driven in world space once it lets go. At DETACH petal 0 is
+        # scaled to nothing and this one appears at exactly where petal 0 was —
+        # a swap, invisible because the two are the same mesh in the same place.
+        #
+        # Doing it by unparenting the real petal instead means fighting
+        # matrix_parent_inverse for a transform that has to stay a pure function
+        # of t; a swap has no state in it at all.
+        v, f = blade(0.088, 0.080, 1.5, 0.008, nu=25, nv=27,
+                     fullness=0.36, crimp=0.40)
+        self.faller = mesh_from("faller", v, f, self.mat_petal)
+        self.faller.scale = (0, 0, 0)
+
         # the pod: two sepals that split and fall away as the flower opens
         self.calyx = []
         for i in range(2):
@@ -691,6 +754,38 @@ class Scene:
         w.node_tree.nodes["Background"].inputs[1].default_value = 0.030
         bpy.context.scene.world = w
 
+    def faller_at(self, t):
+        """
+        Where the falling petal is at time `t`, in world space.
+
+        A petal is not a stone. It is 0.1g of tissue with a lot of area, so it
+        does not accelerate — it reaches terminal velocity almost at once and
+        then FLUTTERS, swinging side to side as it stalls and slips off each
+        edge in turn. Modelled as a constant descent with a pendulum across it,
+        the swing slow (about one cycle per bar) and widening as it goes, plus a
+        tumble that is deliberately not in phase with the swing. Gravity here
+        would be wrong twice over: it would look like a falling stone, and it
+        would put the whole descent in the first half-second of three bars.
+        """
+        u = seg(t, *FALL)
+        z = 0.436 + (0.052 - 0.436) * u          # head height down to the table
+        # THE SWING HAS TO CLEAR THE FLOWER, and that is a lighting requirement
+        # before it is a botanical one. The beam comes straight down through the
+        # head, so a petal that drops more or less vertically spends the whole
+        # fall inside the flower's OWN SHADOW — lit correctly, in frame, and
+        # completely black. At 6cm of flutter under a 17cm flower it never got
+        # out. It reaches ~16cm now, which is far enough that the key (which
+        # follows it) comes down beside the flower rather than through it — so
+        # the petal is lit and the plant it left drops out of the beam and goes
+        # dark by itself, which is the shot teti asked for anyway.
+        # A petal falls AWAY from the plant, not straight down it — so the
+        # sideways travel is a monotonic drift with the flutter riding on top,
+        # not a pendulum through the middle. A pendulum spends half the fall
+        # back at the stem, which is both wrong and unlightable.
+        swing = 0.19 * u + 0.030 * math.sin(u * math.tau * 1.9)
+        drift = 0.055 * u + 0.014 * math.sin(u * math.tau * 1.3 + 1.1)
+        return Vector((swing, drift, z)), u
+
     # -- the one function that moves anything -------------------------------
     def set_time(self, t):
         """Position every element for time `t`. No keyframes anywhere."""
@@ -719,9 +814,11 @@ class Scene:
         # is what turns the overhead shot into a true plan view: arcing to 86
         # degrees above a head still tilted 20 degrees only ever gives a
         # three-quarter, which is the one thing the birds-eye must not be.
-        face = ease_in_out(seg(t, ARC[0], ARC[1]))
-        self.head.rotation_euler = (
-            math.radians(-74 + 54 * lift + 16 * face), 0, 0)
+        # It used to straighten further as the camera arced overhead. There is
+        # no arc now, and the camera stays below the flower for the whole act,
+        # so the head holds the lean it opened with — which is the angle that
+        # shows the bowl rather than its edge.
+        self.head.rotation_euler = (math.radians(-74 + 54 * lift), 0, 0)
 
         opening = ease_in_out(seg(t, *OPEN))
         # The petals keep relaxing for three beats after they have "opened".
@@ -748,8 +845,12 @@ class Scene:
 
         self.boss.scale = (swell, swell, swell * 0.62)
 
+        # THE SWAP. Petal 0 goes to nothing at DETACH and the faller takes its
+        # place in the same frame, in the same pose, in the same spot.
+        gone = 1.0 if t >= DETACH[1] else 0.0
         for i, ob in enumerate(self.petals):
-            ob.scale = (swell, swell, swell)
+            sc = swell * (0.0 if (i == 0 and gone) else 1.0)
+            ob.scale = (sc, sc, sc)
             # CLOSED IS HIGH PITCH. The blade is generated along +Y and pitch
             # rotates about X, so pitch 90 stands the petal upright (a bud) and
             # pitch 0 lays it flat (open). Writing this the intuitive way round
@@ -760,6 +861,29 @@ class Scene:
             # flower that has just opened still has its petals lifting.
             pitch = math.radians(104 - 74 * opening - 6 * settle)
             ob.rotation_euler = (pitch, 0, i / len(self.petals) * math.tau)
+
+        # --- the faller ---------------------------------------------------
+        # Before DETACH it does not exist. Through DETACH it peels: still on the
+        # flower, pitching down and out, the one beat of the act where something
+        # comes apart. After that it is in free fall and owns the frame.
+        peel = ease_in(seg(t, *DETACH))
+        if t < DETACH[0]:
+            self.faller.scale = (0, 0, 0)
+        else:
+            pos, u = self.faller_at(t)
+            if t < DETACH[1]:
+                # still attached, hinging away from the head
+                base = self.head.matrix_world @ Vector((0.0, 0.0, 0.0))
+                pos = base + Vector((0.0, 0.0, -0.006 * peel))
+            self.faller.location = pos
+            self.faller.scale = (swell, swell, swell)
+            # The tumble is deliberately out of phase with the swing: a petal
+            # that rolls in time with its own sway reads as a keyframed prop.
+            uu = max(0.0, seg(t, *FALL))
+            self.faller.rotation_euler = (
+                math.radians(30 + 74 * peel) + 1.9 * uu + 0.55 * math.sin(uu * 5.3),
+                0.42 * math.sin(uu * math.tau * 2.3),
+                math.radians(30) + 1.2 * uu)
 
         # dead to alive, in the material rather than in a swap
         life = seg(t, CLIMB[0] + BAR, OPEN[1])
@@ -807,65 +931,115 @@ class Scene:
         # to be a switch.
         find = ease_out(seg(t, bt(1), bt(4)))
         near = ease_in_out(seg(t, 0, ACT_I_END))
-        # A CUT, NOT A DIP. Ramping across the sixteenth means the frame only
-        # reaches black on the very last one and then snaps back to full — a
-        # lopsided dip rather than a blink. The lights are simply off for the
-        # whole sixteenth, which is what "the lights cut out" means and what
-        # makes the paint arrive out of nothing.
-        live = 0.0 if t >= SHUTTER[0] else 1.0
-
-        # EXPOSURE COMPENSATION ON THE PUSH.
+        # THE ROOM GOES OUT, THE PETAL STAYS LIT.
         #
-        # The camera closes from 3.2x the framing distance down to 0.36m, and
-        # the pool it is travelling into gets brighter the whole way — so the
-        # poppy renders dim at 13s and blazing at 15s. It is one continuous
-        # shot of one flower, but a viewer reads a colour that swings that far
-        # as two different objects, which is the one thing this act cannot
-        # afford. The key pulls back through the arc and the push so the petals
-        # hold the same vermilion from the moment they open to the moment the
-        # paint takes them.
-        close = ease_in_out(seg(t, ARC[0], PUSH[1]))
-        self.key.data.energy = 620 * find * live * (1.0 - 0.42 * close)
-        self.bounce.data.energy = 7.5 * find * live * (1.0 - 0.30 * close)
-        self.fill.data.energy = 42 * find * live
+        # "The light only shining above the petal." Through HOLD and the fall
+        # the fill and the bounce go to nothing and the key's cone closes from
+        # 7 degrees to 2.2, so the plant, the jar and the table all drop out of
+        # the picture and the only thing left in the frame is the petal and the
+        # shaft it is falling through. Nothing is faded to black by an exposure
+        # trick — the lights that were lighting the room are simply switched
+        # off one at a time, so what remains is genuinely lit and everything
+        # else is genuinely dark.
+        alone = ease_in_out(seg(t, HOLD[0], FALL[0] + BAR * 0.5))
+
+        # EXPOSURE COMPENSATION ON THE CLOSE.
+        #
+        # The camera follows the petal in to about a third of its framing
+        # distance, and the beam it is falling through gets brighter the whole
+        # way — so the petal would render dim at bt(31) and blazing at bt(43).
+        # It is one continuous shot of one petal, and a viewer reads a colour
+        # that swings that far as two different objects, which is the thing
+        # this act cannot afford: the studio erupts out of THIS petal, so it
+        # has to be the same vermilion at the boom as it was on the flower.
+        close = ease_in_out(seg(t, DETACH[0], FALL[1]))
+        self.key.data.energy = 620 * find * (1.0 - 0.42 * close)
+        # 4 degrees, not 2.2. At 1.8m the cone is the diameter of the pool it
+        # casts: 2.2 degrees is 7cm across and the petal is 14cm long, so the
+        # tightest version lit a quarter of its own subject.
+        self.key.data.spot_size = math.radians(7.0 - 3.0 * alone)
+        self.bounce.data.energy = 7.5 * find * (1.0 - 0.86 * alone)
+        self.fill.data.energy = 42 * find * (1.0 - alone)
         # Density 0.9 is a faint mist. A shaft you can SEE in a dark room needs
         # an order of magnitude more than that — at 0.9 the pool on the floor
         # rendered but the beam making it did not, which is most of the shot.
-        self.haze.inputs["Density"].default_value = (7.0 + 5.0 * near) * find * live
+        # It thickens through the fall: a narrower cone at the same density is
+        # a thinner shaft, and the shaft is the only thing besides the petal
+        # still in the frame.
+        # THINNER THROUGH THE FALL, NOT THICKER — and this cost a render to
+        # learn. Narrowing the cone and thickening the haze together sounded
+        # right (a tight shaft should look dense) and it put the petal inside
+        # an optical depth of about 2.0: 87% of it absorbed on the sight line,
+        # so the fall rendered as an empty black frame with the petal PERFECTLY
+        # lit and perfectly invisible inside the fog. The geometry, the camera
+        # and the key were all correct, which is what made it look like a
+        # missing object rather than a lighting value.
+        self.haze.inputs["Density"].default_value = (
+            (7.0 + 5.0 * near) * find * (1.0 - 0.62 * alone))
+
+        # THE FLOWER STOPS CASTING once the room has gone out. The beam comes
+        # from straight above, so for the first half of the fall the petal is
+        # directly under the flower it just left and falls through its OWN
+        # PLANT'S SHADOW — correctly lit, in frame, and pure black. It is the
+        # most convincing bug in the act, because every value you would check
+        # is right. Nothing that is still casting here is visible any more, so
+        # dropping them out of the shadow pass costs nothing and is what makes
+        # "the light only shining on the petal" literally true.
+        for ob in (*self.petals, *self.calyx, self.boss, *self.stamens,
+                   *[l for l, _ in self.leaves]):
+            ob.visible_shadow = (t < DETACH[0])
+
+        # THE KEY RE-AIMS AT THE PETAL. It does not move.
+        #
+        # The first version slid the lamp in x and y to sit above the petal, and
+        # that is why the second half of the fall rendered black. This key is
+        # not a vertical downlight: it hangs off to one side and is tilted in,
+        # so its forward vector is 12.3 degrees off vertical. Translating it
+        # carries that tilt along, which puts the cone about 40cm wide of a
+        # petal sitting inside a 2 degree half-angle — six cone-widths out.
+        # Every value you would print is correct and the frame is black.
+        #
+        # A follow spot does not slide across the grid, it swivels. Re-aiming
+        # keeps the shaft coming from where it has come from for eight bars —
+        # which is the whole point of having ONE light in this room — and the
+        # beam cone has to be re-aimed with it or the visible shaft and the
+        # light it stands for part company.
+        if t >= DETACH[0]:
+            fp, _ = self.faller_at(t)
+            aim_at(self.key, fp)
+            aim_at(self.beam, fp)
 
         # --- the camera -------------------------------------------------
-        # Two moves, back to back. First the long travel across the dark room
-        # into the pool. Then the arc: up and over the flower until the lens is
-        # looking straight down its throat, coming in to 40cm so the petals
-        # cover the frame.
+        # Two moves, back to back, and the whole act is one unbroken shot.
+        # First the long travel across the dark room into the pool, arriving at
+        # the solved framing as the flower opens. Then it goes with the petal.
         #
-        # It is an ARC, not a cut to plan view, and that is deliberate. The
-        # whole act has been one unbroken move; a cut here would read as a
-        # different shot and hand the viewer a seam exactly where the film is
-        # trying to hide one.
-        travel = ease_in_out(seg(t, 0, ARC[0]))
-        a = ease_in_out(seg(t, *ARC))
-        pu = ease_in_out(seg(t, *PUSH))
-
+        # The follow is NOT a crane tracking a target. It holds the petal a
+        # little above centre and lets it fall toward the middle of the frame,
+        # which is what a camera operator does and what makes the descent
+        # legible: pinning the subject dead centre removes every cue that it is
+        # moving at all, and three bars of a motionless petal on black is the
+        # opposite of tense.
+        travel = ease_in_out(seg(t, 0, HOLD[0]))
         dist = self.cam_start + (self.cam_near - self.cam_start) * travel
         ground = Vector((0.0, -dist, self.cam_z + 0.034 * travel))
 
-        if a <= 0.0:
+        if t < DETACH[0]:
             self.cam.location = ground
             self.cam.rotation_euler = (math.radians(90), 0, 0)
         else:
-            # spherical around the flower head: elevation 0 (level, where the
-            # travel left off) to 86 degrees (very nearly overhead), radius
-            # easing down to arc_end_r
-            r0 = (ground - self.head_at).length
-            r = r0 + (self.arc_r - r0) * a
-            r += (self.arc_end_r - self.arc_r) * pu
-            elev = math.radians(2.0 + 84.0 * a + 2.0 * pu)
-            # a few degrees of azimuth as it rises, so the move has some drift
-            # in it and does not read as a mechanical crane
-            az = math.radians(-90.0 + 14.0 * a + 6.0 * pu)
-            self.cam.location = self.head_at + Vector((
-                r * math.cos(elev) * math.cos(az),
-                r * math.cos(elev) * math.sin(az),
-                r * math.sin(elev)))
-            aim_at(self.cam, self.head_at)
+            fp, u = self.faller_at(t)
+            # in from the framing distance to a third of it, so the petal grows
+            # through the fall and is nearly frame-filling when the paint takes
+            # it — the studio needs something big to erupt out of
+            cl = ease_in_out(seg(t, DETACH[0], FALL[1]))
+            r = dist + (0.34 * self.cam_near - dist) * cl
+            # a few degrees of drift around it, so three bars of falling has
+            # some parallax in it and the background dark is not a flat card
+            az = math.radians(-90.0 + 9.0 * cl)
+            self.cam.location = fp + Vector((
+                r * math.cos(az), r * math.sin(az), 0.035 * (1.0 - cl)))
+            # lead the petal: aim a little BELOW it, so it sits high in frame
+            # and falls down through the middle rather than hanging in it
+            self.cam.rotation_euler = (math.radians(90), 0, 0)
+            aim_at(self.cam, fp - Vector((0.0, 0.0, 0.026 * (1.0 - 0.4 * u))))

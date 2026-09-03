@@ -32,7 +32,7 @@ from bpy_extras.object_utils import world_to_camera_view
 HERE = os.path.dirname(os.path.abspath(__file__))
 BLEND = os.path.join(HERE, "..", "source", "blender")
 sys.path.insert(0, BLEND)
-from plant import SHUTTER, Scene             # noqa: E402
+from plant import ACT_I_END, Scene           # noqa: E402
 from render_plant import configure           # noqa: E402
 
 W, H = 1080, 1920
@@ -59,9 +59,11 @@ def kmeans(px, k, iters=40, seed=7):
 def main():
     scene = Scene()
     configure(W, 128)
-    # The LAST LIT FRAME, not ACT_I_END — the act now ends on a sixteenth of
-    # black, and sampling a palette out of a black frame returns black.
-    scene.set_time(SHUTTER[0] - 1 / 120.0)
+    # THE LAST FRAME OF THE FALL. There is no black before the studio any
+    # more: the petal is still lit and still on screen when the paint erupts
+    # out of it, so the frame to project and to sample is the final one of
+    # Act I, not the one before a shutter that no longer exists.
+    scene.set_time(ACT_I_END - 1 / 120.0)
 
     # --- 1. where -----------------------------------------------------------
     dg = bpy.context.evaluated_depsgraph_get()
