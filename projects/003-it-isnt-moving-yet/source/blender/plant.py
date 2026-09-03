@@ -924,6 +924,7 @@ class Scene:
             cu.body = w
             cu.font = self.font_black
             cu.align_x = 'CENTER'
+            cu.align_y = 'CENTER'     # or it grows up from its origin and sits a cap height too high
             cu.extrude = 0.0
             cu.resolution_u = 6
             ob = bpy.data.objects.new("w_" + w, cu)
@@ -1106,7 +1107,7 @@ class Scene:
             w.data.materials[0] = self.type_mats['rust']
             w.scale = (1.35, 1.35, 1.35)
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (0.9 - 1.5 * ease_in_out(u), 1.05, 0.02)
+            w.location = (0.9 - 1.5 * ease_in_out(u), 1.05, 0.50)
             if camera:
                 self.cam.location = (0.42 - 0.7 * u, -1.75, 0.66)
                 aim_at(self.cam, H + Vector((0, 0, 0.05)))
@@ -1127,9 +1128,9 @@ class Scene:
             w = self.words['do you']
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['blue']
-            w.scale = (0.40, 0.40, 0.40)
+            w.scale = (0.34, 0.34, 0.34)
             w.rotation_euler = (0, 0, 0)                     # flat on the floor
-            w.location = (0.0, -0.36, 0.003)
+            w.location = (0.0, -0.20, 0.003)
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
@@ -1167,7 +1168,7 @@ class Scene:
             w.data.materials[0] = self.type_mats['paper']
             w.scale = (0.52, 0.52, 0.52)
             w.rotation_euler = (math.radians(90), 0, math.radians(-7))
-            w.location = (0.26, 0.34, 0.47)
+            w.location = (0.28, 0.34, 0.44)
             # handheld
             if camera:
                 self.cam.location = (0.22 + (h(1, 3) - 0.5) * 0.02, -1.15, 0.55 + (h(2, 3) - 0.5) * 0.015)
@@ -1181,9 +1182,10 @@ class Scene:
             w = self.words["ideas that aren't"]
             w.data.font = self.font_reg
             w.data.materials[0] = self.type_mats['ink']
-            w.scale = (0.13, 0.13, 0.13)
+            w.data.align_x = 'LEFT'
+            w.scale = (0.036, 0.036, 0.036)
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (-0.34, -0.12, 0.22)
+            w.location = (-0.42, -0.12, 0.20)
             if camera:
                 self.cam.location = (0.0, -1.55, 0.50)
                 aim_at(self.cam, H)
@@ -1236,6 +1238,8 @@ class Scene:
             L.data.energy = e * strength * STUDIO_GAIN
         if name != 'collage':
             self.skey.data.size = 1.8
+        if name != 'ink':
+            self.words["ideas that aren't"].data.align_x = 'CENTER'
         if name != 'painted':
             self.skey.location = (1.5, -1.7, 2.3)
             aim_at(self.skey, H)
@@ -1305,7 +1309,7 @@ class Scene:
             w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
             w.scale = (0.9, 0.9, 0.9)
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (0.0, 0.85, 0.02)
+            w.location = (0.0, 0.85, 0.36)
             self.cam.location = (0.0, -1.55, 0.52)
             aim_at(self.cam, H + Vector((0, 0, 0.08)))
             return
