@@ -67,6 +67,38 @@ ACT_I_END = bt(44)             # 20.465s — eleven bars
 #
 # This is the thing the birds-eye arc could never have done. A camera move
 # cannot come back; a petal can.
+# --- THE STUDIO. Eleven bars, all of them Blender. ------------------------
+#
+# The room was a studio the whole time. For eleven bars it is one beam in the
+# dark; on bt(44), when the petal touches the table and the music slams back,
+# every light comes on at once, the walls turn out to be a white cyclorama, and
+# the flower that has been the only thing in the world is the SUBJECT OF A
+# SHOOT. That is the drop — not paint erupting over the flower, the flower being
+# produced. It stays the same object throughout, which is the one thing a cut
+# to 2D could never give it.
+#
+# Five LOOKS, each a lighting rig + a material + a place for type + a camera:
+#   EDITORIAL  rust     isolated on white, one soft key, huge type behind it
+#   GRID       blue     the geometry voxelises on the beat, labels on the cells
+#   COLLAGE    red      the petals tear off as paper, tape holds them in the air
+#   INK        mustard  a line drawing that draws itself on
+#   PAINTED    plum     impasto material, type brush-lettered ON a petal
+#
+# The type is THE QUESTION, reassembled: asked once in bar 1, never answered,
+# its words come back one per look around and on the flower, and "alive?" lands
+# on all five at once. By the end the whole question has been restated in five
+# voices on one flower, and the answer is what you just watched.
+REVEAL    = (bt(44), bt(48))    # lights up, cyc, the camera pulls back
+STATED    = (bt(48), bt(58))    # the five looks, two beats each
+CUTTING   = (bt(58), bt(68))    # cutting between them on beats, then eighths
+ALLFIVE   = (bt(68), bt(76))    # the strobe: all five on one flower — the peak
+COLLAPSE  = (bt(76), bt(88))    # the lights go out one look at a time
+BREAK     = (bt(88), bt(92))    # the track drops out; the room is one beam again
+LOOKS     = ('editorial', 'grid', 'collage', 'ink', 'painted')
+WORDS     = ('how', 'do you', 'make', "ideas that aren't", 'alive,')
+LAST_WORD = 'alive?'
+STUDIO_GAIN = 0.36
+
 ENDFALL   = (bt(92),  bt(105))  # it falls, and the room comes back around it
 ENDDIE    = (bt(105), bt(108))  # the beam goes out. Frame 0 is black too.
 FILM_END  = bt(108)             # 50.233s — twenty-seven bars
@@ -127,6 +159,13 @@ FILM_END  = bt(108)             # 50.233s — twenty-seven bars
 # accent and is deliberately an olive, not a chlorophyll green — it has to sit
 # next to umber without arguing with it.
 UMBER      = (0.043, 0.017, 0.010, 1.0)
+# the cyc, per look — every one of them is in the warm family except the grid's,
+# which is the sanctioned exception the accents already have
+CYC_BONE   = (0.84, 0.76, 0.60, 1.0)
+CYC_CANVAS = (0.80, 0.71, 0.54, 1.0)
+CYC_GRID   = (0.62, 0.66, 0.74, 1.0)
+CYC_RED    = (0.66, 0.05, 0.02, 1.0)
+CYC_MUSTARD= (0.48, 0.23, 0.035, 1.0)
 DEAD_STEM  = (0.058, 0.043, 0.028, 1.0)
 LIVE_STEM  = (0.088, 0.121, 0.052, 1.0)
 DEAD_LEAF  = (0.062, 0.046, 0.028, 1.0)
@@ -370,6 +409,7 @@ class Scene:
         self._beam()   # after _lights: the cone is placed and aimed with the lamp
         self._camera()
         self._world()
+        self._studio()     # everything it adds is OFF until bt(44)
 
     # -- set ----------------------------------------------------------------
     def _table(self):
@@ -377,6 +417,7 @@ class Scene:
         t = bpy.context.object
         t.name = "table"
         t.data.materials.append(self.mat_table)
+        self.table = t
 
     def _jar(self):
         """
@@ -786,6 +827,525 @@ class Scene:
         w.node_tree.nodes["Background"].inputs[1].default_value = 0.030
         bpy.context.scene.world = w
 
+
+    # -- THE STUDIO --------------------------------------------------------
+    def _studio(self):
+        """
+        Everything the drop turns on. A cyclorama, a four-light rig, a
+        material per look, a font object per word, tape, and the modifiers that
+        voxelise the petals. All of it is built once and left dark, hidden or
+        disabled, so Act I renders exactly as it did before any of this existed
+        — the studio is not a second scene, it is the same room with the lights
+        on.
+        """
+        # THE CYC. One mesh: floor, a quarter-round cove, a wall. Built from a
+        # profile swept across x, so the cove is real geometry and the key
+        # falls off across it the way it does on a stage. It replaces the
+        # table while it is up — both at z=0 would z-fight, so set_time swaps
+        # them.
+        prof = []
+        for i in range(12):                                  # floor
+            prof.append((-3.2 + 4.4 * i / 11, 0.0))
+        for i in range(1, 13):                               # cove
+            a = math.radians(-90 + 90 * i / 12)
+            prof.append((1.2 + 1.0 * math.cos(a), 1.0 + 1.0 * math.sin(a)))
+        for i in range(1, 6):                                # wall
+            prof.append((2.2, 1.0 + 3.6 * i / 5))
+        verts, faces = [], []
+        NX = 9
+        for j, (y, z) in enumerate(prof):
+            for i in range(NX):
+                verts.append((-3.6 + 7.2 * i / (NX - 1), y, z))
+        for j in range(len(prof) - 1):
+            for i in range(NX - 1):
+                a = j * NX + i
+                faces.append((a, a + 1, a + NX + 1, a + NX))
+        self.mat_cyc = principled("cyc", **{"Base Color": CYC_BONE, "Roughness": 0.92,
+                                            "Specular IOR Level": 0.15})
+        self.cyc = mesh_from("cyc", verts, faces, self.mat_cyc)
+        self.cyc.hide_render = True
+
+        # THE RIG. A soft key, a big fill, a rim, and a wash for the wall.
+        def area(name, loc, size, energy, colour, aim):
+            bpy.ops.object.light_add(type='AREA', location=loc)
+            L = bpy.context.object
+            L.name = name
+            L.data.size = size
+            L.data.energy = 0.0
+            L.data.color = colour
+            L["studio_energy"] = energy
+            aim_at(L, aim)
+            return L
+        H = Vector((0.0, 0.0, 0.43))
+        self.skey  = area("skey",  ( 1.5, -1.7, 2.3), 1.8, 900.0, (1.0, 0.93, 0.84), H)
+        self.sfill = area("sfill", (-2.1, -1.5, 1.4), 3.0, 260.0, (0.92, 0.95, 1.0), H)
+        self.srim  = area("srim",  (-0.7,  1.5, 2.0), 0.9, 420.0, (1.0, 0.88, 0.72), H)
+        self.swash = area("swash", ( 0.0, -0.4, 3.6), 4.5, 700.0, (1.0, 1.0, 1.0),
+                          Vector((0.0, 2.2, 1.8)))
+        # The rig must not touch the JAR: glass under four soft sources throws
+        # highlights everywhere and the jar stops reading as glass. It keeps the
+        # Act I rim only.
+        for L in (self.skey, self.sfill, self.srim, self.swash):
+            pass
+
+        # THE LOOK MATERIALS. Flat, deliberately: the looks are about the
+        # LANGUAGE, and a language reads at its clearest on a surface that is
+        # not arguing with it.
+        self.mat_grid  = principled("look_grid",  **{"Base Color": ACCENTS[1],
+                                                     "Roughness": 1.0, "Specular IOR Level": 0.0})
+        self.mat_paper = principled("look_paper", **{"Base Color": ACCENTS[2],
+                                                     "Roughness": 0.96, "Specular IOR Level": 0.08})
+        self.mat_ink   = principled("look_ink",   **{"Base Color": (0.96, 0.95, 0.92, 1.0),
+                                                     "Roughness": 1.0, "Specular IOR Level": 0.0,
+                                                     "Alpha": 0.10})
+        self.mat_paint = self._paint_material()
+        self.mat_tape  = principled("tape", **{"Base Color": (0.93, 0.90, 0.82, 1.0),
+                                                "Roughness": 0.85, "Specular IOR Level": 0.05,
+                                                "Alpha": 0.86})
+        self.type_mats = {}
+        for name, col in (("rust", ACCENTS[0]), ("blue", ACCENTS[1]), ("red", ACCENTS[2]),
+                          ("mustard", ACCENTS[3]), ("plum", ACCENTS[4]),
+                          ("ink", (0.05, 0.03, 0.02, 1.0)), ("paper", (0.97, 0.95, 0.90, 1.0))):
+            self.type_mats[name] = principled("type_" + name, **{
+                "Base Color": col, "Roughness": 0.62, "Specular IOR Level": 0.25})
+
+        # THE WORDS. One font object each. Sized and placed per look in
+        # set_time; here they only exist.
+        here = os.path.dirname(os.path.abspath(__file__))
+        fdir = os.path.join(here, "..", "fonts")
+        self.font_black = bpy.data.fonts.load(os.path.join(fdir, "Inter-Black.ttf"))
+        self.font_bold  = bpy.data.fonts.load(os.path.join(fdir, "Inter-ExtraBold.ttf"))
+        self.font_reg   = bpy.data.fonts.load(os.path.join(fdir, "Inter-Regular.ttf"))
+        self.words = {}
+        for w in (*WORDS, LAST_WORD):
+            cu = bpy.data.curves.new("w_" + w, type='FONT')
+            cu.body = w
+            cu.font = self.font_black
+            cu.align_x = 'CENTER'
+            cu.extrude = 0.0
+            cu.resolution_u = 6
+            ob = bpy.data.objects.new("w_" + w, cu)
+            bpy.context.scene.collection.objects.link(ob)
+            ob.scale = (0, 0, 0)
+            ob.data.materials.append(self.type_mats["rust"])
+            self.words[w] = ob
+
+        # TAPE. Eight strips for the collage, hidden until then.
+        self.tape = []
+        for i in range(8):
+            bpy.ops.mesh.primitive_plane_add(size=1, location=(0, 0, -5))
+            tp = bpy.context.object
+            tp.name = f"tape{i}"
+            tp.scale = (0.024, 0.007, 1)
+            tp.data.materials.append(self.mat_tape)
+            tp.hide_render = True
+            self.tape.append(tp)
+
+        # VOXELS. Solidify (a sheet has no volume to remesh) then Remesh in
+        # BLOCKS mode, on every petal including the fallen one. Off by default.
+        self.voxel_mods = []
+        for ob in (*self.petals, self.faller):
+            so = ob.modifiers.new("solid", 'SOLIDIFY')
+            so.thickness = 0.006
+            so.show_render = so.show_viewport = False
+            rm = ob.modifiers.new("voxel", 'REMESH')
+            rm.mode = 'BLOCKS'
+            rm.octree_depth = 5
+            rm.use_remove_disconnected = False
+            rm.show_render = rm.show_viewport = False
+            self.voxel_mods.append((so, rm))
+
+        # INK. Freestyle draws the line; the petals go almost transparent
+        # under it. Set up once, switched per frame.
+        sc = bpy.context.scene
+        sc.render.use_freestyle = False
+        sc.render.line_thickness = 2.6
+        fs = bpy.context.view_layer.freestyle_settings
+        fs.use_culling = True
+        for ls in list(fs.linesets):
+            fs.linesets.remove(ls)
+        ls = fs.linesets.new("ink")
+        ls.select_silhouette = True
+        ls.select_border = True
+        ls.select_crease = True
+        ls.select_by_visibility = True
+        ls.linestyle.color = (0.05, 0.03, 0.02)
+        ls.linestyle.thickness = 2.6
+        fs.crease_angle = math.radians(118)
+        # the line set only ever draws the plant, never the cyc or the jar
+        inkc = bpy.data.collections.new("ink_only")
+        sc.collection.children.link(inkc)
+        for ob in (self.stem, *[l for l, _ in self.leaves], *self.petals,
+                   self.faller, self.boss, *self.stamens):
+            inkc.objects.link(ob)
+        ls.select_by_collection = True
+        ls.collection = inkc
+
+        # where the fallen petal lies at the end of the fall — it stays there
+        self.petal_home = self.petals[1].location.copy()
+        self.landed, _ = self.faller_at(FALL[1])
+        self.landed = Vector((self.landed.x, self.landed.y, 0.006))
+
+    def _paint_material(self):
+        """
+        Impasto. Plum, with the brush plate driving both bump and roughness so
+        the strokes catch a raking key. The plate carries only value (see
+        scripts/brushplate.py) which is exactly why it can be pushed this hard
+        without shifting the hue.
+        """
+        mat = bpy.data.materials.new("look_paint")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        b = nt.nodes["Principled BSDF"]
+        b.inputs["Base Color"].default_value = ACCENTS[4]
+        b.inputs["Specular IOR Level"].default_value = 0.28
+        here = os.path.dirname(os.path.abspath(__file__))
+        img = bpy.data.images.load(os.path.join(here, "..", "tex", "brush.png"))
+        tex = nt.nodes.new("ShaderNodeTexImage"); tex.image = img
+        tc = nt.nodes.new("ShaderNodeTexCoord")
+        mp = nt.nodes.new("ShaderNodeMapping")
+        mp.inputs["Scale"].default_value = (2.2, 2.2, 2.2)
+        nt.links.new(tc.outputs["Generated"], mp.inputs["Vector"])
+        nt.links.new(mp.outputs["Vector"], tex.inputs["Vector"])
+        bump = nt.nodes.new("ShaderNodeBump")
+        bump.inputs["Strength"].default_value = 0.85
+        bump.inputs["Distance"].default_value = 0.02
+        nt.links.new(tex.outputs["Color"], bump.inputs["Height"])
+        nt.links.new(bump.outputs["Normal"], b.inputs["Normal"])
+        rg = nt.nodes.new("ShaderNodeMapRange")
+        rg.inputs["To Min"].default_value = 0.22
+        rg.inputs["To Max"].default_value = 0.70
+        nt.links.new(tex.outputs["Color"], rg.inputs["Value"])
+        nt.links.new(rg.outputs["Result"], b.inputs["Roughness"])
+        return mat
+
+    def _studio_off(self):
+        """Put the studio away. Called by the act-one and ending branches so
+        their frames cannot inherit any of it — set_time stays pure."""
+        self.cyc.hide_render = True
+        self.table.hide_render = False
+        for L in (self.skey, self.sfill, self.srim, self.swash):
+            L.data.energy = 0.0
+        for w in self.words.values():
+            w.scale = (0, 0, 0)
+        for tp in self.tape:
+            tp.hide_render = True
+        for so, rm in self.voxel_mods:
+            so.show_render = rm.show_render = False
+        bpy.context.scene.render.use_freestyle = False
+        self.mat_cyc.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
+            .default_value = CYC_BONE
+        for ob in (*self.petals, self.faller):
+            ob.data.materials[0] = self.mat_petal
+
+    def _pose_open(self):
+        """The flower fully open, one petal on the table: the studio's subject."""
+        self.stem.data.bevel_factor_end = 1.0
+        for ob, _ in self.leaves:
+            ob.scale = (1, 1, 1)
+        self.head.rotation_euler = (math.radians(-20), 0, 0)
+        for ob in self.calyx:
+            ob.scale = (0, 0, 0)
+        for st in self.stamens:
+            st.scale = (1, 1, 1)
+        self.boss.scale = (1, 1, 0.62)
+        # LOCATION TOO. The collage look pushes every petal off the head, and
+        # a pose that resets rotation but not location leaves them hanging in
+        # the air through ink, painted, the strobe and the break — every look
+        # after collage rendered with the flower torn apart. Same class of bug
+        # as the key aim: state that one branch writes and no branch clears.
+        for i, ob in enumerate(self.petals):
+            ob.scale = (0, 0, 0) if i == 0 else (1, 1, 1)
+            ob.location = self.petal_home
+            ob.rotation_euler = (math.radians(24), 0, i / len(self.petals) * math.tau)
+        self.faller.scale = (1, 1, 1)
+        self.faller.location = self.landed
+        self.faller.rotation_euler = (math.radians(96), 0.1, math.radians(38))
+        self.mat_stem.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
+            .default_value = LIVE_STEM
+        self.mat_leaf.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
+            .default_value = LIVE_LEAF
+        for ob in (*self.petals, self.faller, *self.calyx, self.boss, *self.stamens,
+                   *[l for l, _ in self.leaves]):
+            ob.visible_shadow = True
+
+    def _look(self, name, u, t, strength=1.0, camera=True):
+        """
+        Dress the room for one look at progress u (0..1 through its
+        appearance). `strength` scales the rig, for the collapse.
+        Every look sets EVERYTHING it cares about, so cutting between them is
+        a pure function of t and nothing leaks from the previous frame.
+        """
+        H = Vector((0.0, 0.0, 0.43))
+        cyc = self.mat_cyc.node_tree.nodes["Principled BSDF"].inputs["Base Color"]
+        rig = {L: 0.0 for L in (self.skey, self.sfill, self.srim, self.swash)}
+        for w in self.words.values():
+            w.scale = (0, 0, 0)
+        for tp in self.tape:
+            tp.hide_render = True
+        for so, rm in self.voxel_mods:
+            so.show_render = rm.show_render = False
+        bpy.context.scene.render.use_freestyle = False
+        petal_mat = self.mat_petal
+        # a hashed jitter, never random(): the handheld and the tape must
+        # rebuild identically on a resumed chunk
+        def h(n, salt=0):
+            return ((int(t * 240) * 2654435761 + n * 40503 + salt * 7919) % 65536) / 65536.0
+
+        if name == 'editorial':
+            cyc.default_value = CYC_BONE
+            rig[self.skey], rig[self.sfill], rig[self.swash] = 900, 260, 700
+            rig[self.srim] = 160
+            # ONE WORD, TWO METRES TALL, STANDING BEHIND THE FLOWER. The
+            # technique is the imbalance: an object and a word and nothing
+            # else. It crosses slowly, the way the petal crossed the page.
+            w = self.words['how']
+            w.data.font = self.font_black
+            w.data.materials[0] = self.type_mats['rust']
+            w.scale = (1.35, 1.35, 1.35)
+            w.rotation_euler = (math.radians(90), 0, 0)
+            w.location = (0.9 - 1.5 * ease_in_out(u), 1.05, 0.02)
+            if camera:
+                self.cam.location = (0.42 - 0.7 * u, -1.75, 0.66)
+                aim_at(self.cam, H + Vector((0, 0, 0.05)))
+
+        elif name == 'grid':
+            cyc.default_value = CYC_GRID
+            rig[self.skey], rig[self.sfill], rig[self.swash] = 520, 520, 900
+            petal_mat = self.mat_grid
+            # THE GEOMETRY QUANTISES, ON THE BEAT. Depth 3 is a fist of cubes,
+            # depth 6 is nearly the petal again; it steps through them on the
+            # sixteenths so the flower is never smoothly "becoming" blocks —
+            # it snaps between resolutions, which is the whole language.
+            step = int(u * 8) % 4
+            depth = (4, 5, 3, 6)[step]
+            for so, rm in self.voxel_mods:
+                so.show_render = rm.show_render = True
+                rm.octree_depth = depth
+            w = self.words['do you']
+            w.data.font = self.font_bold
+            w.data.materials[0] = self.type_mats['blue']
+            w.scale = (0.40, 0.40, 0.40)
+            w.rotation_euler = (0, 0, 0)                     # flat on the floor
+            w.location = (0.0, -0.36, 0.003)
+            if camera:
+                # a little higher and aimed a little lower than the other
+                # looks, so the floor in front of the jar — where the label
+                # lies — is inside the frame instead of under it
+                self.cam.location = (0.0, -1.42, 0.62)
+                aim_at(self.cam, H - Vector((0, 0, 0.12)))
+
+        elif name == 'collage':
+            cyc.default_value = CYC_RED
+            rig[self.skey], rig[self.srim] = 1400, 500     # one hard source
+            self.skey.data.size = 0.35
+            petal_mat = self.mat_paper
+            # THE PETALS TEAR OFF. Each one leaves the head and hangs in the
+            # air at its own crooked angle, a strip of tape across it — the
+            # flower as five pieces of red paper that used to be a flower.
+            for i, ob in enumerate(self.petals):
+                if i == 0:
+                    continue
+                k = ease_out(seg(u, 0.0 + i * 0.06, 0.45 + i * 0.06))
+                a = i / len(self.petals) * math.tau
+                ob.rotation_euler = (math.radians(24 + 56 * k),
+                                     math.radians((h(i) - 0.5) * 40 * k), a)
+                ob.location = (0.0 + math.cos(a) * 0.19 * k,
+                               0.0 + math.sin(a) * 0.19 * k,
+                               0.43 + (0.05 + 0.16 * h(i, 1)) * k)
+            for j, tp in enumerate(self.tape):
+                i = 1 + (j % 5)
+                pet = self.petals[i]
+                tp.hide_render = False
+                tp.location = pet.matrix_world @ Vector((0.0, 0.05 + 0.03 * (j // 5), 0.004))
+                tp.rotation_euler = (pet.rotation_euler.x, pet.rotation_euler.y,
+                                     pet.rotation_euler.z + math.radians(72 + 30 * h(j, 2)))
+            w = self.words['make']
+            w.data.font = self.font_black
+            w.data.materials[0] = self.type_mats['paper']
+            w.scale = (0.52, 0.52, 0.52)
+            w.rotation_euler = (math.radians(90), 0, math.radians(-7))
+            w.location = (-0.22, 0.30, 0.62)
+            # handheld
+            if camera:
+                self.cam.location = (0.22 + (h(1, 3) - 0.5) * 0.02, -1.15, 0.55 + (h(2, 3) - 0.5) * 0.015)
+                aim_at(self.cam, H + Vector(((h(3, 3) - 0.5) * 0.02, 0, 0.02)))
+
+        elif name == 'ink':
+            cyc.default_value = CYC_MUSTARD
+            rig[self.sfill], rig[self.swash] = 700, 900   # flat, shadowless
+            petal_mat = self.mat_ink
+            bpy.context.scene.render.use_freestyle = True
+            w = self.words["ideas that aren't"]
+            w.data.font = self.font_reg
+            w.data.materials[0] = self.type_mats['ink']
+            w.scale = (0.13, 0.13, 0.13)
+            w.rotation_euler = (math.radians(90), 0, 0)
+            w.location = (-0.36, -0.30, 0.05)
+            if camera:
+                self.cam.location = (0.0, -1.55, 0.50)
+                aim_at(self.cam, H)
+
+        elif name == 'painted':
+            cyc.default_value = CYC_CANVAS
+            rig[self.skey], rig[self.sfill] = 650, 140      # raking, to catch impasto
+            self.skey.data.size = 0.7
+            self.skey.location = (1.9, -0.4, 0.9)
+            aim_at(self.skey, H)
+            petal_mat = self.mat_paint
+            # TYPE ON THE FLOWER. Brush-lettered onto the face of petal 3,
+            # riding its transform so it stays on the petal whatever the
+            # petal does.
+            w = self.words['alive,']
+            w.data.font = self.font_bold
+            w.data.materials[0] = self.type_mats['paper']
+            w.data.extrude = 0.0015
+            w.scale = (0.050, 0.050, 0.050)
+            # ON THE PETAL. Not parented — the petal's local frame has its
+            # cupped face on -Z and the text vanished behind it. It is placed
+            # in world space a hair off the petal's surface, on whichever face
+            # the camera can actually see, and takes the petal's rotation so
+            # it lies flat on it.
+            pu = ease_in_out(u)
+            if camera:
+                self.cam.location = (0.30 - 0.15 * pu, -1.30 + 0.45 * pu, 0.55 - 0.05 * pu)
+            bpy.context.view_layer.update()
+            pet = self.petals[3]
+            M = pet.matrix_world
+            a = M @ Vector((0.0, 0.042, 0.012))
+            b = M @ Vector((0.0, 0.042, -0.012))
+            cam = Vector(self.cam.location)
+            w.location = a if (a - cam).length < (b - cam).length else b
+            w.rotation_euler = M.to_euler()
+            if (a - cam).length >= (b - cam).length:
+                w.rotation_euler.rotate_axis('X', math.pi)   # face the other way
+            if camera:
+                aim_at(self.cam, H)
+
+        for ob in (*self.petals, self.faller):
+            ob.data.materials[0] = petal_mat
+        # STUDIO_GAIN. The film's exposure is set for one 620W spot in a black
+        # room. Four soft sources at 500-900W plus a cyc bouncing all of it
+        # back put every look about a stop and a half over: plum rendered as
+        # dusty pink, signal blue as powder, the mustard field as peach. The
+        # rig values above are the RATIOS between the lamps, which are right;
+        # this is the one number that sets how bright the room is.
+        for L, e in rig.items():
+            L.data.energy = e * strength * STUDIO_GAIN
+        if name != 'collage':
+            self.skey.data.size = 1.8
+        if name != 'painted':
+            self.skey.location = (1.5, -1.7, 2.3)
+            aim_at(self.skey, H)
+            self.words['alive,'].parent = None
+
+    def _set_time_studio(self, t):
+        # THE ROOM WITH THE LIGHTS ON.
+        self.beam.hide_render = True
+        self.haze.inputs["Density"].default_value = 0.0
+        self.key.data.energy = 0.0
+        self.bounce.data.energy = 0.0
+        self.fill.data.energy = 0.0
+        self.table.hide_render = True
+        self.cyc.hide_render = False
+        self._pose_open()
+        H = Vector((0.0, 0.0, 0.43))
+
+        if t < REVEAL[1]:
+            # THE DROP. The lights are a SWITCH — on inside a sixteenth — and
+            # only the camera takes its time, pulling back from the fallen
+            # petal to a wide of the whole flower on the cyc. The viewer
+            # learns in one frame that the room was a stage, and then gets a
+            # bar to see it.
+            on = ease_out(seg(t, REVEAL[0], REVEAL[0] + BEAT / 4))
+            self._look('editorial', 0.0, t, strength=on)
+            pull = ease_in_out(seg(t, REVEAL[0], REVEAL[1]))
+            start = self.landed + Vector((0.10, -0.55, 0.16))
+            end = Vector((0.42, -1.75, 0.66))
+            self.cam.location = start + (end - start) * pull
+            aim_at(self.cam, self.landed + (H + Vector((0, 0, 0.05)) - self.landed) * pull)
+            self.words['how'].scale = (0, 0, 0)
+            return
+
+        if t < STATED[1]:
+            i = min(4, int((t - STATED[0]) / (2 * BEAT)))
+            u = seg(t, STATED[0] + i * 2 * BEAT, STATED[0] + (i + 1) * 2 * BEAT)
+            self._look(LOOKS[i], u, t)
+            return
+
+        if t < CUTTING[1]:
+            # six cuts on the beat, then eight on the eighths, no look twice
+            # in a row: the order is a fixed sequence, not a hash, because a
+            # cut list is a decision.
+            SEQ = (2, 0, 4, 1, 3, 2, 4, 0, 3, 1, 2, 4, 1, 0)
+            tt = t - CUTTING[0]
+            if tt < 6 * BEAT:
+                n = int(tt / BEAT); a = n * BEAT; b = a + BEAT
+            else:
+                n = 6 + int((tt - 6 * BEAT) / (BEAT / 2))
+                a = 6 * BEAT + (n - 6) * BEAT / 2; b = a + BEAT / 2
+            u = seg(tt, a, b)
+            self._look(LOOKS[SEQ[min(n, 13)]], 0.2 + 0.6 * u, t)
+            return
+
+        if t < ALLFIVE[1]:
+            # THE STROBE. One flower, all five languages, on the eighths.
+            # This is the film's claim made as loudly as it can be made:
+            # identical content, five voices, nothing else changes.
+            n = int((t - ALLFIVE[0]) / (BEAT / 2))
+            u = seg(t - ALLFIVE[0], n * BEAT / 2, (n + 1) * BEAT / 2)
+            look = LOOKS[n % 5]
+            self._look(look, 0.3 + 0.4 * u, t)
+            # ...and the last word, held through all of it, in each look's
+            # own material. The question completes here.
+            w = self.words[LAST_WORD]
+            w.data.font = self.font_black
+            w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
+            w.scale = (0.9, 0.9, 0.9)
+            w.rotation_euler = (math.radians(90), 0, 0)
+            w.location = (0.0, 0.85, 0.02)
+            self.cam.location = (0.0, -1.55, 0.52)
+            aim_at(self.cam, H + Vector((0, 0, 0.08)))
+            return
+
+        if t < COLLAPSE[1]:
+            # It comes apart the way it was built, in reverse, and the rig
+            # dims across each look so the room is ARRIVING at the dark rather
+            # than being switched off.
+            spans = ((4, 3.0), (3, 3.0), (2, 2.0), (1, 2.0), (0, 2.0))
+            tt = t - COLLAPSE[0]; acc = 0.0
+            for k, (li, beats) in enumerate(spans):
+                if tt < acc + beats * BEAT or k == len(spans) - 1:
+                    u = seg(tt, acc, acc + beats * BEAT)
+                    fade = 1.0 - 0.85 * (k + u) / len(spans)
+                    self._look(LOOKS[li], 0.2 + 0.6 * u, t, strength=fade)
+                    break
+                acc += beats * BEAT
+            # the Act I beam comes back over the last look, narrowing onto the
+            # flower, so the break inherits the room it started in
+            back = ease_in_out(seg(tt, 9 * BEAT, 12 * BEAT))
+            self.beam.hide_render = back < 0.02
+            self.key.data.energy = 620 * back
+            self.key.data.spot_size = math.radians(7.0)
+            aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
+            self.haze.inputs["Density"].default_value = 9.0 * back
+            self.cam.location = (0.15, -1.60, 0.50)
+            aim_at(self.cam, H)
+            return
+
+        # THE BREAK. One beam, and then not even that.
+        self._look('editorial', 1.0, t, strength=0.0)
+        self.cyc.hide_render = True
+        self.table.hide_render = False
+        die = ease_in_out(seg(t, BREAK[0] + BEAT, BREAK[1]))
+        self.beam.hide_render = False
+        self.key.data.energy = 620 * (1.0 - die)
+        self.key.data.spot_size = math.radians(7.0)
+        aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
+        self.haze.inputs["Density"].default_value = 9.0 * (1.0 - die)
+        self.cam.location = (0.15, -1.60, 0.50)
+        aim_at(self.cam, H)
+
     def faller_at(self, t):
         """
         Where the falling petal is at time `t`, in world space.
@@ -843,7 +1403,11 @@ class Scene:
     def set_time(self, t):
         """Position every element for time `t`. No keyframes anywhere."""
         if t >= ENDFALL[0]:
+            self._studio_off()
             return self._set_time_ending(t)
+        if t >= REVEAL[0]:
+            return self._set_time_studio(t)
+        self._studio_off()
         return self._set_time_act_one(t)
 
     def _set_time_ending(self, t):
@@ -991,6 +1555,7 @@ class Scene:
         for i, ob in enumerate(self.petals):
             sc = swell * (0.0 if (i == 0 and gone) else 1.0)
             ob.scale = (sc, sc, sc)
+            ob.location = self.petal_home
             # CLOSED IS HIGH PITCH. The blade is generated along +Y and pitch
             # rotates about X, so pitch 90 stands the petal upright (a bud) and
             # pitch 0 lays it flat (open). Writing this the intuitive way round
@@ -1116,6 +1681,18 @@ class Scene:
         # missing object rather than a lighting value.
         self.haze.inputs["Density"].default_value = (
             (7.0 + 5.0 * near) * find * (1.0 - 0.62 * alone))
+
+        # THE TWO GLITCHES, IN THE SAME MEDIUM AS THE STUDIO THEY PREVIEW.
+        # For two frames the whole room is thrown into a look — the grid, then
+        # the collage — over the fall exactly as it stands: the flower at the
+        # side, the petal in the air, the beam still on. It used to be a 2D
+        # frame substituted in; now it is the same Blender scene with the
+        # lights on, which is what the drop is about to do for real.
+        for k, g in enumerate(GLITCH_AT):
+            if g <= t < g + GLITCH_FR / 24.0:
+                self.table.hide_render = True
+                self.cyc.hide_render = False
+                self._look(('grid', 'collage')[k], 0.5, t, camera=False)
 
         # THE FLOWER STOPS CASTING once the room has gone out. The beam comes
         # from straight above, so for the first half of the fall the petal is
