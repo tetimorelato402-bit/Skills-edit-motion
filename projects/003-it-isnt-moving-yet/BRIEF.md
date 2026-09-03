@@ -253,17 +253,19 @@ Track column is where that bar sits in *Gracias a Ti*, which starts at 46.555s.
 | **7–10** | `bt(27)`–`bt(37)` | **The room goes out around it.** Fill and bounce to nothing, the beam closing to 4°. One lit flower, black frame. | groove thinning |
 | **10** | `bt(37)`–`bt(38)` | **One petal peels**, on the last beat of music there is. | last beat |
 | **10–11** | `bt(38)`–`bt(44)` | **THE FALL.** It lets go and the music stops in the same frame. Six beats, one petal, one beam, nothing else — the quietest the film gets, immediately before the loudest. Twice the whole frame glitches into a language that is coming (`bt(40)` the grid, `bt(42)` the collage), two frames each. | **HARD SILENCE** — the track's beats 138–144 |
-| **12** | `bt(44)`–`bt(48)` | **THE DETONATION.** The music slams back on the downbeat and paint erupts out of the petal, along the petal's own projected axes, and takes the frame. The petal is still on screen while it happens: the 3D act is not cut away from, it is **covered**. | music returns |
-| **12–13** | `bt(48)`–`bt(56)` | **The five, stated.** Each language two beats, no repeats: editorial, grid, collage, ink, paint. | groove |
-| **14–15** | `bt(56)`–`bt(64)` | **Pairs.** Two at once, splitting the frame, cutting on the eighths. | building |
-| **16–17** | `bt(64)`–`bt(72)` | **Threes.** Three at once, thirds of the frame, cutting on the sixteenths. | building |
-| **18–19** | `bt(72)`–`bt(80)` | **ALL FIVE.** Five bands, arriving one per sixteenth, then sliding in opposing directions. Peak density — and the loudest two bars of the track sit here. | **peak** |
-| **20–22** | `bt(80)`–`bt(88)` | **The collapse.** It comes apart the way it was built: threes, then a pair, then one language alone holding the frame. The film has to arrive at the break already quiet, or the break is only a gap. | thinning |
+| **12** | `bt(44)`–`bt(48)` | **THE DROP — THE ROOM WAS A STUDIO THE WHOLE TIME.** The petal touches the table, the music slams back, and every light comes on *inside a sixteenth* — a switch, not a fade. The walls are a white cyclorama. The camera pulls back from the fallen petal to a wide of the flower on the cyc. Nothing is cut to: the same room, the same flower, with the lights on. | — | music returns |
+| **13–15** | `bt(48)`–`bt(58)` | **THE FIVE, STATED.** Two beats each, on the flower, in the room: **EDITORIAL** — white cyc, one soft key, *how* two metres tall standing behind the flower, the camera dollying past. **GRID** — the flower's geometry voxelises, snapping between block resolutions on the sixteenths, *do you* lying flat on the floor. **COLLAGE** — the petals tear off the head and hang in the air as red paper with tape across them, *make* in cut-out white, handheld. **INK** — Freestyle draws the flower as a black line on a mustard field, *ideas that aren't* hand-set lower left. **PAINTED** — impasto plum off the brush plate under a raking key, *alive,* brush-lettered **on the face of a petal**. | one word per look | groove |
+| **16–17** | `bt(58)`–`bt(68)` | **CUTTING.** The five looks cut against each other — six on the beat, then eight on the eighths — in a fixed sequence, never the same look twice in a row. | — | building |
+| **18–19** | `bt(68)`–`bt(76)` | **THE STROBE.** One flower, all five languages, on the eighths. Identical content, five voices, nothing else changes — the film's claim made as loudly as it can be made. *alive?* held behind it the whole time, in each look's own material. The question completes here. | *alive?* | **peak** |
+| **20–22** | `bt(76)`–`bt(88)` | **THE COLLAPSE.** The looks go out in reverse — painted, ink, collage, grid, editorial — and the rig dims across each so the room is *arriving* at the dark. Over the last bar the Act I beam comes back, narrowing onto the flower. | — | thinning |
 | **23** | `bt(88)`–`bt(92)` | **THE BREAK.** The picture leaves with the music and drains to black over one bar. | **near-silence** — beats 188–192 |
 | **24–26** | `bt(92)`–`bt(105)` | **One more petal falls.** Out of the black, in Blender again, the same object and the same light. The camera holds close for two bars, then pulls back — and the room opens out around it to reveal it is falling into the jar. | quiet outro |
 | **27** | `bt(105)`–`bt(108)` | **It lands, and the beam dies** the way it arrived in bar 1. The last frame is the first frame. The film loops, and asks again. | quiet outro |
 
-**The question is asked once**, in bar 1, and never answered or repeated. teti chose a
+**The question is asked once as a sentence**, in bar 1, and never answered. Its words come
+back one per look in the studio — around the flower, on the floor, on a petal — and *alive?*
+lands on all five at once. By the end of the studio the whole question has been restated in
+five voices on one flower, and the answer is what the viewer just watched. teti chose a
 pure loop — no returning question, no `teti.`, no card. Every loop restates it, which is
 more times than a closing card would have managed; the cost is that the film no longer
 carries the mark, and the end card no longer resolves into the profile picture. That was a

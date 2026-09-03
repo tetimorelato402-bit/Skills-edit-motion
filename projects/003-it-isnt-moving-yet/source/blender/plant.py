@@ -895,9 +895,11 @@ class Scene:
                                                      "Roughness": 1.0, "Specular IOR Level": 0.0})
         self.mat_paper = principled("look_paper", **{"Base Color": ACCENTS[2],
                                                      "Roughness": 0.96, "Specular IOR Level": 0.08})
+        # Paper-white fill under the line, on purpose. A transparent petal
+        # showed every overlapping outline through every other one and read as
+        # a tangle; an opaque white cut-out under a black line is a drawing.
         self.mat_ink   = principled("look_ink",   **{"Base Color": (0.96, 0.95, 0.92, 1.0),
-                                                     "Roughness": 1.0, "Specular IOR Level": 0.0,
-                                                     "Alpha": 0.10})
+                                                     "Roughness": 1.0, "Specular IOR Level": 0.0})
         self.mat_paint = self._paint_material()
         self.mat_tape  = principled("tape", **{"Base Color": (0.93, 0.90, 0.82, 1.0),
                                                 "Roughness": 0.85, "Specular IOR Level": 0.05,
@@ -1132,8 +1134,8 @@ class Scene:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
                 # lies — is inside the frame instead of under it
-                self.cam.location = (0.0, -1.42, 0.62)
-                aim_at(self.cam, H - Vector((0, 0, 0.12)))
+                self.cam.location = (0.0, -1.30, 1.05)
+                aim_at(self.cam, H - Vector((0, 0, 0.14)))
 
         elif name == 'collage':
             cyc.default_value = CYC_RED
@@ -1165,7 +1167,7 @@ class Scene:
             w.data.materials[0] = self.type_mats['paper']
             w.scale = (0.52, 0.52, 0.52)
             w.rotation_euler = (math.radians(90), 0, math.radians(-7))
-            w.location = (-0.22, 0.30, 0.62)
+            w.location = (0.26, 0.34, 0.47)
             # handheld
             if camera:
                 self.cam.location = (0.22 + (h(1, 3) - 0.5) * 0.02, -1.15, 0.55 + (h(2, 3) - 0.5) * 0.015)
@@ -1181,7 +1183,7 @@ class Scene:
             w.data.materials[0] = self.type_mats['ink']
             w.scale = (0.13, 0.13, 0.13)
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (-0.36, -0.30, 0.05)
+            w.location = (-0.34, -0.12, 0.22)
             if camera:
                 self.cam.location = (0.0, -1.55, 0.50)
                 aim_at(self.cam, H)
@@ -1200,7 +1202,7 @@ class Scene:
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['paper']
             w.data.extrude = 0.0015
-            w.scale = (0.050, 0.050, 0.050)
+            w.scale = (0.058, 0.058, 0.058)
             # ON THE PETAL. Not parented — the petal's local frame has its
             # cupped face on -Z and the text vanished behind it. It is placed
             # in world space a hair off the petal's surface, on whichever face

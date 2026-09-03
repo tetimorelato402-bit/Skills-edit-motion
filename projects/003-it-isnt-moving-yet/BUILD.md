@@ -394,6 +394,49 @@ a stepping change, not a sample change.
 
 ---
 
+## The studio — five looks, in Blender, on the flower
+
+The back half is no longer a cut to 2D. `plant.py`'s `_studio()` builds a cyclorama, a
+four-light rig, a material per look, a font object per word, tape and the voxel modifiers —
+all dark, hidden or disabled until `bt(44)` — and `_set_time_studio()` dresses the room per
+look. `source/attic/` holds the retired 2D half; nothing calls it.
+
+What each look actually is, mechanically:
+
+| look | material | rig | geometry | type |
+|---|---|---|---|---|
+| editorial | the petal's own | soft key + fill + wash | — | `how`, Inter Black, 1.35 units, upright behind the flower, dollying |
+| grid | flat signal blue | key + fill + wash, flat | **Solidify → Remesh BLOCKS**, `octree_depth` stepping 4/5/3/6 on the sixteenths | `do you`, flat on the floor |
+| collage | flat hot-red paper | **one hard key**, size 0.35 | petals leave the head, hang at hashed angles, 8 tape strips placed off each petal's `matrix_world` | `make`, cut-out white, rotated −7° |
+| ink | paper-white, opaque | fill + wash, shadowless | **Freestyle**: silhouette + border + crease, on a collection of the plant alone | `ideas that aren't`, Inter Regular, small |
+| painted | plum with the brush plate as bump *and* roughness | raking key from the side | — | `alive,`, placed in world space on whichever face of petal 3 the camera can see |
+
+**Gotchas already paid for in the studio:**
+
+- **`STUDIO_GAIN` exists because the film's exposure was set for one 620 W spot in a black
+  room.** Four soft sources at 500–900 W plus a cyc bouncing all of it back put every look
+  about a stop and a half over: plum rendered as dusty pink, signal blue as powder, the
+  mustard field as peach. The rig values are the *ratios* between lamps and they were
+  right; one scalar (0.36) sets how bright the room is.
+- **The collage moves petals, so every pose must restore their LOCATION, not just their
+  rotation.** The first `_pose_open()` reset rotation only, and the flower rendered torn
+  apart through ink, painted, the strobe and the break. Same class of bug as the key aim.
+- **A sheet cannot be remeshed.** Remesh in BLOCKS mode on the open petal mesh produced
+  nothing; it needs volume, so Solidify (6 mm) goes first.
+- **Freestyle draws only the plant.** `select_by_collection` on an `ink_only` collection —
+  otherwise the cyc's cove and the jar's silhouette get inked too and the drawing loses its
+  subject.
+- **Type on a petal is placed in world space, not parented.** The blade's cupped face is on
+  local −Z; parented text at +Z vanished behind it. The word is set a hair off the surface on
+  whichever of the two faces is nearer the camera, with the petal's rotation.
+- **Type on the floor needs a camera that can see the floor.** At 12° down the grid label was
+  a sliver; the grid's camera sits at 1.05 m looking down ~30°, which is also the right view
+  for a systematic look.
+- **Transparent petals under the ink line were a tangle** — every overlapping outline showed
+  through every other. Opaque paper-white under a black line is a drawing.
+- **The studio is cheap.** 3–8 s/frame at 360 px on four cores, against 10–40 s for Act I:
+  no haze, no transmission, flat materials. Freestyle is the only cost that shows.
+
 ## Making it read as ONE flower
 
 The film asks a viewer to follow a single object through a growth, a camera arc, a cut and

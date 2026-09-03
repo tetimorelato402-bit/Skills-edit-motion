@@ -210,8 +210,8 @@ Load-bearing for it, if it gets built:
   and in `video.html` are the only two places the tempo lives; everything else is `bt()`.
   **`DETACH` and the studio's start are not free numbers** — re-derive them from the audio
   before moving them. See `audio/README.md`.
-  **27 bars = 50.23s at 129 BPM**. Act I is eleven bars, the studio twelve, and the last
-  four are Blender again — the film closes into a loop.
+  **27 bars = 50.23s at 129 BPM**, all of it Blender, one leg: Act I eleven bars, the
+  studio eleven, the break one, the loop back four.
 - **Act I is a dead POPPY in a mason jar, in the dark, growing and blooming** — seven
   bars, `bt(0)`–`bt(28)`. The poppy is chosen for camera reasons, not botanical ones: its
   bud reads as dead, its head lifts before it opens (anticipation performed by the plant),
@@ -227,6 +227,16 @@ Load-bearing for it, if it gets built:
   never a tint on the petal. The arc was the CAMERA doing something; a petal letting go is
   the FLOWER doing something, and it leaves an object that can come back. **You cannot loop
   a camera move.**
+- **The back half is Blender now — five LOOKS on the flower, in the room.** teti asked for
+  the languages to happen on the flower rather than in a cut to 2D. So the room was a studio
+  the whole time: on `bt(44)` every light comes on inside a sixteenth, the walls are a cyc,
+  and the flower is the subject of a shoot. Editorial / grid (voxel remesh) / collage (petals
+  torn off, tape) / ink (Freestyle) / painted (impasto off the brush plate), each a rig + a
+  material + a camera + one word of the question; then cutting, then the strobe of all five
+  on one flower, then the collapse back to the single beam. `source/attic/` holds the
+  retired 2D half. `STUDIO_GAIN` is the one exposure number — the rig was a stop and a half
+  over until it existed. Anything a look *moves* (the collage's petals) the pose must put
+  back, location included.
 - **The film ends where it starts.** The last four bars are Blender again: one more petal
   falls out of the black, the camera pulls back to reveal it is falling into the jar, and
   the beam dies the way it arrived in bar 1. Both sides of that join are black, so there is
