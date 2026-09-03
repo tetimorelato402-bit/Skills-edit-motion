@@ -1,6 +1,15 @@
 <meta charset="utf-8">
 <title>the question</title>
 <style>
+  /* SELF-HOSTED, like video.html, and for a reason paid for in this session:
+     the container was restarted mid-build and came back with no Inter on it, so
+     a 132px 800-weight line silently fell back to DejaVu. video.html has always
+     carried its own @font-face and was never at risk; this pass was relying on
+     a system install, which is exactly the dependency a disposable container
+     cannot be trusted with. fc-list is a check you have to remember to run —
+     an @font-face is one you do not. */
+  @font-face{font-family:'Inter';src:url('fonts/inter.woff2') format('woff2');
+             font-weight:100 900;font-style:normal;font-display:block}
   html,body{margin:0;background:transparent}
   #stage{position:relative;width:1080px;height:1920px;overflow:hidden;
          font-family:Inter,system-ui,sans-serif}

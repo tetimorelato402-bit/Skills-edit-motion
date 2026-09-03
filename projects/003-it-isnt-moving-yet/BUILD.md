@@ -93,6 +93,20 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   Every individual still looked like a plausible frame of *something*, which is what
   makes it dangerous. **The paint skin is global, one layer over the whole bloom, and
   there is no `will-change` anywhere in this film.**
+- **An overlay authored at 1080 will silently CROP onto a 540 frame.** Act I renders at
+  540x960 and `question.html` is laid out for 1080x1920; PIL's `alpha_composite` pastes at
+  1:1 from the top-left and takes no view about the size difference, so the first pass
+  composited the top-left QUARTER of the type at double scale, running off the right of
+  every frame. It reads exactly like a font that is too big — which sent me to `fc-list`
+  and a font install before the image dimensions. `render_overlay.py` resamples the
+  overlay to whatever the plate actually is; the design stays at 1080 because that is the
+  frame it was laid out for.
+- **The overlay passes self-host their fonts, because the container loses them.** This
+  session's container restarted mid-build and came back with no Inter installed, so a
+  132px 800-weight line would have fallen back to DejaVu. `video.html` has always carried
+  its own `@font-face` off `source/fonts/inter.woff2` and was never exposed;
+  `question.html` and `glitch.html` were relying on a system install and now do the same.
+  `fc-list` is a check somebody has to remember to run. An `@font-face` is not.
 - **A resumable render will happily finish somebody else's film.** Every stage of
   `build.sh` resumes by counting the frames already on disk, which cannot distinguish
   "already rendered" from "rendered under a DIFFERENT timeline". The first run after the

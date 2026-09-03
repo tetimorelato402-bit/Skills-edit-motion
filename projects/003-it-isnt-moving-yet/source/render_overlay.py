@@ -63,6 +63,21 @@ def main():
             if over.getextrema()[3][1] == 0:
                 continue                      # nothing on this frame
             im = Image.open(base).convert("RGBA")
+            # THE OVERLAY IS AUTHORED AT 1080x1920 AND THE FRAMES ARE NOT.
+            #
+            # Act I renders at 540x960 (see BUILD.md on Cycles cost), and
+            # alpha_composite pastes at 1:1 from the top-left and silently
+            # crops — so the first version composited the top-left QUARTER of
+            # the type at double size, running off the right of every frame. It
+            # reads exactly like a font that is too big, which is what sent me
+            # to fc-list instead of to the image dimensions.
+            #
+            # The design stays at 1080 because that is the frame the type was
+            # laid out for; it is resampled down to whatever the plate actually
+            # is. Act I is lanczos-upscaled back to 1080 at conform time, so the
+            # type ends up as soft as the act it sits on, which is right.
+            if over.size != im.size:
+                over = over.resize(im.size, Image.LANCZOS)
             im.alpha_composite(over)
             im.convert("RGB").save(base)
             done += 1
