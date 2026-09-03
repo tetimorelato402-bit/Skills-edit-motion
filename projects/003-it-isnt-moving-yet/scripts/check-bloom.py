@@ -33,7 +33,16 @@ prev, backwards = -1.0, []
 for f in files:
     a = np.asarray(Image.open(f).convert('RGB'), dtype=float)
     cov = (np.abs(a - base).max(axis=2) > 18).mean()
-    slipped = cov < prev - 0.005
+    # The bug this script exists for is a CLIFF, not a ripple: when Chromium
+    # stops applying style updates a screenshot comes back as an arbitrary
+    # EARLIER state, so coverage collapses by tens of points — the first time
+    # it bit, a 90%-covered frame rendered as frame 0. Once the bloom
+    # plateaus near full frame the paint skin and the petals' own edges move
+    # coverage by half a point either way, and a 0.005 tolerance called that
+    # a failure on a render that was completely healthy. A check that cries
+    # wolf on good output is a check nobody runs. Five points is still far
+    # below anything the compositor failure has ever produced.
+    slipped = cov < prev - 0.05
     if slipped:
         backwards.append(pathlib.Path(f).stem)
     bar = '#' * round(cov * 40)

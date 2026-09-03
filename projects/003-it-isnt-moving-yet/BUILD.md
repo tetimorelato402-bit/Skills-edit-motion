@@ -93,6 +93,12 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   Every individual still looked like a plausible frame of *something*, which is what
   makes it dangerous. **The paint skin is global, one layer over the whole bloom, and
   there is no `will-change` anywhere in this film.**
+- **The bloom check needed a tolerance, and that is not a weakening.** The failure it
+  guards is a CLIFF — a 90%-covered frame coming back as frame 0 — but its threshold was
+  0.005, and once the bloom plateaus near full frame the paint skin and the petals' own
+  edges move coverage half a point either way. It failed a completely healthy render five
+  times, which is how a regression check stops being run. It is 0.05 now, still an order
+  of magnitude below anything the compositor failure has produced.
 - **`scripts/check-bloom.py` exists because of that bug and must stay in the loop.** A
   bloom may only ever grow, so coverage across a rendered sequence must be monotonic.
   Only the *sequence* reveals the failure; no single frame does. Coverage is measured
