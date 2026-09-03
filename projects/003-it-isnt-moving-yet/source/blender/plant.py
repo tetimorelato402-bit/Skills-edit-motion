@@ -1130,13 +1130,13 @@ class Scene:
             w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
             w.scale = (0.075, 0.075, 0.075)                 # ~0.25m wide in a 0.23m frame
             w.rotation_euler = (0, 0, 0)                     # flat on the floor
-            w.location = (0.0, -0.22, 0.003)
+            w.location = (0.0, -0.09, 0.003)
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
                 # lies — is inside the frame instead of under it
                 self.cam.location = (0.0, -1.30, 1.05)
-                aim_at(self.cam, H - Vector((0, 0, 0.14)))
+                aim_at(self.cam, H - Vector((0, 0, 0.23)))
 
         elif name == 'collage':
             cyc.default_value = CYC_RED
@@ -1185,7 +1185,7 @@ class Scene:
             w.data.align_x = 'LEFT'
             w.scale = (0.022, 0.022, 0.022)                 # 0.21m, inside a 0.30m frame
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (-0.125, -0.12, 0.17)
+            w.location = (-0.14, -0.12, 0.33)
             if camera:
                 self.cam.location = (0.0, -1.55, 0.50)
                 aim_at(self.cam, H)
@@ -1204,7 +1204,7 @@ class Scene:
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['paper']
             w.data.extrude = 0.0015
-            w.scale = (0.024, 0.024, 0.024)
+            w.scale = (0.020, 0.020, 0.020)
             # ON THE PETAL. Not parented — the petal's local frame has its
             # cupped face on -Z and the text vanished behind it. It is placed
             # in world space a hair off the petal's surface, on whichever face
@@ -1212,23 +1212,61 @@ class Scene:
             # it lies flat on it.
             pu = ease_in_out(u)
             if camera:
-                self.cam.location = (0.30 - 0.15 * pu, -1.30 + 0.45 * pu, 0.55 - 0.05 * pu)
+                # It pushes in AND rises: from level with the flower to
+                # looking down into the bowl. Level, the lens sees the petals'
+                # undersides at a grazing angle and anything written on them
+                # foreshortens to a sliver — the word was on the petal in
+                # every earlier render and legible in none of them.
+                self.cam.location = (0.30 - 0.12 * pu, -1.30 + 0.50 * pu, 0.60 + 0.22 * pu)
             bpy.context.view_layer.update()
             # petal 3 was a guess, and it turned out to be the one under the
             # bowl with two others over it. The front petal is whichever has
             # its blade's midpoint nearest the lens — that changes with the
             # push-in, so it is found every frame, not fixed.
+            # ...and chosen by which petal FACES the lens: the largest
+            # |dot(blade normal, direction to camera)| over the five, with the
+            # word on whichever side of the blade that dot says is toward us.
+            # Nearest-midpoint picked petals seen edge-on.
             camv = Vector(self.cam.location)
-            pet = min(self.petals[1:],
-                      key=lambda q: ((q.matrix_world @ Vector((0, 0.045, 0))) - camv).length)
+            def facing(q):
+                M = q.matrix_world
+                mid = M @ Vector((0, 0.045, 0))
+                n = (M.to_3x3() @ Vector((0, 0, 1))).normalized()
+                return n.dot((camv - mid).normalized())
+            # NEAREST that faces, not best-facing. Best-facing chose the back
+            # petal's inner face (+0.35) over the front petal's outer face
+            # (-0.32), and the front petals then covered the word entirely —
+            # measured: word at depth 0.93, petals 3 and 4 in front at 0.87.
+            # A word painted on a flower is on the surface you can see.
+            def depth(q):
+                return ((q.matrix_world @ Vector((0, 0.045, 0))) - camv).length
+            front = sorted(self.petals[1:], key=depth)
+            pet = next((q for q in front if abs(facing(q)) >= 0.25),
+                       max(front, key=lambda q: abs(facing(q))))
             M = pet.matrix_world
-            a = M @ Vector((0.0, 0.046, 0.016))
-            b = M @ Vector((0.0, 0.046, -0.016))
-            cam = Vector(self.cam.location)
-            w.location = a if (a - cam).length < (b - cam).length else b
+            side = 1.0 if facing(pet) > 0 else -1.0
+            # TOWARD THE TIP, where the crimp dies. The crease that makes
+            # these petals read as tissue is a +/-3.2cm wave at mid-blade,
+            # and a word placed 1.8cm off the mean plane there sits INSIDE
+            # the folds — it was on the petal, correctly, in every render,
+            # and the petal was passing through it. crimp ~ sin(pi*u): at 86%
+            # of the blade it is a third of that and the word clears it.
+            w.location = M @ Vector((0.0, 0.076, 0.020 * side))
             w.rotation_euler = M.to_euler()
-            if (a - cam).length >= (b - cam).length:
-                w.rotation_euler.rotate_axis('X', math.pi)   # face the other way
+            if side < 0:
+                # onto the back face by turning about Y, not X: about X the
+                # word faces the right way and reads as a mirror image.
+                w.rotation_euler.rotate_axis('Y', math.pi)
+            # ...and upright for THIS camera. The text's "up" is the blade's
+            # +Y, which points wherever the petal's tip points — from a camera
+            # above the front petal that is straight down the screen. If the
+            # word's up disagrees with the lens's up, spin it half a turn in
+            # its own plane; it stays on the face and reads the right way up.
+            bpy.context.view_layer.update()
+            word_up = (w.matrix_world.to_3x3() @ Vector((0, 1, 0))).normalized()
+            cam_up = (self.cam.matrix_world.to_3x3() @ Vector((0, 1, 0))).normalized()
+            if word_up.dot(cam_up) < 0:
+                w.rotation_euler.rotate_axis('Z', math.pi)
             if camera:
                 aim_at(self.cam, H)
 
