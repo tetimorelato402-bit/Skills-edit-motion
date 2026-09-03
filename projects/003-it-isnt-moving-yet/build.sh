@@ -41,7 +41,14 @@ mkdir -p outputs/plant_hi source/frames120
 #  it, and a mismatch wipes the directory rather than resuming into it. Stale
 #  frames are worth less than nothing: they cost a whole render to discover.
 # ---------------------------------------------------------------------------
-SIG=$(python3 - <<'PY'
+#  The two legs have SEPARATE signatures, because they have separate inputs.
+#  The Blender frames depend on plant.py's timeline; the studio frames depend on
+#  video.html. Sharing one signature would mean a change to the 2D file wiping
+#  an hour of Cycles renders — and, worse, the first version signed only the
+#  Blender constants, so editing video.html could not invalidate its own frames
+#  at all. That is the same silent-stale-frame failure the signature exists to
+#  prevent, just pointed at the other leg.
+SIG_3D=$(python3 - <<'PY'
 import sys, hashlib
 sys.path.insert(0, "source/blender")
 import plant
@@ -52,14 +59,20 @@ print(hashlib.sha1(repr((
 )).encode()).hexdigest()[:16])
 PY
 )
-for d in outputs/plant_hi source/frames120; do
-  if [ ! -f "$d/.sig" ] || [ "$(cat $d/.sig)" != "$SIG" ]; then
-    n=$(ls $d 2>/dev/null | grep -c '^f' || true)
-    [ "${n:-0}" -gt 0 ] && echo "  $d holds $n frames from a different timeline — clearing"
-    rm -f $d/f*.png
-    echo "$SIG" > $d/.sig
+SIG_2D=$(python3 -c "
+import hashlib
+print(hashlib.sha1(open('source/video.html','rb').read()).hexdigest()[:16])")
+
+check_sig() {   # dir  signature
+  if [ ! -f "$1/.sig" ] || [ "$(cat $1/.sig)" != "$2" ]; then
+    n=$(ls $1 2>/dev/null | grep -c '^f' || true)
+    [ "${n:-0}" -gt 0 ] && echo "  $1 holds $n frames from different inputs — clearing"
+    rm -f $1/f*.png
+    echo "$2" > $1/.sig
   fi
-done
+}
+check_sig outputs/plant_hi  "$SIG_3D"
+check_sig source/frames120  "$SIG_2D"
 
 
 # ---------------------------------------------------------------------------

@@ -775,9 +775,41 @@ const bA = [];
 // same renderer serves a full frame, a half, a third or a band without any of
 // them needing to know which they are.
 const TECH = {t5:s5, t6:s6, t3:s3, t9:s9, t7:s7, all:sA};
-function place(d, x, y, w, h){
-  d.style.transformOrigin = '0 0';
-  d.style.transform = `translate(${x}px,${y}px) scale(${(w/1080).toFixed(5)},${(h/1920).toFixed(5)})`;
+
+// CROP INTO THE TECHNIQUE, DO NOT SHRINK IT.
+//
+// The first version scaled each scene down into its rectangle, and the studio
+// came out EMPTIER the more techniques were on screen at once — which is the
+// exact opposite of what eleven bars of barrage needs. The reason is that these
+// techniques are individually sparse by design: white-space editorial is one
+// object crossing a bare page, ink-on-colour is a line drawing on a flat field.
+// Shrink one into half a frame and you get a small object with twice as much
+// empty ground around it; put two side by side and you have doubled the empty
+// ground rather than the content.
+//
+// So the scene stays at 1:1 and the panel is a WINDOW onto it, centred on the
+// scene's middle where the poppy is. A half-frame panel now shows half of a
+// full-size composition — dense, cropped, and reading like a spread rather than
+// like a thumbnail. Density comes from cropping in, which is what a designer
+// does with a real image, not from scaling out.
+// The window lives on a WRAPPER, not on the scene itself. Each technique
+// already writes its own clip-path for its entry wipe — that wipe IS the
+// technique announcing itself and has to survive — so putting the panel's crop
+// on the same element makes the two overwrite each other: the wipe wins, spills
+// outside its panel while it runs, and clears the crop entirely when it lands.
+const PANEL = {};
+for(const k in TECH){
+  const wrap = el('div', stage, {position:'absolute', inset:'0',
+                                 overflow:'hidden', display:'none'});
+  wrap.appendChild(TECH[k]);
+  TECH[k].style.display = 'block';
+  PANEL[k] = wrap;
+}
+function place(k, x, y, w, h){
+  PANEL[k].style.clipPath =
+    `inset(${y}px ${1080-(x+w)}px ${1920-(y+h)}px ${x}px)`;
+  TECH[k].style.transform =
+    `translate(${(x + w/2 - 540).toFixed(1)}px,${(y + h/2 - 960).toFixed(1)}px)`;
 }
 
 // ===========================================================================
@@ -980,14 +1012,13 @@ function drawBarrage(t){
     const u = clamp((t - curAt*BEAT) / span, 0, 1);
     const ein = clamp((t - curAt*BEAT) / EIGHTH, 0, 1);
     for(const [k, r] of cur){
-      const d = TECH[k];
       live.add(k);
-      place(d, r.x, r.y, r.w, r.h);
-      show(d, true);
+      place(k, r.x, r.y, r.w, r.h);
+      show(PANEL[k], true);
       DRAW[k](u, ein);
     }
   }
-  for(const k in TECH) if(!live.has(k)) show(TECH[k], false);
+  for(const k in TECH) if(!live.has(k)) show(PANEL[k], false);
 
   // THE BREAK. One bar, and the picture leaves with the music. It drains to
   // black rather than cutting, because the four bars after it are Blender
