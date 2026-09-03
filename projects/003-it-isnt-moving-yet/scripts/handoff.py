@@ -158,7 +158,13 @@ def main():
     cam = scene.cam
     keep = (cam.location.copy(), cam.rotation_euler.copy())
     head = scene.head_at
-    cam.location = head + Vector((0.0, -0.30, 0.055))
+    # 45 degrees above, and CLOSE — 26cm, where the frame is 9.6cm tall and a
+    # 17cm flower more than covers it. The first pass sat level with the head at
+    # 30cm and photographed the underside of the bowl with the stem running
+    # through it and black across the bottom third: every technique cropping
+    # into that got darkness. A plate has one job, which is to be flower in
+    # every pixel.
+    cam.location = head + Vector((0.0, -0.18, 0.19))
     aim_at(cam, head)
     bpy.context.view_layer.update()
     plate = os.path.join(OUT, "poppy.png")

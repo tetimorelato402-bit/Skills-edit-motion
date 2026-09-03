@@ -171,7 +171,7 @@ what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
 ## The pitch film — "It isn't moving yet"
 
-`projects/003-it-isnt-moving-yet/` has **all 18 bars built** — Act I in Blender, everything
+`projects/003-it-isnt-moving-yet/` is **27 bars, cut to a track, and it loops** — Act I in Blender, everything
 after the bloom in `video.html`. What remains is finish, not structure: Act I at full
 resolution on a GPU, the soundtrack off `sound.py`, and a grade. It is the one project here with
 **two stacks in one film**: Act I is Blender/Cycles (`source/blender/`), everything after
@@ -202,8 +202,16 @@ Load-bearing for it, if it gets built:
   their own accent colour, which is the only sanctioned exception to the palette rule
   above — bone and umber stay constant under all five, as do the oil-plate surface and the
   125 BPM grid. That is what stops five palettes reading as five different films.
-- **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
-  **18 bars = 34.56s**. Act I is eight bars; the bloom is five beats.
+- **129 BPM, and the grid is MEASURED, not chosen.** The film is cut to Luifer's
+  *Gracias a Ti* from 46.555s. `scripts/track.py` fitted the tempo at 129.000 exactly and
+  found two breaks that end on downbeats: a **hard, sample-exact silence** at the track's
+  beats 138–144, and a musical drop-out at 188–192. Those are the film's two quietest
+  moments and they were not designed — the film was moved onto them. `BPM` in `plant.py`
+  and in `video.html` are the only two places the tempo lives; everything else is `bt()`.
+  **`DETACH` and the studio's start are not free numbers** — re-derive them from the audio
+  before moving them. See `audio/README.md`.
+  **27 bars = 50.23s at 129 BPM**. Act I is eleven bars, the studio twelve, and the last
+  four are Blender again — the film closes into a loop.
 - **Act I is a dead POPPY in a mason jar, in the dark, growing and blooming** — seven
   bars, `bt(0)`–`bt(28)`. The poppy is chosen for camera reasons, not botanical ones: its
   bud reads as dead, its head lifts before it opens (anticipation performed by the plant),
@@ -211,12 +219,27 @@ Load-bearing for it, if it gets built:
   overlapping petals, not four — four gives a front-on camera two blades instead of a bowl. It makes the film's question literal rather than metaphorical.
   **The chat box was cut entirely**; there is no interface anywhere in the film, which is
   what disposes of the "I asked AI to..." risk. The question appears as pure type.
-- **The transition is a camera arc, and it is the best structural idea in the film.**
-  After the poppy opens, the camera rises over it to a birds-eye and comes down into the
-  petals until they cover the screen. A poppy from above is petals radiating from a dark
-  centre — the same image as the paint detonation — so the two worlds are one picture in
-  two media and the cut becomes a SUBSTITUTION rather than a transition. Two distances:
-  stop at the rosette, then push in. Then one sixteenth of black, and the paint.
+- **The transition is a PETAL FALLING, and the birds-eye arc is gone.** The room goes out
+  around the open flower, one petal peels on `bt(37)`, and on `bt(38)` it lets go *and the
+  music stops in the same frame*. Six beats of falling through total silence, then the
+  music returns on the downbeat and the paint detonates out of it. Twice on the way down
+  the whole frame glitches into a language that is coming — two frames, a substitution,
+  never a tint on the petal. The arc was the CAMERA doing something; a petal letting go is
+  the FLOWER doing something, and it leaves an object that can come back. **You cannot loop
+  a camera move.**
+- **The film ends where it starts.** The last four bars are Blender again: one more petal
+  falls out of the black, the camera pulls back to reveal it is falling into the jar, and
+  the beam dies the way it arrived in bar 1. Both sides of that join are black, so there is
+  nothing to match. There is **no end card and no `teti.`** — teti chose a pure loop, so the
+  question is asked once in bar 1 and every loop restates it. Losing the mark is a real
+  cost and BRIEF.md records it rather than forgetting it.
+- **`act1_last.png` and `poppy.png` are two different images doing two different jobs.**
+  The first is Act I's true final frame — one petal in a beam, 95% black — and it is the
+  ground the paint erupts out of. The second is the open flower filling the frame under the
+  same lamps, and it is what all five techniques composite. Conflating them (they used to
+  be the same file) made the entire back half render as five arrangements of grey.
+  `handoff.py` writes both and samples the *plate* for the palette, because a few thousand
+  lit pixels against two million black ones pulls k-means into the dark.
 - **It has to read as ONE flower across the arc and the cut.** Three things are load-
   bearing for that: the key pulls back 42% through the arc so the petals hold one colour
   instead of swinging dim-to-blazing as the camera closes; the paint's first six petals
