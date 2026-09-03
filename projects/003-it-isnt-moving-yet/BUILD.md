@@ -456,6 +456,15 @@ What each look actually is, mechanically:
   through every other. Opaque paper-white under a black line is a drawing.
 - **The studio is cheap.** 3–8 s/frame at 360 px on four cores, against 10–40 s for Act I:
   no haze, no transmission, flat materials. Freestyle is the only cost that shows.
+- **Check every word at 390 px, and check it against the flower, not the frame.** The
+  strobe's `alive?` was in frame, in front of the crossing `how`, at the right size — and
+  invisible for all eight beats, because at head height the flower hides the middle of a
+  0.32 m word and only an `a` and a `?` poked out of the petals. It now sits below the head,
+  behind the stem, at 88% of the frame width, and every look's own word is parked while it
+  holds (rust `how` behind a rust `alive?` ate its baseline). The ink caption at any
+  single-line size a phone can read ran under the stem and lost its last word; it is two
+  lines, like a museum label. The test is `render_plant.py --res 390 --times …` on the type
+  moments (`bt(51)`, `bt(55)`, `bt(57)`, `bt(70.5)`), not a still at 1080.
 
 ## Making it read as ONE flower
 

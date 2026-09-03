@@ -1183,9 +1183,12 @@ class Scene:
             w.data.font = self.font_reg
             w.data.materials[0] = self.type_mats['ink']
             w.data.align_x = 'LEFT'
-            w.scale = (0.022, 0.022, 0.022)                 # 0.21m, inside a 0.30m frame
+            # two lines, like a museum label, because one line at any size a
+            # phone can read runs under the stem and loses its last word
+            w.data.body = "ideas that\naren't"
+            w.scale = (0.026, 0.026, 0.026)                 # ~13px cap height on a phone
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (-0.14, -0.12, 0.33)
+            w.location = (-0.14, -0.12, 0.36)
             if camera:
                 self.cam.location = (0.0, -1.55, 0.50)
                 aim_at(self.cam, H)
@@ -1347,15 +1350,23 @@ class Scene:
             look = LOOKS[n % 5]
             self._look(look, 0.3 + 0.4 * u, t)
             # ...and the last word, held through all of it, in each look's
-            # own material. The question completes here.
+            # own material. The question completes here — alone: each look's
+            # own word is parked, or the editorial 'how' puts rust behind the
+            # rust word and eats its baseline.
+            for ow in self.words.values():
+                ow.scale = (0, 0, 0)
             w = self.words[LAST_WORD]
             w.data.font = self.font_black
             w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
-            w.scale = (0.16, 0.16, 0.16)                    # 0.53m: the whole word, at 2.4m
+            # 0.44m wide at 2.4m is 88% of the frame; it sits BELOW the head,
+            # behind the stem, because at head height the flower hides it —
+            # a 0.32m word at z=0.42 rendered as an 'a' and a '?' poking out
+            # either side of the petals, for eight beats, at the peak.
+            w.scale = (0.22, 0.22, 0.22)
             w.rotation_euler = (math.radians(90), 0, 0)
-            w.location = (0.0, 0.85, 0.42)
+            w.location = (0.0, 0.85, 0.20)
             self.cam.location = (0.0, -1.55, 0.52)
-            aim_at(self.cam, H + Vector((0, 0, 0.08)))
+            aim_at(self.cam, H)
             return
 
         if t < COLLAPSE[1]:

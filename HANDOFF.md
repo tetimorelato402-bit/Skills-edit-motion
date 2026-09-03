@@ -105,6 +105,29 @@ for every motion, a house kit and riff — built from sines and noise, frame-exa
 teti's. With Resolve connected it could be re-voiced with sampled drums and real foley while
 keeping every cue time (the file is the cue sheet, with the reason for each hit in the comments).
 
+# The pitch film — where it stands
+
+`projects/003-it-isnt-moving-yet/` is the master and it is now **one Blender film**: a
+dead poppy grows and blooms in one beam, a petal lets go on the frame the music stops,
+falls through six beats of silence glitching twice into what is coming, and on the
+downbeat the room turns out to have been a studio — the same flower in five languages
+(editorial, grid, collage, ink, painted), the question reassembled one word per look, all
+five strobing on the eighths with `alive?` — then it comes apart, the beam returns, one
+more petal falls into the jar and the beam dies the way it arrived. 27 bars at the
+measured 129 BPM of Luifer's *Gracias a Ti* from 46.555 s; the two silences are the
+track's own. The 2D half is in `source/attic/` and nothing calls it.
+
+`bash build.sh` produces the whole thing, resumably, at 540/24 samples — four to five
+hours on four CPU cores. **On the desktop run `RES=1080 SAMPLES=64 bash build.sh`**; the
+GPU does the same 1206 frames in well under an hour and nothing else changes. Its
+`BRIEF.md` is the spec, its `BUILD.md` the commands and every bug already paid for.
+
+What it still wants, ranked: a grade (one LUT over both halves so the studio and the
+dark room read as one stock); the studio's five looks pushed further now that the
+structure is proven (real paper edges on the collage, a wobblier ink line, a heavier
+impasto); and a 4:5 crop, which is a camera sensor-fit change in `render_plant.py`, not
+a re-layout.
+
 # What to create
 
 **ARC, in Blender.** The strongest next move in 3D. (Written here as "Study 002"; the
