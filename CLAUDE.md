@@ -254,20 +254,16 @@ Load-bearing for it, if it gets built:
   125 BPM version and counted them as progress. Nothing errors — every stale frame is a
   valid PNG of a plausible picture. `build.sh` also copies the extracted textures itself
   rather than trusting that someone remembered to.
-- **`act1_last.png` and `poppy.png` are two different images doing two different jobs.**
-  The first is Act I's true final frame — one petal in a beam, 95% black — and it is the
-  ground the paint erupts out of. The second is the open flower filling the frame under the
-  same lamps, and it is what all five techniques composite. Conflating them (they used to
-  be the same file) made the entire back half render as five arrangements of grey.
-  `handoff.py` writes both and samples the *plate* for the palette, because a few thousand
-  lit pixels against two million black ones pulls k-means into the dark.
-- **It has to read as ONE flower across the arc and the cut.** Three things are load-
-  bearing for that: the key pulls back 42% through the arc so the petals hold one colour
-  instead of swinging dim-to-blazing as the camera closes; the paint's first six petals
-  launch along the six REAL petals' projected screen axes, so the paint continues the
-  flower's geometry before diverging; and `act1_last.png` — the ground the paint erupts
-  over — must be regenerated whenever the Blender lighting or camera changes, or the join
-  jumps in brightness at exactly the cut the whole act exists to hide.
+- **`act1_last.png` / `poppy.png` / `handoff.py` are RETIRED with the 2D half.** They
+  existed to hand a Blender frame to Chromium. There is no handoff any more — the studio is
+  the same Blender scene with the lights on — so nothing is extracted, projected or
+  composited between media. `scripts/handoff.py` still runs and its lessons (extract, never
+  type; sample the plate, not the join) are in `BUILD.md` for whenever a 2D pass returns.
+- **It has to read as ONE flower across the drop.** The key pulls back 42% through the
+  fall so the petal holds one colour instead of swinging dim-to-blazing as the camera
+  closes; and the drop is a switch on the SAME scene — nothing is cut to, nothing is
+  composited — so there is no join to hide any more. That is the whole reason the studio
+  moved into Blender.
 - **The paint bloom erupts out of the flower head, and the join is extracted, never typed.**
   `scripts/handoff.py` projects the head through Act I's real camera and k-means clusters
   the rendered poppy for the palette, lifting it **in value only** — the same method that
@@ -288,10 +284,6 @@ Load-bearing for it, if it gets built:
   light low and camera-right, `light_linking.receiver_collection` on the plant collection.
   Unlinked it puts a second pool on the table and the beam stops being the only light in
   the room — the same lesson as the rim spot, paid for twice.
-- **Act I's last lit frame is the ground the ENTIRE 2D half sits on**, not just the join —
-  `POPPY` in `video.html` is `act1_last.png` and all five techniques composite over it. So
-  any change to the Blender shading or lighting invalidates the whole 2D render, not the
-  first bar: finish Act I's look BEFORE rendering the 2D leg, or render it twice.
 - **The flower has to survive filling a 1080-wide frame, and four things did not.** A
   smooth transmissive petal is moulded plastic — it needs a crumple bump plus a roughness
   variation off the same noise, on **Generated** coordinates (Object coordinates swim when
