@@ -348,12 +348,21 @@ This is what makes the 120fps → `tmix` → 30 house shutter runnable here at a
 
 ## Fonts
 
-The film needs **Inter** (400–900) plus ten families for the end-card type cycle:
+**Study 001** needs **Inter** (400–900) plus ten families for its end-card type cycle:
 Playfair Display, Anton, EB Garamond, IBM Plex Mono, Oswald, Caveat, Bodoni Moda,
-Zilla Slab, DM Serif Display, Space Grotesk. They are referenced by family name and
-resolved through fontconfig, so install them system-wide (`/usr/local/share/fonts/`
-then `fc-cache -f`) before rendering. Missing families silently fall back to sans-serif
-and the cycle stops reading as a cycle — check with `fc-list : family`.
+Zilla Slab, DM Serif Display, Space Grotesk. Those are resolved through fontconfig, so
+install them system-wide (`/usr/local/share/fonts/`, then `fc-cache -f`) before rendering
+and check with `fc-list : family` — a missing family falls back to sans-serif in silence
+and the cycle stops reading as a cycle.
+
+**003 does not depend on any of that, deliberately.** It self-hosts Inter and IBM Plex
+Mono from `projects/003-it-isnt-moving-yet/source/fonts/*.woff2` via `@font-face`, in
+`video.html`, `question.html` and `glitch.html` alike. This container has been restarted
+twice mid-build and came back both times with an empty `/usr/local/share/fonts`; the one
+pass that was still relying on a system install rendered a 132px 800-weight line in
+DejaVu and nobody would have noticed until the film was assembled. **`fc-list` is a check
+somebody has to remember to run. An `@font-face` is not.** 003 has no end card any more,
+so the ten display families are not needed by it at all.
 
 ## Open decisions
 
