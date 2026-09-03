@@ -420,6 +420,15 @@ What each look actually is, mechanically:
   none of it was in shot. Three rounds of "the type isn't rendering" were the type rendering
   perfectly, out of frame. Only *how* stays deliberately wider than the frame, because it
   crosses.
+- **The word on the petal was in frame and invisible five times, for five different
+  reasons, and every one was found by measuring rather than guessing.** Projected through the
+  camera it was at (0.46, 0.61) in frame at depth 0.93 — with two petals in front of it at
+  0.87: chosen by *best-facing*, which picked the back petal's inner face. Then, on the front
+  petal, at mid-blade 1.8 cm off the mean plane — inside a crimp that is ±3.2 cm there, so the
+  petal passed through it. Then at the tip, but flipped onto the outer face about X, which
+  mirrors text. It lives on the **nearest petal that faces the lens**, at **86% of the blade**
+  where the crimp is a third, turned about **Y**, and spun upright against the camera's own
+  up vector. Five renders would have been fifty without `world_to_camera_view` in a probe.
 - **The petal that carries the word is found every frame, not chosen.** Petal 3 was a guess
   and turned out to sit under the bowl with two petals over it. The front petal is whichever
   has its blade midpoint nearest the lens, and it changes as the painted look's camera pushes
