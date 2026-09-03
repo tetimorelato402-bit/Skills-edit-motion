@@ -27,6 +27,40 @@ B_N=$(python3 -c "print(round((92-44)*60/129*120))")  # 2679
 
 mkdir -p outputs/plant_hi source/frames120
 
+# ---------------------------------------------------------------------------
+#  RESUME IS ONLY SAFE IF THE FRAMES ON DISK CAME FROM THIS TIMELINE.
+#
+#  Every stage below resumes by counting files, which cannot tell "already
+#  rendered" from "rendered under a DIFFERENT structure". It bit immediately:
+#  the first run of this script found 369 Act I frames and 2304 studio frames
+#  left over from the 18-bar cut at 125 BPM, counted them as progress, and
+#  cheerfully set about finishing a film half of which was the previous edit.
+#  Nothing errors. The frames are all valid PNGs of plausible pictures.
+#
+#  So each frame directory carries a signature of the constants that produced
+#  it, and a mismatch wipes the directory rather than resuming into it. Stale
+#  frames are worth less than nothing: they cost a whole render to discover.
+# ---------------------------------------------------------------------------
+SIG=$(python3 - <<'PY'
+import sys, hashlib
+sys.path.insert(0, "source/blender")
+import plant
+print(hashlib.sha1(repr((
+    plant.BPM, plant.DARK, plant.CLIMB, plant.BUD, plant.OPEN, plant.HOLD,
+    plant.DETACH, plant.FALL, plant.ACT_I_END, plant.ENDFALL, plant.ENDDIE,
+    plant.FILM_END, plant.GLITCH_AT,
+)).encode()).hexdigest()[:16])
+PY
+)
+for d in outputs/plant_hi source/frames120; do
+  if [ ! -f "$d/.sig" ] || [ "$(cat $d/.sig)" != "$SIG" ]; then
+    n=$(ls $d 2>/dev/null | grep -c '^f' || true)
+    [ "${n:-0}" -gt 0 ] && echo "  $d holds $n frames from a different timeline — clearing"
+    rm -f $d/f*.png
+    echo "$SIG" > $d/.sig
+  fi
+done
+
 echo "=== leg A: Act I, frames 0-$A_END at 24fps ==="
 for p in $(seq 1 40); do
   n=$(ls outputs/plant_hi 2>/dev/null | grep -c '^f' || echo 0)
@@ -58,12 +92,19 @@ echo "=== the question, composited over Act I ==="
 python3 source/render_overlay.py --html source/question.html \
         --frames outputs/plant_hi --fps 24
 
+# The glitch pass and the whole studio composite the plate, so it is copied in
+# here rather than by hand — the same class of mistake as the stale frames
+# above, and it fails the same silent way.
+echo "=== syncing the extracted textures ==="
+cp outputs/handoff/handoff.png source/tex/act1_last.png
+cp outputs/handoff/poppy.png   source/tex/poppy.png
+
 echo "=== the fall's two glitch frames, substituted in ==="
 python3 source/render_glitch.py --frames outputs/plant_hi --fps 24
 
 echo "=== leg B: the studio, $B_N frames at 120fps ==="
 for p in $(seq 1 40); do
-  n=$(ls source/frames120 2>/dev/null | wc -l)
+  n=$(ls source/frames120 2>/dev/null | grep -c '^f' || echo 0)
   [ "$n" -ge "$B_N" ] && { echo "  leg B complete"; break; }
   (cd source && python3 render.py --out frames120 --fps 120 --start "$n" 2>&1 \
      | grep -E "s/frame|frames in|Error" | tail -2)

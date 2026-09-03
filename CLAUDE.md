@@ -233,6 +233,12 @@ Load-bearing for it, if it gets built:
   nothing to match. There is **no end card and no `teti.`** — teti chose a pure loop, so the
   question is asked once in bar 1 and every loop restates it. Losing the mark is a real
   cost and BRIEF.md records it rather than forgetting it.
+- **Frame directories carry a timeline signature, and a mismatch wipes them.** Resume-by-
+  counting cannot tell "already rendered" from "rendered under different constants": after
+  the re-cut, `build.sh` found 369 Act I frames and 2304 studio frames from the old 18-bar
+  125 BPM version and counted them as progress. Nothing errors — every stale frame is a
+  valid PNG of a plausible picture. `build.sh` also copies the extracted textures itself
+  rather than trusting that someone remembered to.
 - **`act1_last.png` and `poppy.png` are two different images doing two different jobs.**
   The first is Act I's true final frame — one petal in a beam, 95% black — and it is the
   ground the paint erupts out of. The second is the open flower filling the frame under the

@@ -93,6 +93,17 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   Every individual still looked like a plausible frame of *something*, which is what
   makes it dangerous. **The paint skin is global, one layer over the whole bloom, and
   there is no `will-change` anywhere in this film.**
+- **A resumable render will happily finish somebody else's film.** Every stage of
+  `build.sh` resumes by counting the frames already on disk, which cannot distinguish
+  "already rendered" from "rendered under a DIFFERENT timeline". The first run after the
+  re-cut found 369 Act I frames and 2304 studio frames left from the 18-bar version at 125
+  BPM, counted them as progress, and set about completing a film half of which was the
+  previous edit. Nothing errors; every stale frame is a valid PNG of a plausible picture,
+  and it would have surfaced as "the first half looks wrong somehow" after three hours.
+  Each frame directory now carries a **signature of the timeline constants** that produced
+  it, and a mismatch wipes the directory instead of resuming into it. The same reasoning
+  covers the extracted textures: `build.sh` copies `act1_last.png` and `poppy.png` into
+  `source/tex/` itself rather than trusting that somebody remembered to.
 - **check-bloom.py measures the BLOOM, and nothing after it.** Pointed at a full
   2304-frame render it reported ~1500 frames "went backwards" and meant none of it:
   coverage is measured against frame 0, and once the five techniques start cutting, each
