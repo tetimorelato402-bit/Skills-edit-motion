@@ -70,9 +70,15 @@ git clone --filter=blob:none --depth 1 --single-branch \
     --branch claude/motion-editors-video-concept-fz6opf --no-checkout \
     https://github.com/tetimorelato402-bit/skills-edit-motion.git
 cd skills-edit-motion
-git sparse-checkout init --no-cone
-git sparse-checkout set '/*' '!/*/' '!/skills-main.zip' \
-    '/projects/003-it-isnt-moving-yet/' '!/projects/003-it-isnt-moving-yet/outputs/'
+# CONE mode, listing the subdirectories wanted. Cone mode pulls in each
+# listed directory recursively plus the plain files of every parent, so this
+# gets build.sh, BUILD.md, source/, scripts/, audio/ — and NOT outputs/, the
+# sibling with 70 MB of old mp4s. (A no-cone pattern set that excluded /*/ and
+# re-included the project fetched nothing but the root files on Git for
+# Windows; re-including under an excluded parent is not portable.)
+git sparse-checkout init --cone
+git sparse-checkout set projects/003-it-isnt-moving-yet/source \
+    projects/003-it-isnt-moving-yet/scripts projects/003-it-isnt-moving-yet/audio
 git checkout claude/motion-editors-video-concept-fz6opf
 cd projects/003-it-isnt-moving-yet
 py -3.11 -m venv .venv && source .venv/Scripts/activate   # bpy 4.5 needs 3.11 EXACTLY
