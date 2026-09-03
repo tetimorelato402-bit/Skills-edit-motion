@@ -14,7 +14,16 @@ Coverage is measured against frame 0, not against the palette's parchment:
 the woven ground already sits ~40 levels off #EFE3CC, so an absolute
 reference reports 100% before anything has happened.
 
+SCOPE: THE BLOOM WINDOW ONLY — frames 0 to bt(5), which is 289 frames at 120fps.
+"A bloom may only ever grow" is true of the bloom and of nothing after it. Once the
+five techniques start cutting, each one has its own composition and its own crop of
+the poppy, so coverage measured against frame 0 rises and falls for entirely healthy
+reasons. Pointed at a full 2304-frame render this script reports about 1500 frames
+"went backwards" and means none of it. It now truncates to the window itself rather
+than leaving that trap set; pass --all to override, and read the result knowing this.
+
   python3 scripts/check-bloom.py outputs/pv2
+  python3 scripts/check-bloom.py source/frames120        # truncates to the bloom
 """
 import glob
 import pathlib
@@ -23,9 +32,16 @@ import sys
 import numpy as np
 from PIL import Image
 
+BLOOM_FRAMES = 289          # bt(5) at 120fps — see the scope note above
+
 files = sorted(glob.glob(sys.argv[1] + '/*.png'))
 if not files:
     sys.exit(f'no frames in {sys.argv[1]}')
+
+if '--all' not in sys.argv and len(files) > BLOOM_FRAMES:
+    print(f'  {len(files)} frames given; measuring the first {BLOOM_FRAMES} '
+          f'(the bloom). Past it this metric is meaningless — see the docstring.\n')
+    files = files[:BLOOM_FRAMES]
 
 base = np.asarray(Image.open(files[0]).convert('RGB'), dtype=float)
 prev, backwards = -1.0, []

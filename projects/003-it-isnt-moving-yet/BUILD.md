@@ -93,6 +93,13 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   Every individual still looked like a plausible frame of *something*, which is what
   makes it dangerous. **The paint skin is global, one layer over the whole bloom, and
   there is no `will-change` anywhere in this film.**
+- **check-bloom.py measures the BLOOM, and nothing after it.** Pointed at a full
+  2304-frame render it reported ~1500 frames "went backwards" and meant none of it:
+  coverage is measured against frame 0, and once the five techniques start cutting, each
+  has its own composition and its own crop of the poppy, so it rises and falls for
+  entirely healthy reasons. The script truncates to the first 289 frames now (`bt(5)` at
+  120fps) and says so; `--all` overrides. The trap was easy to walk into precisely
+  because the output looks like the catastrophic bug it was written to catch.
 - **The bloom check needed a tolerance, and that is not a weakening.** The failure it
   guards is a CLIFF — a 90%-covered frame coming back as frame 0 — but its threshold was
   0.005, and once the bloom plateaus near full frame the paint skin and the petals' own
