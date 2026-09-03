@@ -60,3 +60,5 @@ film was moved onto it.
 ```sh
 python3 scripts/track.py audio/gracias-a-ti-129.mp3
 ```
+
+**The track itself is committed on this branch** (`gracias-a-ti-129.mp3`, 5.7 MB, 320 kb/s), at teti's request, so a fresh clone can assemble the film without copying it in by hand. `audio/*.mp3` stays in `.gitignore` for any other variants.
