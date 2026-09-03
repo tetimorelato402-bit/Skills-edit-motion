@@ -458,6 +458,75 @@ What each look actually is, mechanically:
   through every other. Opaque paper-white under a black line is a drawing.
 - **The studio is cheap.** 3–8 s/frame at 360 px on four cores, against 10–40 s for Act I:
   no haze, no transmission, flat materials. Freestyle is the only cost that shows.
+
+## The studio turns — a full 360°, on the beat, with a real kit around it
+
+teti asked for the camera to go all the way round the flower like it really was a studio,
+for the words (still barely legible at the time) to be fixed, and for detail around the
+flower rather than an empty cyc. All three turned out to be one change: `studio_az(t)` in
+`plant.py` is a pure function of `t` that returns the camera's azimuth in radians, built
+from the same `bt()`/`BEAT` grid as everything else — a beat is a "kick" (`_kicked()`,
+`ease_out` inside the beat) that advances the turn 18° in STATED, 18°/beat then 9°/eighth
+in CUTTING, a full 72°/eighth in ALLFIVE (a quarter-turn on every cut of the strobe — the
+fastest the room ever moves, for the loudest the claim ever gets), then eases back to
+exactly the axis Act I stood on across COLLAPSE. By the time it lands there the camera has
+done just over **five full revolutions**. Every look, every word, and every fixture in the
+rig is placed with `_place()`/`Rz(az)` in the CAMERA's frame, not the world's, so a look
+reads identically from every angle — the set turns, not the subject.
+
+`_dressing()` builds a full kit around the flower — softbox on a stand, C-stand with a
+flag, fresnel with barn doors, a boom carrying the Act I lamp itself, a tripod with a
+second camera looking back, apple boxes and a slate, a reflector, a hanging roll of paper,
+a stool and a sandbag, cables, floor tape, and the card the ink look's caption sits on —
+all built once in `_studio()`, all `hide_render=True` until the room is lit, matching every
+other studio asset's contract.
+
+**Gotchas from this pass:**
+
+- **A generic "beam returns" camera position was overwriting every look's own framing,
+  every frame, for the whole collapse — not just the last one.** The comment said "over the
+  last look"; the code ran unconditionally. Grid, collage, ink and painted each place their
+  word for THEIR OWN camera, and all four were rendering from one fixed fallback position
+  instead — which is a real, worse version of "the words are hard to see" than any sizing
+  issue. Gated to `if li == 0` (the actual last span) and blended from wherever that look's
+  own camera already was.
+- **A tiny floor mark can be a bigger on-screen problem than a huge one.** A 14×2 cm tape
+  T-mark placed right by the jar looked harmless at the distances every OTHER shot uses —
+  and then REVEAL's opening pull-back starts almost on top of the just-landed petal, close
+  enough that the mark filled the frame as a huge soft diagonal bar. Distance to camera
+  matters more than an object's absolute size; the kit is now hidden entirely until REVEAL
+  ends and the wide is actually established, and nothing is placed inside the radius that
+  opening shot passes through.
+- **A camera standing on the R-frame's own axis (local x=0) makes "place the word at local
+  (0, y, z)" centre it for free; a camera dollying off that axis does not.** The strobe and
+  most looks sit at local x=0 and look straight down their own y-axis, so any word at
+  local x=0 lands centre-frame at every az. Painted's camera carries a persistent x-offset
+  (0.30→0.18) while still `aim_at`-ing the flower head off that axis, and the same trick put
+  a word's centre at ndc.x≈1.0 — off the right edge — at the closest push-in. The fix is
+  geometric, not a bigger safety margin: place the word ON THE CAMERA'S OWN RAY through the
+  aim point (`camv + k*(H-camv)`), which is centre-frame by construction for *any* camera
+  offset, because `aim_at` already points the lens at every point on that line.
+- **Measure on-screen extent with `world_to_camera_view`, not by eye at a 480 px preview** —
+  the collage word overflowed the right edge by 10% of frame width and read as "mak" with an
+  ‘e’ ghosting off-screen at a glance; the number (`ndc.x` to 1.10) made it unambiguous and
+  gave a real target to fit back inside.
+- **That same measurement is unreliable near the edge of the lens's own view cone.** A
+  bounding-box NDC sweep flagged cables and floor kit at width > 1.0 — apparently spanning
+  more than the whole frame — for objects that, rendered, are a thin stand leg politely
+  visible at a corner. A point near 90° off the camera's forward axis is where perspective
+  projection blows up, and a small object straddling that boundary produces a huge, mostly
+  meaningless bounding box. The words (near frame centre, never near that boundary) are
+  where this check is trustworthy; anything peripheral has to be judged by an actual render.
+- **`ALLFIVE` clears `self.words` but there is now a second dict.** Painted's word a phone
+  can read lives in `self.words_big`, added after the strobe's own clearing loop was
+  written — so `alive,` kept showing, off-centre, under the strobing `alive?` until that
+  loop was updated to clear both dicts. Any state that lives outside the one dict the
+  original contract clears is state a later look can inherit.
+- **Bezier handles on procedural geometry: prefer `VECTOR` to `AUTO`.** `AUTO` solves a
+  smooth tangent from neighbouring points and can overshoot badly on a sparse, non-collinear
+  run — cosmetic on paper, but this is exactly the kind of thing the peripheral NDC check
+  above can't be trusted to catch, so `VECTOR` (straight segments, never overshoot) is the
+  safer default for anything procedural and unreviewed by eye.
 - **Check every word at 390 px, and check it against the flower, not the frame.** The
   strobe's `alive?` was in frame, in front of the crossing `how`, at the right size — and
   invisible for all eight beats, because at head height the flower hides the middle of a
