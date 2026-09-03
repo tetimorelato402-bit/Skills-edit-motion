@@ -41,6 +41,20 @@ OPEN      = (bt(25), bt(27))   # the flower opens, IN the beam
 HOLD      = (bt(27), bt(37))   # open, and the room going out around it
 DETACH    = (bt(37), bt(38))   # one petal peels, on the last beat of music
 FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
+
+# THE TWO GLITCHES, and they are frames rather than a range.
+#
+# "Its original colour coming down and then glitching into 2 styles." The petal
+# falls in its own vermilion, and twice on the way down the WHOLE FRAME becomes
+# one of the languages that is coming — two frames, then back. Not a tint on the
+# petal: a glitch is a whole-frame event, and half-glitching one object in a
+# frame reads as a lighting effect on the object.
+#
+# They land on the two beats inside the silence that are NOT the downbeats, so
+# they fall where the music would have put a snare if there were any music. In a
+# bar and a half of nothing, the ear is still counting.
+GLITCH_AT = (bt(40), bt(42))
+GLITCH_FR = 2                  # frames each, at 24fps — a sixth of a beat
 ACT_I_END = bt(44)             # 20.465s — eleven bars
 
 # --- and the other end of the film ----------------------------------------

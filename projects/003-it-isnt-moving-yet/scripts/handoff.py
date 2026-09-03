@@ -100,7 +100,7 @@ def main():
     px = sum(q[0] for q in proj) / len(proj)
     py = sum(q[1] for q in proj) / len(proj)
     print(f"  falling petal, projected:  x = {px:7.1f}   y = {py:7.1f}   "
-          f"({co.x*100:.1f}%, {(1-co.y)*100:.1f}% of frame)")
+          f"({px/W*100:.1f}%, {py/H*100:.1f}% of frame)")
 
     # --- 1b. which way do its petals point? -------------------------------
     # THE STRONGEST CONTINUITY CUE IN THE FILM, and it costs nothing.

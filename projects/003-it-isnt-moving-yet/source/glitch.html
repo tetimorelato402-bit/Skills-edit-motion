@@ -1,0 +1,87 @@
+<meta charset="utf-8">
+<title>fall glitch</title>
+<style>
+  html,body{margin:0;background:#000}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+         font-family:Inter,system-ui,sans-serif}
+</style>
+<div id="stage"></div>
+<script>
+// ===========================================================================
+//  THE FALL'S TWO GLITCHES.
+//
+//  Two frames each, twice, while the petal is falling through the track's
+//  silence. The whole frame becomes a language — the modular grid, then the
+//  torn collage — and snaps back to the petal.
+//
+//  Why a separate pass and not part of video.html: this happens inside Act I,
+//  which is Blender, and it is a SUBSTITUTION, not a composite. The frame is
+//  replaced outright for two frames. So this renders standalone stills that
+//  overwrite those exact frame files, which is also the cheapest possible
+//  implementation of the loudest possible idea.
+//
+//  The glitch is built from the SAME poppy plate the back half uses, so it is
+//  genuinely a preview and not a stand-in: what flashes here is a frame that
+//  could have come from bar 14.
+// ===========================================================================
+const stage=document.getElementById('stage');
+function el(tag,parent,style,txt){
+  const d=document.createElement(tag);
+  Object.assign(d.style,style||{});
+  if(txt!==undefined) d.textContent=txt;
+  parent.appendChild(d); return d;
+}
+const POPPY="url('tex/poppy.png')", CREAM='#EFE3CC';
+const AC={t6:'#2C5FA8', t3:'#D8452A'};
+
+function tint(node,colour,strength){
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'color',opacity:String(strength),pointerEvents:'none'});
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'multiply',opacity:String(strength*0.22),pointerEvents:'none'});
+}
+
+// ---- glitch 0 · the modular grid, hard and quantised ----------------------
+const g0 = el('div',stage,{position:'absolute',inset:'0',background:CREAM,display:'none'});
+(function(){
+  const GW=1080/6, GH=1920/8;
+  const grid = el('div',g0,{position:'absolute',inset:'0'});
+  for(let r=0;r<8;r++) for(let c=0;c<6;c++){
+    const keep=(r*7+c*3)%5!==0;
+    el('div',grid,{position:'absolute',left:(c*GW)+'px',top:(r*GH)+'px',
+      width:GW+'px',height:GH+'px',
+      backgroundImage: keep?POPPY:'none',
+      background: keep?undefined:((r+c)%3===0?AC.t6:CREAM),
+      backgroundSize:'1500px 2666px',
+      backgroundPosition:(-c*GW*1.2-140)+'px '+(-r*GH*1.1-160)+'px'});
+  }
+  tint(grid, AC.t6, 0.86);
+})();
+
+// ---- glitch 1 · torn collage, nothing aligned ----------------------------
+const g1 = el('div',stage,{position:'absolute',inset:'0',background:AC.t3,display:'none'});
+(function(){
+  const R=[[-40,120,760,620,-7],[240,700,880,560,5],[-90,1240,900,640,-11],
+           [420,300,700,520,9],[60,1500,1000,520,3]];
+  for(const [x,y,w,h,rot] of R){
+    const f = el('div',g1,{position:'absolute',left:x+'px',top:y+'px',
+      width:w+'px',height:h+'px',backgroundImage:POPPY,
+      backgroundSize:'1500px 2666px',
+      backgroundPosition:(-x*0.7-200)+'px '+(-y*0.5-260)+'px',
+      transform:`rotate(${rot}deg)`,
+      clipPath:'polygon(0% 3%,14% 0%,33% 4%,58% 1%,79% 5%,100% 2%,98% 26%,100% 51%,97% 74%,100% 97%,74% 100%,49% 96%,26% 100%,4% 97%,0% 72%,3% 48%,0% 25%)'});
+    tint(f, AC.t3, 0.80);
+  }
+  for(let i=0;i<4;i++)
+    el('div',g1,{position:'absolute',left:(90+i*230)+'px',top:(300+i*380)+'px',
+      width:'260px',height:'52px',background:'rgba(240,232,214,0.82)',
+      transform:`rotate(${i%2?8:-11}deg)`});
+})();
+
+const G=[g0,g1];
+window.renderFrame = function(i){
+  G.forEach((d,k)=>{ d.style.display = (k===i) ? 'block' : 'none'; });
+};
+window.NGLITCH = G.length;
+window.renderFrame(0);
+</script>

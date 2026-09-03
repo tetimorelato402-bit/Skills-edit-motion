@@ -1,0 +1,74 @@
+<meta charset="utf-8">
+<title>the question</title>
+<style>
+  html,body{margin:0;background:transparent}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+         font-family:Inter,system-ui,sans-serif}
+</style>
+<div id="stage"></div>
+<script>
+// ===========================================================================
+//  THE QUESTION — a transparent overlay pass over Act I.
+//
+//  It is the ONLY sustained type in the film, and since teti chose a pure loop
+//  with no end card it is also the only time the film speaks at all. Every loop
+//  restates it, which is more times than a closing card would have managed.
+//
+//  It is a separate pass rather than part of video.html because it belongs to
+//  Act I, and Act I is Blender. Rendering it here with alpha and compositing it
+//  over the rendered frames keeps the typography exact — the same Inter, the
+//  same negative tracking, the same rust on the second "alive" — where drawing
+//  it into Blender or into ffmpeg's drawtext would not.
+//
+//  Timebase is FILM time, not a local one: renderFrame(0) is the film's first
+//  frame, so the overlay and the Blender frames share a clock and a frame
+//  index with nothing to line up by hand.
+// ===========================================================================
+const BPM=129, BEAT=60/BPM, BAR=4*BEAT;
+const bt = n => n*BEAT;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+const easeOut=u=>1-Math.pow(1-u,3);
+
+const INK='#241a12', RUST='#A8341A';
+const stage=document.getElementById('stage');
+function el(tag,parent,style,txt){
+  const d=document.createElement(tag);
+  Object.assign(d.style,style||{});
+  if(txt!==undefined) d.textContent=txt;
+  parent.appendChild(d); return d;
+}
+
+// It sits over the DARK, so it is bone on black rather than ink on parchment —
+// the one place in the film where the type is the light thing.
+const PAPER='#EFE3CC';
+const wrap = el('div',stage,{position:'absolute',left:'84px',top:'640px',width:'912px'});
+const rows = [["how do you"],["make ideas"],["that aren't"],["alive, ","alive?"]];
+const qEls = [];
+rows.forEach((parts,i)=>{
+  const line = el('div',wrap,{display:'flex',alignItems:'baseline',whiteSpace:'pre',
+    width:'fit-content',fontSize:'132px',fontWeight:'800',letterSpacing:'-0.045em',
+    lineHeight:'1.02',overflow:'hidden'});
+  const inner = el('div',line,{display:'flex',whiteSpace:'pre'});
+  parts.forEach((txt,j)=>el('span',inner,{
+    color:(i===3&&j===1)?RUST:PAPER},txt));
+  qEls.push(inner);
+});
+
+// ONE LINE PER BEAT, rising out of its own clipped box, then it holds for two
+// bars and leaves before the stem starts climbing. It must be gone by bt(8):
+// the growth is the film's argument and type over it would make the plant an
+// illustration of a sentence instead of the thing the sentence is about.
+const IN = bt(1), OUT = bt(7), GONE = bt(8);
+window.renderFrame = function(t){
+  const live = t >= IN && t < GONE;
+  stage.style.opacity = live ? String(1 - seg(t, OUT, GONE)) : '0';
+  if(!live) return;
+  qEls.forEach((e,i)=>{
+    const u = easeOut(seg(t, IN + i*BEAT, IN + i*BEAT + BEAT*1.2));
+    e.style.transform = `translateY(${((1-u)*150).toFixed(1)}px)`;
+  });
+};
+window.DUR = bt(8);
+window.renderFrame(0);
+</script>
