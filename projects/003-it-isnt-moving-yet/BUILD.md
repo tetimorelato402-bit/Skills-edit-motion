@@ -122,6 +122,15 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   its own `@font-face` off `source/fonts/inter.woff2` and was never exposed;
   `question.html` and `glitch.html` were relying on a system install and now do the same.
   `fc-list` is a check somebody has to remember to run. An `@font-face` is not.
+- **Resume from the first MISSING frame, not from the file count.** Counting files and
+  starting at the count is only correct if they are contiguous, and a container restart
+  does not promise that: this one came back having lost frames 118-167 while keeping
+  everything after them. The count said 168, the render resumed at 168, and it spent an
+  hour extending a sequence with a fifty-frame hole in the middle of the stem's growth.
+  ffmpeg does not care — it would have produced a two-second jump cut and no warning.
+  `build.sh` now finds the first missing index in each leg's range and, importantly, the
+  END of that missing run, so it fills the 50-frame gap instead of re-rendering the 312
+  frames that follow it.
 - **A resumable render will happily finish somebody else's film.** Every stage of
   `build.sh` resumes by counting the frames already on disk, which cannot distinguish
   "already rendered" from "rendered under a DIFFERENT timeline". The first run after the

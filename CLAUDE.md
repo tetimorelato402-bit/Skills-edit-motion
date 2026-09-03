@@ -233,6 +233,11 @@ Load-bearing for it, if it gets built:
   nothing to match. There is **no end card and no `teti.`** — teti chose a pure loop, so the
   question is asked once in bar 1 and every loop restates it. Losing the mark is a real
   cost and BRIEF.md records it rather than forgetting it.
+- **Resume from the first MISSING frame, not the file count**, and fill the gap rather
+  than everything after it. A container restart lost frames 118-167 and kept everything
+  later; the count said 168, so the render resumed at 168 and extended a sequence with a
+  fifty-frame hole in the growth. ffmpeg would have made a two-second jump cut out of it
+  without a word.
 - **Frame directories carry a timeline signature, and a mismatch wipes them.** Resume-by-
   counting cannot tell "already rendered" from "rendered under different constants": after
   the re-cut, `build.sh` found 369 Act I frames and 2304 studio frames from the old 18-bar

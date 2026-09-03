@@ -61,30 +61,54 @@ for d in outputs/plant_hi source/frames120; do
   fi
 done
 
+
+# ---------------------------------------------------------------------------
+#  RESUME FROM THE FIRST MISSING FRAME, NOT FROM THE COUNT.
+#
+#  Counting files and starting at the count is only correct if they are
+#  CONTIGUOUS, and a container restart does not guarantee that: this one came
+#  back having lost frames 118-167 while keeping everything after them, so the
+#  count said 168, the render resumed at 168, and it spent an hour extending a
+#  sequence with a fifty-frame hole in the middle of it. ffmpeg would have
+#  silently produced a two-second jump cut in the growth.
+#
+#  So: find the first index in the leg's range that is not on disk, and start
+#  there. Frames after a gap are re-rendered rather than skipped, which costs
+#  time and cannot produce a wrong film.
+# ---------------------------------------------------------------------------
+#  It fills GAPS, not "everything after the first gap". Resuming at the first
+#  hole and running to the end would have re-rendered 312 frames to replace 50.
+next_gap() {        # dir first last  ->  "START END" of the first missing run
+  python3 -c "
+import glob, re, sys
+d, a, b = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+have = set(int(re.findall(r'[0-9]+', x)[-1]) for x in glob.glob(d + '/f*.png'))
+s = next((i for i in range(a, b) if i not in have), b)
+e = s
+while e < b and e not in have:
+    e += 1
+print(s, e)
+" "$1" "$2" "$3"
+}
+
 echo "=== leg A: Act I, frames 0-$A_END at 24fps ==="
 for p in $(seq 1 40); do
-  n=$(ls outputs/plant_hi 2>/dev/null | grep -c '^f' || echo 0)
-  have=$(python3 -c "
-import glob,re
-f=[int(re.findall(r'\d+',x)[-1]) for x in glob.glob('outputs/plant_hi/f*.png')]
-print(len([i for i in f if i < $A_END]))")
-  [ "$have" -ge "$A_END" ] && { echo "  leg A complete"; break; }
+  read gs ge <<<"$(next_gap outputs/plant_hi 0 $A_END)"
+  [ "$gs" -ge "$A_END" ] && { echo "  leg A complete"; break; }
+  echo "  filling frames $gs-$ge"
   (cd source/blender && python3 render_plant.py --fps 24 --res 540 --samples 24 \
      --out ../../outputs/plant_hi --t0 0 --t1 $(python3 -c "print(44*60/129)") \
-     --start "$have" 2>&1 | grep -E "s/frame|Error|Traceback" | tail -2)
+     --start "$gs" --end "$ge" 2>&1 | grep -E "s/frame|Error|Traceback" | tail -2)
 done
 
 echo "=== leg C: the loop back, frames $C_BEG-$C_END at 24fps ==="
 for p in $(seq 1 40); do
-  have=$(python3 -c "
-import glob,re
-f=[int(re.findall(r'\d+',x)[-1]) for x in glob.glob('outputs/plant_hi/f*.png')]
-f=[i for i in f if i >= $C_BEG]
-print($C_BEG + len(f))")
-  [ "$have" -ge "$C_END" ] && { echo "  leg C complete"; break; }
+  read gs ge <<<"$(next_gap outputs/plant_hi $C_BEG $C_END)"
+  [ "$gs" -ge "$C_END" ] && { echo "  leg C complete"; break; }
+  echo "  filling frames $gs-$ge"
   (cd source/blender && python3 render_plant.py --fps 24 --res 540 --samples 24 \
      --out ../../outputs/plant_hi --t0 $(python3 -c "print(92*60/129)") \
-     --t1 $(python3 -c "print(108*60/129)") --start "$have" 2>&1 \
+     --t1 $(python3 -c "print(108*60/129)") --start "$gs" --end "$ge" 2>&1 \
      | grep -E "s/frame|Error|Traceback" | tail -2)
 done
 
@@ -104,9 +128,10 @@ python3 source/render_glitch.py --frames outputs/plant_hi --fps 24
 
 echo "=== leg B: the studio, $B_N frames at 120fps ==="
 for p in $(seq 1 40); do
-  n=$(ls source/frames120 2>/dev/null | grep -c '^f' || echo 0)
-  [ "$n" -ge "$B_N" ] && { echo "  leg B complete"; break; }
-  (cd source && python3 render.py --out frames120 --fps 120 --start "$n" 2>&1 \
+  read gs ge <<<"$(next_gap source/frames120 0 $B_N)"
+  [ "$gs" -ge "$B_N" ] && { echo "  leg B complete"; break; }
+  echo "  filling frames $gs-$ge"
+  (cd source && python3 render.py --out frames120 --fps 120 --start "$gs" --end "$ge" 2>&1 \
      | grep -E "s/frame|frames in|Error" | tail -2)
 done
 
