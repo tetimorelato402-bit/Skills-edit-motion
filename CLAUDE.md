@@ -311,7 +311,16 @@ Load-bearing for it, if it gets built:
   footprint on the table is also what photographs, not the lamp: use light linking rather
   than hunting for a position where the spill hides.
 - **`plant.py` has no keyframes.** It builds the scene once and `set_time(t)` moves it,
-  the same contract as `renderFrame(t)`, so the 125 BPM grid stays the only clock.
+  the same contract as `renderFrame(t)`, so the 129 BPM grid stays the only clock. **That
+  contract includes the LIGHTS**, and it was broken once: the key follows the falling petal
+  from `DETACH` onward and was never aimed home again, so its rotation depended on which
+  times had already been evaluated. Sequential renders never notice — `t` only increases —
+  but `handoff.py` evaluates the end of the act and then goes back to the open flower, and
+  got a 96%-black plate because the beam was still pointing where the petal lands thirteen
+  beats later. Anything that evaluates out of order hits it.
+- **Watch long jobs with something that knows what the output should look like.** That black
+  plate was caught by the monitor waiting on it measuring the frame and printing
+  `dark 96% (want ~10%)`. The render succeeded and reported nothing wrong.
 - **The question returns unchanged at the end and the viewer supplies the answer.**
   Putting a line under it is the one edit that breaks the film.
 - **Every bloom petal has its own fixed duration**, rather than all of them ending when

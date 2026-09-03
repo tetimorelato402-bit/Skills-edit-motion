@@ -604,7 +604,11 @@ class Scene:
         k.data.spot_blend = 0.52
         k.data.shadow_soft_size = 0.035
         k.data.color = (1.0, 0.79, 0.55)
-        aim_at(k, (0.0, 0.015, 0.0))      # onto the table, through the flower
+        # Where the beam points when nothing is falling. Kept as state because
+        # set_time has to be able to aim it BACK here — see the note in
+        # _set_time_act_one.
+        self.key_home = Vector((0.0, 0.015, 0.0))
+        aim_at(k, self.key_home)          # onto the table, through the flower
         self.key = k
 
         # A BOUNCE, LINKED TO THE PLANT ALONE. The shaft models the flower from
@@ -1140,10 +1144,27 @@ class Scene:
         # which is the whole point of having ONE light in this room — and the
         # beam cone has to be re-aimed with it or the visible shaft and the
         # light it stands for part company.
+        # AIM IT EVERY FRAME, INCLUDING BACK.
+        #
+        # `set_time` is a pure function of t and this was the one place it was
+        # not: the key was re-aimed at the petal from DETACH onward and never
+        # aimed home again, so the lamp's rotation depended on which times had
+        # been evaluated BEFORE this one. A sequential render never noticed —
+        # t only increases — but handoff.py evaluates the end of the act and
+        # then goes back to the open flower to shoot the poppy plate, and got a
+        # 96%-black frame: the beam was still pointing at the spot on the table
+        # where the petal had landed thirteen beats later.
+        #
+        # Anything that renders out of order hits this: a re-rendered range, a
+        # preview at scattered times, an extraction script. The contract is the
+        # whole reason there are no keyframes in this file, so it holds here too.
         if t >= DETACH[0]:
             fp, _ = self.faller_at(t)
             aim_at(self.key, fp)
             aim_at(self.beam, fp)
+        else:
+            aim_at(self.key, self.key_home)
+            aim_at(self.beam, self.key_home)
 
         # --- the camera -------------------------------------------------
         # Two moves, back to back, and the whole act is one unbroken shot.

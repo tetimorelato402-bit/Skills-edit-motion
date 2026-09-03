@@ -93,6 +93,21 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   Every individual still looked like a plausible frame of *something*, which is what
   makes it dangerous. **The paint skin is global, one layer over the whole bloom, and
   there is no `will-change` anywhere in this film.**
+- **`set_time` has to aim the key BACK, not just forward.** The follow-spot is re-aimed at
+  the falling petal from `DETACH` onward — and the first version never aimed it home again,
+  so the lamp's rotation depended on which times had already been evaluated. A sequential
+  render never notices, because `t` only increases. `handoff.py` does not render
+  sequentially: it evaluates the end of the act to project the petal, then goes back to the
+  open flower to shoot the poppy plate, and got a **96% black frame** — the beam was still
+  pointing at the patch of table where the petal lands thirteen beats later. Anything that
+  evaluates out of order hits this: a re-rendered range, a preview at scattered times, an
+  extraction script. `set_time` being a pure function of `t` is the whole reason this file
+  has no keyframes; that has to include the lights.
+- **Put the assertion in the watcher, not in your head.** This was caught because the
+  monitor waiting on the plate measured how much of it came back dark and printed
+  `dark 96% (want ~10%)`. The render succeeded, wrote a valid PNG, and reported nothing
+  wrong. Every long-running job in this project that produces an image should be watched
+  by something that knows what the image is supposed to look like.
 - **An overlay authored at 1080 will silently CROP onto a 540 frame.** Act I renders at
   540x960 and `question.html` is laid out for 1080x1920; PIL's `alpha_composite` pastes at
   1:1 from the top-left and takes no view about the size difference, so the first pass
