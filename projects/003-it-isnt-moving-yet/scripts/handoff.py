@@ -32,7 +32,11 @@ from bpy_extras.object_utils import world_to_camera_view
 HERE = os.path.dirname(os.path.abspath(__file__))
 BLEND = os.path.join(HERE, "..", "source", "blender")
 sys.path.insert(0, BLEND)
-from plant import ACT_I_END, Scene           # noqa: E402
+from plant import ACT_I_END, OPEN, Scene, aim_at   # noqa: E402
+from mathutils import Vector                 # noqa: E402
+
+# The flower fully open, before the room starts going out for the fall.
+OPEN_LOOK = OPEN[1]
 from render_plant import configure           # noqa: E402
 
 W, H = 1080, 1920
@@ -67,12 +71,35 @@ def main():
 
     # --- 1. where -----------------------------------------------------------
     dg = bpy.context.evaluated_depsgraph_get()
-    co = world_to_camera_view(bpy.context.scene, scene.cam,
-                              scene.head.matrix_world.translation)
-    # world_to_camera_view returns 0..1 from the BOTTOM left; screen space is
-    # top-left, so y flips.
-    px, py = co.x * W, (1.0 - co.y) * H
-    print(f"  flower head, projected:  x = {px:7.1f}   y = {py:7.1f}   "
+    bpy.context.view_layer.update()
+    # THE FALLING PETAL, NOT THE FLOWER HEAD.
+    #
+    # Act I no longer ends looking down the flower's throat — it ends on one
+    # petal alone in a beam, twenty centimetres from the plant it left. Left
+    # projecting the head, this printed an origin of (-1203, -2878): a point
+    # a frame and a half off the top-left corner, because the head is not in
+    # shot at all any more. The paint would have detonated from outside the
+    # picture, which reads as the frame simply filling with colour and throws
+    # away the whole reason the join is a substitution.
+    # ...and its CENTROID, not its object origin. `blade()` generates the mesh
+    # from y=0 outward, so a petal's origin sits at the base of the blade, off
+    # at one end of the shape. Projecting that put the bloom's centre near the
+    # petal's stalk and left the silhouette spanning only four of the six
+    # sectors below, because every vertex was on one side of the measuring
+    # point. The centroid is where the petal actually LOOKS like it is.
+    ob = scene.faller
+    me = ob.evaluated_get(dg).to_mesh()
+    proj = []
+    for v in me.vertices:
+        t = world_to_camera_view(bpy.context.scene, scene.cam,
+                                 ob.matrix_world @ v.co)
+        # world_to_camera_view returns 0..1 from the BOTTOM left; screen space
+        # is top-left, so y flips.
+        proj.append((t.x * W, (1.0 - t.y) * H))
+    ob.evaluated_get(dg).to_mesh_clear()
+    px = sum(q[0] for q in proj) / len(proj)
+    py = sum(q[1] for q in proj) / len(proj)
+    print(f"  falling petal, projected:  x = {px:7.1f}   y = {py:7.1f}   "
           f"({co.x*100:.1f}%, {(1-co.y)*100:.1f}% of frame)")
 
     # --- 1b. which way do its petals point? -------------------------------
@@ -84,18 +111,63 @@ def main():
     # flower's own geometry outward. Then it diverges into sixty-six and
     # becomes paint. Nobody consciously notices; it is what makes a viewer read
     # one object across two media instead of a flower and then some colour.
+    # The six axes now come from the ONE petal that is actually on screen: six
+    # points around the silhouette it presents to the lens, measured from its
+    # centre. The principle is unchanged and so is the payoff — the paint's
+    # first strokes leave along directions the picture already contains, so for
+    # the opening frames it is continuing a shape that is there rather than
+    # arriving over it. Taking them from the flower's six petals would now be
+    # taking them from an object outside the frame.
+    pts = [(qx - px, qy - py) for qx, qy in proj]
+    # the farthest vertex in each of six sectors — the silhouette's extremes
     axes = []
-    for i in range(6):
-        ob = bpy.data.objects[f"petal{i}"]
-        me = ob.evaluated_get(dg).to_mesh()
-        tip = max(me.vertices, key=lambda v: v.co.y).co.copy()
-        world = ob.matrix_world @ tip
-        t = world_to_camera_view(bpy.context.scene, scene.cam, world)
-        dx, dy = t.x * W - px, (1.0 - t.y) * H - py
-        axes.append(math.degrees(math.atan2(dy, dx)) % 360.0)
-        ob.evaluated_get(dg).to_mesh_clear()
+    for k in range(6):
+        lo, hi = k * 60.0, (k + 1) * 60.0
+        best, bd = None, -1.0
+        for dx, dy in pts:
+            a = math.degrees(math.atan2(dy, dx)) % 360.0
+            if lo <= a < hi:
+                d = dx * dx + dy * dy
+                if d > bd:
+                    best, bd = a, d
+        if best is not None:
+            axes.append(best)
     axes.sort()
     print("  petal axes on screen (deg): " + ", ".join(f"{a:.1f}" for a in axes))
+
+    # --- 1c. THE POPPY PLATE ------------------------------------------------
+    #
+    # Two different images, for two different jobs, and conflating them was a
+    # real bug rather than a tidy shortcut.
+    #
+    # `act1_last.png` is the JOIN: the true final frame of Act I, which the
+    # paint erupts out of. Since the act now ends on one petal alone in a beam,
+    # that frame is 95% black — correct for the join, and useless as a subject.
+    #
+    # `poppy.png` is the SUBJECT: the open flower, filling the frame, under
+    # Act I's own lighting. It is what all five techniques in the back half
+    # composite, and it is the whole "SAME POPPY" claim. When the techniques
+    # were pointed at act1_last they were cropping into darkness — the film's
+    # five languages rendered as five arrangements of grey.
+    #
+    # It is still extracted rather than art-directed: the same scene, the same
+    # lamps, the same materials, at the moment the flower is fully open and the
+    # room has not yet gone out. Only the camera is moved, and only so that the
+    # flower fills a frame it is otherwise a small part of.
+    scene.set_time(OPEN_LOOK)
+    cam = scene.cam
+    keep = (cam.location.copy(), cam.rotation_euler.copy())
+    head = scene.head_at
+    cam.location = head + Vector((0.0, -0.30, 0.055))
+    aim_at(cam, head)
+    bpy.context.view_layer.update()
+    plate = os.path.join(OUT, "poppy.png")
+    bpy.context.scene.render.filepath = plate
+    bpy.ops.render.render(write_still=True)
+    print("  poppy plate (the techniques' subject) ->", plate)
+    cam.location, cam.rotation_euler = keep
+    scene.set_time(ACT_I_END - 1 / 120.0)
+    bpy.context.view_layer.update()
 
     # --- 2. what colour -----------------------------------------------------
     still = os.path.join(OUT, "handoff.png")
@@ -105,9 +177,12 @@ def main():
         bpy.context.scene.render.filepath = still
         bpy.ops.render.render(write_still=True)
 
-    im = np.asarray(Image.open(still).convert("RGB"), dtype=float)
-    # The camera now ends inside the flower, so the petals ARE the frame —
-    # there is no head-box to find any more. Sample the whole image.
+    # SAMPLE THE POPPY PLATE, NOT THE JOIN FRAME. The join frame is one petal
+    # in a beam on a black stage: a few thousand lit pixels against two million
+    # black ones, which pulls the k-means toward the dark and produced a ramp
+    # with two muddy browns in it. The plate is the same flower under the same
+    # lamps, filling the frame — same light, same material, vastly more of it.
+    im = np.asarray(Image.open(plate).convert("RGB"), dtype=float)
     box = im.reshape(-1, 3)
 
     # Filter on SATURATION, not brightness. Act I is a near-monochrome dark

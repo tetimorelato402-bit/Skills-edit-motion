@@ -41,10 +41,11 @@
 // ===========================================================================
 
 // ---- the grid -------------------------------------------------------------
-// Same 125 BPM room as Study 001, so sound.py and the beat helpers transfer
+// 129 BPM: the measured tempo of the track the film is cut to. See audio/README.md —
+// every boundary below is a multiple of a beat, so this one number re-times the file
 // with no conversion. A beat is 0.48s, a bar 1.92s. Every event below is
 // written in bt(), never in seconds.
-const BPM=125, BEAT=60/BPM, BAR=4*BEAT;     // 0.48, 1.92
+const BPM=129, BEAT=60/BPM, BAR=4*BEAT;     // 0.46512, 1.86047
 const bt=n=>n*BEAT;
 const EIGHTH=BEAT/2, SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
 
@@ -62,16 +63,43 @@ const BLOOM   = [0, bt(5)];     // five beats exactly: 2.4s of detonation
 // showreel of five unrelated clips. It also keeps the flower running all the
 // way through the back half, which is the continuity the front half spent
 // fifteen seconds establishing.
-const T5 = [bt( 8), bt(12)];    // white space editorial  — rust
-const T6 = [bt(12), bt(16)];    // modular grid           — signal blue
-const T3 = [bt(16), bt(20)];    // torn collage           — hot red on cream
-const T9 = [bt(20), bt(24)];    // ink on one colour      — mustard
-const T7 = [bt(24), bt(28)];    // painted frame          — the paint engine
+// ===========================================================================
+//  THE STUDIO — eleven bars, and it is a BARRAGE, not a sequence.
+//
+//  The old back half gave each technique a bar of its own, one after another,
+//  which demonstrated five things politely. This is the loudest stretch of the
+//  track (its bars 36-46) arriving out of six beats of total silence, and a
+//  polite demonstration under it would be a wasted drop.
+//
+//  So the five are stated fast and then STACKED. The shape is:
+//
+//    bars 1      DETONATION   the paint erupts out of the petal
+//    bars 2-3    THE FIVE     each language, two beats each, no repeats
+//    bars 4-5    PAIRS        two at once, cutting on the eighths
+//    bars 6-7    THREES       three at once, cutting on the sixteenths
+//    bars 8-9    ALL FIVE     the peak — this is where the track peaks too
+//    bars 10-11  COLLAPSE     it strips back, one language at a time, to one
+//
+//  Density is the argument. Nothing new is introduced after bar 3 — every
+//  frame from there on is made of things the viewer has already been shown,
+//  which is what makes it read as range rather than as noise. And it is still
+//  the SAME POPPY in all of them.
+// ===========================================================================
+const STUDIO = [bt(0),  bt(44)];
+const DETON  = [bt(0),  bt(4)];
+const STATE  = [bt(4),  bt(12)];   // the five, two beats each
+const PAIRS  = [bt(12), bt(20)];
+const TRIPS  = [bt(20), bt(28)];
+const ALL5   = [bt(28), bt(36)];   // the peak
+const COLL   = [bt(36), bt(44)];   // the collapse
 
-const ALL5 = [bt(28), bt(32)];  // all five at once — "showing everywhere"
-const QUES = [bt(32), bt(36)];  // the question returns, and is not answered
-const ENDC = [bt(36), bt(40)];  // teti., and the loop back into the dark
-const DUR     = bt(40);         // 19.20s — ten bars, and the film is 18
+// THE BREAK. The track drops out here — its beats 188-192, a bar of near
+// silence — and the picture goes with it. Everything drains to black over one
+// bar, and the last four bars of the film are Blender again: one more petal,
+// falling back into the jar. Both sides of that join are black, so there is
+// nothing to match and nothing to get wrong.
+const BREAK  = [bt(44), bt(48)];
+const DUR    = bt(48);          // 22.33s — twelve bars of the film's twenty-seven
 window.DUR = DUR;
 
 // ---- easing ---------------------------------------------------------------
@@ -403,7 +431,13 @@ function petalPath(p, u, scale){
 //  transition made of the technique's own grammar is one film changing voice.
 // ===========================================================================
 
-const POPPY = "url('tex/act1_last.png')";
+// THE SUBJECT, not the join. act1_last.png is Act I's true final frame — one
+// petal alone in a beam, 95% black — and it is the ground the paint erupts out
+// of, which is exactly what it should be. It is NOT what the five techniques
+// should be made of: pointed at it they cropped into darkness and the back half
+// rendered as five arrangements of grey. poppy.png is the open flower filling
+// the frame, same scene, same lamps, camera moved. See scripts/handoff.py.
+const POPPY = "url('tex/poppy.png')";
 
 // THE PETALS TAKE EACH STYLE'S COLOUR.
 //
@@ -733,46 +767,18 @@ const bA = [];
   bA.push({node:p4, dir:+1, span:1300});
 })();
 
-// ---------------------------------------------------------------- THE QUESTION
-// It comes back exactly as it went, and NOTHING IS ADDED. This bar is the whole
-// argument of the film and it contains no new element: by now the viewer has
-// watched a dead thing become alive and then be made five ways, so they answer
-// it themselves. Putting a line underneath would answer it for them and turn a
-// demonstration into a caption.
-const sQ = scene();
-const QLINES = [["how do you",0],["make ideas",0],["that aren't",0],["alive, ",0],["alive?",1]];
-const qEls = [];
-(function(){
-  const wrap = el('div',sQ,{position:'absolute',left:'84px',top:'640px',width:'912px'});
-  const rows = [["how do you"],["make ideas"],["that aren't"],["alive, ","alive?"]];
-  rows.forEach((parts,i)=>{
-    const line = el('div',wrap,{display:'flex',alignItems:'baseline',whiteSpace:'pre',
-      width:'fit-content',fontSize:'132px',fontWeight:'800',letterSpacing:'-0.045em',
-      lineHeight:'1.02',overflow:'hidden'});
-    const inner = el('div',line,{display:'flex',whiteSpace:'pre'});
-    parts.forEach((txt,j)=>el('span',inner,{
-      color:(i===3&&j===1)?AC.t5:INK},txt));
-    qEls.push(inner);
-  });
-})();
+// The question's scene tree and the end card's are gone with them; `act1_first`
+// is gone too, because the loop is now a Blender shot rather than a still.
 
-// ---------------------------------------------------------------- END CARD
-// teti. resolves out of the paint, holds, and the film cuts back to the dark
-// jar — so the last frame is the first frame and the loop is seamless. No
-// offer, no handle, no link: the work is the argument.
-const sE = scene();
-const eMark = el('div',sE,{position:'absolute',left:'84px',top:'880px',
-  fontSize:'196px',fontWeight:'800',letterSpacing:'-0.05em',color:INK},'teti');
-const eDot = el('div',sE,{position:'absolute',top:'880px',
-  fontSize:'196px',fontWeight:'800',letterSpacing:'-0.05em',color:AC.t5},'.');
-const eLoop = el('div',sE,{position:'absolute',inset:'0',
-  backgroundImage:"url('tex/act1_first.png')",backgroundSize:'1080px 1920px',
-  opacity:'0'});
-
-const SCENES = [
-  {d:s5, at:T5}, {d:s6, at:T6}, {d:s3, at:T3}, {d:s9, at:T9}, {d:s7, at:T7},
-  {d:sA, at:ALL5}, {d:sQ, at:QUES}, {d:sE, at:ENDC},
-];
+// Every technique is a full-frame scene that the barrage PLACES. A scene is
+// authored at 1080x1920 and mapped into whatever rectangle it is given, so the
+// same renderer serves a full frame, a half, a third or a band without any of
+// them needing to know which they are.
+const TECH = {t5:s5, t6:s6, t3:s3, t9:s9, t7:s7, all:sA};
+function place(d, x, y, w, h){
+  d.style.transformOrigin = '0 0';
+  d.style.transform = `translate(${x}px,${y}px) scale(${(w/1080).toFixed(5)},${(h/1920).toFixed(5)})`;
+}
 
 // ===========================================================================
 //  renderFrame — one deterministic function of t. No CSS animation anywhere:
@@ -787,14 +793,16 @@ const uIn  = (t,at) => seg(t, at[0], at[0]+EIGHTH);
 const uOut = (t,at) => seg(t, at[1]-EIGHTH, at[1]);
 const uAll = (t,at) => seg(t, at[0], at[1]);
 
-function drawFive(t){
+// The five technique renderers. Each is a pure function of its own 0..1
+// progress plus its entry-wipe progress, which is what lets the barrage below
+// invoke any of them at any size, at any speed, as often as it likes.
+
 
   // ---- T5 · white space editorial ---------------------------------------
   // One petal, twice the height of the frame, crossing left to right. It never
   // stops in the middle: the technique is the imbalance, and a shape that
   // settles centred is a composition rather than an imbalance.
-  if(t>=T5[0] && t<T5[1]){
-    const u = uAll(t,T5);
+  function drawT5(u, ein){
     // -520 to +430, and eased OUT rather than in-out. An ease-in-out across a
     // 1900px travel spends the bar lingering at both ends, which are both off
     // frame — the technique is one enormous object crossing an empty frame,
@@ -802,16 +810,16 @@ function drawFive(t){
     const x = -520 + 950*easeOut(u);
     s5petal.style.transform = `translateX(${x.toFixed(1)}px) rotate(${(-9+14*u).toFixed(2)}deg)`;
     // it arrives THROUGH a rust wipe — the accent enters before the object does
-    s5.style.clipPath = uIn(t,T5) < 1 ? wipePath(uIn(t,T5), 1) : 'none';
-    s5micro.style.opacity = String(seg(t, T5[0]+EIGHTH, T5[0]+BEAT));
+    s5.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
+    s5micro.style.opacity = String(seg(u, 0.125, 0.25));
   }
 
   // ---- T6 · modular grid -------------------------------------------------
   // The cells deal themselves in on sixteenths, out of order, and the block
   // crosses the frame occluding whatever is behind it. Nothing here moves
   // freely; every value below is quantised to a sixteenth before it is used.
-  if(t>=T6[0] && t<T6[1]){
-    const q = Math.floor((t-T6[0])/SIXTEENTH);          // which sixteenth we are on
+  function drawT6(u, ein){
+    const q = Math.floor(u*16);                         // which sixteenth we are on
     for(const tl of s6tiles){
       const on = q >= tl.order && q < 15 - Math.floor(tl.order/4);
       tl.node.style.opacity = on ? '1' : '0';
@@ -822,45 +830,44 @@ function drawFive(t){
     const bq = Math.max(0, Math.min(12, q-1)) / 12;
     s6block.style.transform = `translateX(${(bq*1080-GW/2).toFixed(0)}px)`;
     s6block.style.opacity = q>0 && q<14 ? '1' : '0';
-    s6.style.clipPath = uIn(t,T6) < 1 ? wipePath(uIn(t,T6), -1) : 'none';
+    s6.style.clipPath = ein < 1 ? wipePath(ein, -1) : 'none';
   }
 
   // ---- T3 · torn collage -------------------------------------------------
   // Fragments slam in crooked, one per eighth, and the red block wipes the
   // whole frame twice inside the bar. Deliberate roughness: nothing lines up
   // with anything, and nothing eases.
-  if(t>=T3[0] && t<T3[1]){
+  function drawT3(u, ein){
     for(const f of s3frag){
-      const u = seg(t, T3[0]+f.lag*BEAT*2, T3[0]+f.lag*BEAT*2+BEAT*0.4);
-      f.node.style.opacity = u>0 ? '1' : '0';
-      const s2 = 0.86 + 0.14*easeOut(u);
+      const fu = seg(u, f.lag*0.5, f.lag*0.5+0.1);
+      f.node.style.opacity = fu>0 ? '1' : '0';
+      const s2 = 0.86 + 0.14*easeOut(fu);
       f.node.style.transform = `rotate(${f.rot}deg) scale(${s2.toFixed(3)})`;
     }
     s3tape.forEach((tp,i)=>{
-      tp.style.opacity = seg(t, T3[0]+BEAT*(1+i*0.4), T3[0]+BEAT*(1.2+i*0.4)) > 0 ? '1':'0';
+      tp.style.opacity = seg(u, 0.25+i*0.1, 0.30+i*0.1) > 0 ? '1':'0';
     });
     // two hard colour wipes, on beats 2 and 4 — the block owns the frame for
     // an eighth each time and the collage is rebuilt behind it
-    const w1 = seg(t, T3[0]+BEAT*1.0, T3[0]+BEAT*1.5);
-    const w2 = seg(t, T3[0]+BEAT*3.0, T3[0]+BEAT*3.5);
+    const w1 = seg(u, 0.25, 0.375);
+    const w2 = seg(u, 0.75, 0.875);
     const w = w1>0 && w1<1 ? w1 : (w2>0 && w2<1 ? w2 : -1);
     s3block.style.display = w<0 ? 'none' : 'block';
     if(w>=0) s3block.style.clipPath = wipePath(w<0.5 ? w*2 : (1-(w-0.5)*2), 1);
-    s3.style.clipPath = uIn(t,T3) < 1 ? wipePath(uIn(t,T3), 1) : 'none';
+    s3.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
   }
 
   // ---- T9 · ink on one colour --------------------------------------------
   // The line draws itself on, petal by petal, then the whole drawing lifts off
   // the mustard. Two colours in the bar and nothing else — the restraint is
   // the technique.
-  if(t>=T9[0] && t<T9[1]){
+  function drawT9(u, ein){
     s9els.forEach((e,i)=>{
-      const u = easeOut(seg(t, T9[0]+EIGHTH+i*SIXTEENTH*1.4,
-                              T9[0]+EIGHTH+i*SIXTEENTH*1.4+BEAT*1.1));
-      e.node.style.strokeDashoffset = (e.len*(1-u)).toFixed(1);
-      e.node.style.opacity = String(1 - uOut(t,T9));
+      const eu = easeOut(seg(u, 0.125+i*0.0219, 0.125+i*0.0219+0.275));
+      e.node.style.strokeDashoffset = (e.len*(1-eu)).toFixed(1);
+      e.node.style.opacity = String(1 - seg(u, 0.875, 1));
     });
-    s9.style.clipPath = uIn(t,T9) < 1 ? wipePath(uIn(t,T9), -1) : 'none';
+    s9.style.clipPath = ein < 1 ? wipePath(ein, -1) : 'none';
   }
 
   // ---- ALL FIVE · showing everywhere -------------------------------------
@@ -868,60 +875,127 @@ function drawFive(t){
   // in alternating directions. Alternating is the point: five bands drifting
   // the same way is a texture scrolling, five bands opposing each other is
   // five things happening at once.
-  if(t>=ALL5[0] && t<ALL5[1]+EIGHTH){
-    const u = uAll(t,ALL5);
+  function drawA(u, ein){
     bA.forEach((b,i)=>{
-      const arrive = easeOut(seg(t, ALL5[0]+i*SIXTEENTH, ALL5[0]+i*SIXTEENTH+BEAT*0.7));
+      const arrive = easeOut(seg(u, i*0.03125, i*0.03125+0.0875));
       const drift = -b.span*0.5*u*b.dir;
       const enter = (1-arrive)*b.dir*1080;
       b.node.style.transform = `translateX(${(drift+enter).toFixed(1)}px)`;
       b.node.parentNode.style.opacity = String(arrive);
     });
-    sA.style.clipPath = uIn(t,ALL5) < 1 ? wipePath(uIn(t,ALL5), 1) : 'none';
+    sA.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
   }
 
-  // ---- THE QUESTION -------------------------------------------------------
-  // Each line rises out of its own clipped box, one per eighth, then the bar
-  // holds and nothing else happens. The stillness is the content.
-  if(t>=QUES[0] && t<QUES[1]+EIGHTH){
-    qEls.forEach((e,i)=>{
-      const u = easeOut(seg(t, QUES[0]+EIGHTH+i*EIGHTH, QUES[0]+EIGHTH+i*EIGHTH+BEAT));
-      e.style.transform = `translateY(${((1-u)*150).toFixed(1)}px)`;
-    });
-    sQ.style.clipPath = uIn(t,QUES) < 1 ? wipePath(uIn(t,QUES), -1) : 'none';
-  }
-
-  // ---- THE END CARD -------------------------------------------------------
-  // The mark lands, holds for two beats, and then the film cuts back into the
-  // dark jar it opened on — so the last frame is the first frame.
-  if(t>=ENDC[0]){
-    const m = easeOut(seg(t, ENDC[0]+SIXTEENTH, ENDC[0]+BEAT));
-    eMark.style.transform = `translateY(${((1-m)*90).toFixed(1)}px)`;
-    eMark.style.opacity = String(m);
-    // the dot lands a beat after the name, and it is the only rust on screen
-    const dm = easeOut(seg(t, ENDC[0]+BEAT, ENDC[0]+BEAT*1.5));
-    eDot.style.left = px(84 + eMark.getBoundingClientRect().width + 6);
-    eDot.style.opacity = String(dm);
-    eDot.style.transform = `scale(${(0.4+0.6*dm).toFixed(3)})`;
-    // AND THE LOOP IS A CUT. Crossfading a parchment end card into a frame
-    // that is 95% black passes through a washed grey for half a beat and looks
-    // like a fade to nothing. This film cuts — the shutter did, and so does
-    // this. Two sixteenths of the dark jar, and the last frame is the first.
-    eLoop.style.opacity = t >= ENDC[1]-SIXTEENTH*2 ? '1' : '0';
-    sE.style.clipPath = uIn(t,ENDC) < 1 ? wipePath(uIn(t,ENDC), 1) : 'none';
-  }
+  // THE QUESTION AND THE END CARD USED TO BE HERE, AND THEY ARE GONE.
+  //
+  // teti chose a pure loop: no returning question, no signature, no card. So
+  // the film asks its question ONCE, in bar 1 over the dark, and never speaks
+  // again — every loop restates it, which is more times than a closing card
+  // would have managed anyway. The mark going with it is a real cost, and it
+  // is recorded in BRIEF.md rather than quietly forgotten.
 
   // ---- T7 · painted frame -------------------------------------------------
   // A bristled brush wipe reveals the painting, and the paint keeps breathing
   // after it lands — a painted frame that holds perfectly still is a scan.
-  if(t>=T7[0] && t<T7[1]){
-    const u = uAll(t,T7);
-    s7img.style.clipPath = wipePath(Math.min(1, seg(t,T7[0],T7[0]+BEAT*1.4)), 1);
+  function drawT7(u, ein){
+    s7img.style.clipPath = wipePath(Math.min(1, seg(u, 0, 0.35)), 1);
     const k = 1.0 + 0.045*u;
     s7img.style.transform = `scale(${k.toFixed(4)}) rotate(${(u*0.6).toFixed(2)}deg)`;
   }
-}
 
+
+// ===========================================================================
+//  THE BARRAGE
+//
+//  Eleven bars, written as a CUT LIST rather than as a sequence of scenes. Each
+//  entry says: from this beat, show these techniques in these rectangles. A
+//  technique's own animation runs off its own 0..1 progress, so the same
+//  renderer can be a full frame in bar 2, half a frame in bar 5, and one of
+//  five bands in bar 9 — and it is the same poppy in every one of them, which
+//  is the only reason eleven bars of this reads as range instead of as noise.
+//
+//  The entry wipe is per APPEARANCE, not per technique: every time a language
+//  arrives anywhere it arrives through its own bristled edge, because a cut
+//  that belongs to no technique is the one cut this film cannot make.
+// ===========================================================================
+// The blackout sits above every scene and below nothing. It is the last thing
+// the 2D half does.
+const blackout = el('div',stage,{position:'absolute',inset:'0',
+  background:'#000',opacity:'0',pointerEvents:'none'});
+
+const DRAW = {t5:drawT5, t6:drawT6, t3:drawT3, t9:drawT9, t7:drawT7, all:drawA};
+
+const F = (x,y,w,h)=>({x,y,w,h});
+const FULL = F(0,0,1080,1920);
+const LEFT = F(0,0,540,1920),   RIGHT = F(540,0,540,1920);
+const TOPH = F(0,0,1080,960),   BOTH  = F(0,960,1080,960);
+const T3RD = [F(0,0,1080,640), F(0,640,1080,640), F(0,1280,1080,640)];
+
+// beat -> what is on screen. Held until the next entry.
+const CUTS = [
+  // --- bars 2-3: THE FIVE, two beats each, stated and gone ---------------
+  [ 4, [['t5',FULL]]],
+  [ 6, [['t6',FULL]]],
+  [ 8, [['t3',FULL]]],
+  [10, [['t9',FULL]]],
+  // T7 is the paint engine and it is teti's own hand, so it gets the beat
+  // that lands on bar 3's downbeat rather than being dealt like the others.
+  [11, [['t7',FULL]]],
+  // --- bars 4-5: PAIRS, cutting on the eighths ---------------------------
+  [12, [['t5',LEFT],  ['t6',RIGHT]]],
+  [14, [['t3',TOPH],  ['t9',BOTH]]],
+  [16, [['t7',LEFT],  ['t3',RIGHT]]],
+  [18, [['t6',TOPH],  ['t5',BOTH]]],
+  // --- bars 6-7: THREES, cutting on the sixteenths -----------------------
+  [20, [['t9',T3RD[0]], ['t5',T3RD[1]], ['t6',T3RD[2]]]],
+  [22, [['t3',T3RD[0]], ['t7',T3RD[1]], ['t9',T3RD[2]]]],
+  [24, [['t6',T3RD[0]], ['t3',T3RD[1]], ['t5',T3RD[2]]]],
+  [26, [['t7',T3RD[0]], ['t9',T3RD[1]], ['t3',T3RD[2]]]],
+  // --- bars 8-9: ALL FIVE. The peak, and the track peaks here too --------
+  [28, [['all',FULL]]],
+  // --- bars 10-11: THE COLLAPSE -----------------------------------------
+  // It comes apart the way it was built, in reverse: five, then three, then
+  // two, then one, then the last language alone holding the frame. The film
+  // has to arrive at the break already quiet or the break is just a gap.
+  [36, [['t3',T3RD[0]], ['t6',T3RD[1]], ['t7',T3RD[2]]]],
+  [38, [['t5',LEFT],  ['t9',RIGHT]]],
+  [40, [['t7',FULL]]],
+  [44, []],
+];
+
+function drawBarrage(t){
+  const b = t / BEAT;
+  let cur = null, curAt = 0, nextAt = 1e9;
+  for(let i=0;i<CUTS.length;i++){
+    if(b >= CUTS[i][0]){ cur = CUTS[i][1]; curAt = CUTS[i][0];
+                         nextAt = i+1<CUTS.length ? CUTS[i+1][0] : 48; }
+  }
+  const live = new Set();
+  if(cur){
+    // An appearance's progress runs across the whole hold, so a two-beat
+    // appearance plays its technique at twice the speed of a four-beat one.
+    // That is the barrage: the same motion, compressed, is what "faster" means
+    // here — not a different animation with fewer frames in it.
+    const span = (nextAt - curAt) * BEAT;
+    const u = clamp((t - curAt*BEAT) / span, 0, 1);
+    const ein = clamp((t - curAt*BEAT) / EIGHTH, 0, 1);
+    for(const [k, r] of cur){
+      const d = TECH[k];
+      live.add(k);
+      place(d, r.x, r.y, r.w, r.h);
+      show(d, true);
+      DRAW[k](u, ein);
+    }
+  }
+  for(const k in TECH) if(!live.has(k)) show(TECH[k], false);
+
+  // THE BREAK. One bar, and the picture leaves with the music. It drains to
+  // black rather than cutting, because the four bars after it are Blender
+  // coming up out of black — a cut to black and then a fade up out of it reads
+  // as two events where the film wants one long exhale.
+  const bl = seg(t, BREAK[0], BREAK[1]-SIXTEENTH);
+  blackout.style.opacity = String(bl);
+}
 
 window.renderFrame = function(t){
 
@@ -952,11 +1026,10 @@ window.renderFrame = function(t){
   // instead — so between every pair of techniques the film flashed a frame of
   // empty parchment, which looked like a missing scene rather than a bug.
   // Scenes are in DOM order, so the incoming one is already on top.
-  const inFive = t >= T5[0] + EIGHTH;
+  const inFive = t >= STATE[0];
   act1.style.display = inFive ? 'none' : 'block';
   bloomLayer.style.display = inFive ? 'none' : 'block';
-  for(const s of SCENES) show(s.d, t >= s.at[0] && t < s.at[1] + EIGHTH);
-  if(inFive) drawFive(t);
+  drawBarrage(t);
 
   // the paint skin rides the bloom's own progress
   const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.40);

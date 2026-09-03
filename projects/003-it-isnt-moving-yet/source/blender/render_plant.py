@@ -69,6 +69,8 @@ def main():
     ap.add_argument("--fps", type=int, default=0)
     ap.add_argument("--start", type=int, default=0)
     ap.add_argument("--end", type=int, default=-1)
+    ap.add_argument("--t0", type=float, default=-1.0)
+    ap.add_argument("--t1", type=float, default=-1.0)
     ap.add_argument("--res", type=int, default=540)
     ap.add_argument("--samples", type=int, default=48)
     args = ap.parse_args()
@@ -92,13 +94,23 @@ def main():
             el = shoot(tv, f"t{tv:06.3f}".replace('.', '_') + ".png")
             print(f"  {tv:7.3f}s  {el:6.1f}s", flush=True)
     else:
+        # The film has TWO Blender stretches, not one — Act I at the front and
+        # the last four bars at the back — so a range is given in seconds and
+        # frames are numbered from the film's own clock. That keeps f00000 the
+        # film's first frame in both passes, which is what lets the two be
+        # dropped into one ffmpeg sequence without renumbering anything.
         fps = args.fps or 30
-        n = int(round(ACT_I_END * fps))
-        end = n if args.end < 0 else min(args.end, n)
-        for i in range(args.start, end):
+        t0 = args.t0 if args.t0 >= 0 else 0.0
+        t1 = args.t1 if args.t1 >= 0 else ACT_I_END
+        a, b = int(round(t0 * fps)), int(round(t1 * fps))
+        if args.start:
+            a = max(a, args.start)
+        if args.end >= 0:
+            b = min(b, args.end)
+        for i in range(a, b):
             el = shoot(i / fps, f"f{i:05d}.png")
             if i % 10 == 0:
-                print(f"  {i}/{end}  {el:.1f}s/frame", flush=True)
+                print(f"  {i}/{b}  {el:.1f}s/frame", flush=True)
 
 
 if __name__ == "__main__":

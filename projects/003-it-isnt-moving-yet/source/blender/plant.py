@@ -43,6 +43,20 @@ DETACH    = (bt(37), bt(38))   # one petal peels, on the last beat of music
 FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
 ACT_I_END = bt(44)             # 20.465s — eleven bars
 
+# --- and the other end of the film ----------------------------------------
+# The last four bars are Blender again. The studio drains to black on the
+# track's second break, and out of that black ONE MORE PETAL falls — the same
+# object, the same light — and lands in the jar it grew out of. The camera
+# pulls back through the fall to exactly the framing of frame 0, and the beam
+# dies the way it arrived, so the film's last frame and its first are the same
+# black room and the loop has no seam in it at all.
+#
+# This is the thing the birds-eye arc could never have done. A camera move
+# cannot come back; a petal can.
+ENDFALL   = (bt(92),  bt(105))  # it falls, and the room comes back around it
+ENDDIE    = (bt(105), bt(108))  # the beam goes out. Frame 0 is black too.
+FILM_END  = bt(108)             # 50.233s — twenty-seven bars
+
 # WHERE THE BIRDS-EYE ARC USED TO BE.
 #
 # Bars 8-11 were a camera arc up over the open flower to a plan view and then a
@@ -786,9 +800,117 @@ class Scene:
         drift = 0.055 * u + 0.014 * math.sin(u * math.tau * 1.3 + 1.1)
         return Vector((swing, drift, z)), u
 
+    def returner_at(self, t):
+        """
+        Where the LAST petal is, in the final four bars.
+
+        It is the first fall run backwards in spirit but not in fact: it enters
+        from above the frame and comes down into the jar's mouth, so its
+        endpoint is fixed (the jar is at the origin) where the first fall's was
+        free. That means the drift has to CONVERGE rather than spread — a petal
+        that flutters outward on the way down would miss the jar and land on the
+        table, and landing beside the thing you are falling back into is the one
+        reading this shot cannot survive.
+        """
+        u = seg(t, *ENDFALL)
+        e = ease_in_out(u)
+        z = 0.62 + (0.148 - 0.62) * e            # above frame down to the neck
+        # the flutter narrows to nothing as it arrives
+        wob = (1.0 - e) ** 1.4
+        x = 0.115 * (1.0 - e) + 0.034 * math.sin(u * math.tau * 2.2) * wob
+        y = -0.052 * (1.0 - e) + 0.020 * math.sin(u * math.tau * 1.7 + 0.7) * wob
+        return Vector((x, y, z)), u
+
     # -- the one function that moves anything -------------------------------
     def set_time(self, t):
         """Position every element for time `t`. No keyframes anywhere."""
+        if t >= ENDFALL[0]:
+            return self._set_time_ending(t)
+        return self._set_time_act_one(t)
+
+    def _set_time_ending(self, t):
+        """
+        THE LAST FOUR BARS. Everything the plant was is gone — the stem never
+        grew, the flower never opened — because this is the room the film
+        started in, and the film is about to start again. All that is here is
+        the jar, the table, and one petal coming down into it.
+        """
+        pos, u = self.returner_at(t)
+
+        # the plant is not in this shot at all
+        self.stem.data.bevel_factor_end = 0.001
+        for ob, _ in self.leaves:
+            ob.scale = (0, 0, 0)
+        for ob in (*self.petals, *self.calyx, self.boss, *self.stamens):
+            ob.scale = (0, 0, 0)
+        self.head.rotation_euler = (math.radians(-74), 0, 0)
+        self.mat_stem.node_tree.nodes["Principled BSDF"] \
+            .inputs["Base Color"].default_value = DEAD_STEM
+        self.mat_leaf.node_tree.nodes["Principled BSDF"] \
+            .inputs["Base Color"].default_value = DEAD_LEAF
+
+        # the one petal, still tumbling, slowing as it arrives
+        self.faller.location = pos
+        self.faller.scale = (1, 1, 1)
+        spin = ease_out(u)
+        self.faller.rotation_euler = (
+            math.radians(28) + 3.0 * spin,
+            0.30 * math.sin(u * math.tau * 1.4) * (1.0 - spin),
+            math.radians(50) + 1.7 * spin)
+        for ob in (*self.petals, *self.calyx, self.boss, *self.stamens,
+                   *[l for l, _ in self.leaves]):
+            ob.visible_shadow = False
+
+        # THE BEAM COMES BACK, AND THEN GOES OUT.
+        #
+        # It has to arrive at exactly what frame 0 is, and frame 0 is BLACK:
+        # `find` ramps from bt(1) to bt(4), so at t=0 every lamp in this scene
+        # is at zero and the room is dark. So the film does not fade to black as
+        # a gesture — it lands on the same state it opens from, and the loop is
+        # a match rather than a dissolve. The light dies at the end the way it
+        # finds the floor at the start, which is the same event played the other
+        # way round.
+        back = ease_in_out(seg(t, ENDFALL[0], ENDFALL[0] + BAR * 0.5))
+        die = ease_in_out(seg(t, *ENDDIE))
+        lit = back * (1.0 - die)
+        self.key.data.energy = 620 * lit
+        self.key.data.spot_size = math.radians(4.0 + 3.0 * back)
+        self.bounce.data.energy = 0.0
+        self.fill.data.energy = 42 * lit
+        self.haze.inputs["Density"].default_value = 11.0 * lit
+        aim_at(self.key, Vector((0.0, 0.015, 0.0)) * ease_out(u)
+               + pos * (1.0 - ease_out(u)))
+        aim_at(self.beam, Vector((0.0, 0.015, 0.0)) * ease_out(u)
+               + pos * (1.0 - ease_out(u)))
+
+        # THE CAMERA PULLS BACK TO FRAME 0 AND STOPS THERE.
+        #
+        # It starts close on the petal, high, and retreats along the same axis
+        # the opening travel came in on until it is standing exactly where the
+        # first frame of the film stands. The last frame of the film IS the
+        # first frame of the film, so the two can be butted with nothing between
+        # them and no one can find the join.
+        # HOLD CLOSE, THEN RETREAT. Easing the pull across the whole four bars
+        # put the camera at 5.1m of its 5.4m travel with a third of the shot
+        # still to run — so the reveal was over before the petal arrived and the
+        # last two bars were a static wide of a jar the size of a thumbnail.
+        # The move waits: two bars close on the falling petal, then the room
+        # opens out around it in the two bars it actually lands in.
+        pull = ease_in_out(seg(t, ENDFALL[0] + BAR * 2.0, ENDFALL[1]))
+        # 0.62m, not 0.42. At 0.42 the petal is past being a petal — it is an
+        # orange shape with the frame cutting it on three sides, and the reveal
+        # then has to establish what it was as well as where it is. Starting a
+        # little wider keeps it legible as the same object that fell in bar 10.
+        r = 0.62 + (self.cam_start - 0.62) * pull
+        zc = (self.cam_z + 0.034) + (self.cam_z - self.cam_z - 0.034) * pull
+        self.cam.location = Vector((0.0, -r, zc + 0.16 * (1.0 - pull)))
+        if pull > 0.985:
+            self.cam.rotation_euler = (math.radians(90), 0, 0)
+        else:
+            aim_at(self.cam, pos * (1.0 - pull)
+                   + Vector((0.0, 0.0, self.cam_z)) * pull)
+
+    def _set_time_act_one(self, t):
         # the stem climbs
         grow = ease_out(seg(t, *CLIMB))
         self.stem.data.bevel_factor_end = max(0.001, grow)
