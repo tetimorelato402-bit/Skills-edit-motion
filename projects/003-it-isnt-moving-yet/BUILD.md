@@ -221,6 +221,25 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   per-vertex grain is a saw blade, a tear is a slow wander plus 1.4cm of grain; a stroke
   whose width jitters per vertex is serrated; the easel at x=-1.0 was outside a 24mm
   frame that spans x -0.43..0.91 at y=1.4.
+- **The back half is CALM now, and that is a decision about the track.** "Look at the
+  piano, the calm. It needs to match perfectly." The first cut of the studio was
+  arranged like a drop — a beat-kicked orbit, cuts on beats then eighths, a strobe of
+  five looks whipping 72° an eighth, words the width of the frame — over a track that
+  is a piano on a beat. So: `LOOKSPAN` is five looks of two bars each, `studio_az` is
+  one slow ease-in-out turn from the reveal's 30° to home over ten bars (no kicks), a
+  look change is a DIP of the rig to 30% over the last eighth and back over the first
+  (the set swaps in the dip) rather than a cut, the collapse is the last look's last
+  bar, and the words are gone — the question is asked once, in bar 1. With them went
+  the two whole-frame glitches in the fall (`GLITCH_FR = 0`), the collage's per-frame
+  handheld hash, and the grid's sixteenth-note resolution flicker (one step, on its
+  second downbeat); the stem's accent shimmer in the climb is half as dense and half as
+  deep. What the words used to do, the set does: the editorial umber flat makes the
+  slow crossing the word made (`drift()`), the ink look composes on an ENSO behind the
+  flower (`ring()`), and every look has more to look at (a moon disc, a sphere, a
+  column of cubes that rise and turn, paper circles and strips, splatter, a second
+  canvas, tubes, a jar of brushes). Set pieces carry an optional `motion(u)` —
+  slow, nothing faster than the room turns. `verify-film.py`'s lit window still ends
+  at `COLLAPSE[0]`; the dips floor at 30% so no sampled frame reads as dark.
 - **Re-render a RANGE in place, and delete the old frames first.** The gap-filling resume
   in `build.sh` looks for MISSING frames, so to re-render 413-982 after a timeline
   change the stale frames must be removed or it reports the range complete and
