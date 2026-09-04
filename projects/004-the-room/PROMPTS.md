@@ -19,10 +19,34 @@ one, for this piece only.
 | cold charcoal | `#1A1B1F` | the shutter in shadow |
 | steel grey | `#3A4048` | the corrugated metal |
 
+## What OpenArt can and cannot do here — established by running it
+
+**There is no video-to-video restyle.** The modes are `text2video`, `image2video` (animate a
+still as the literal first frame) and `element2video` (references, but it generates NEW
+footage rather than restyling yours). So "keep the exact camera movement" is a *steer*, not
+a guarantee — the beat-locked shake is the one thing a generation cannot be made to
+reproduce, which is an argument for compositing the render and the generated footage rather
+than replacing one with the other.
+
+**Reference video must be 480p-720p.** Seedance rejects the 1080x1920 master outright:
+`visualReferences.0: Video resolution must be between 480p and 720p`.
+`room-ref-720p-room-section.mp4` is the downscaled clip to upload.
+
+**Uploads have to come from teti's side.** This session has no `openart_upload_sign`, only
+`openart_upload_list`/`_pick`, so it can reference assets already in the account but cannot
+put new ones there.
+
+**And it cannot see the results.** `cdn.openart.ai` is denied by the egress policy, so a
+finished generation can be shown as a card but not downloaded or inspected here. Judging
+the output is teti's job; describing what came back is not something this session can do.
+
 ## Settings that matter more than the prompt
 
-- **Strength / denoise 0.45–0.60.** Below 0.4 it stays a render; above 0.7 it invents its
-  own camera and the beat sync is gone, which is the one thing that cannot be regenerated.
+- **There is no strength/denoise slider** in these modes — that control belongs to a
+  vid2vid pipeline, which is not what is on offer. Fidelity to the source comes from the
+  reference and the prompt only.
+- **Cost, measured.** Seedance 2.0, 5 s, 9:16, no audio: **720p = 400 credits list, 360
+  charged** on this Pro account; **1080p = 1000 list, 900 charged**. Test at 720p.
 - **Chunk it.** Most video models cap at 5–10 s. Cut on the section boundaries — 0.0, 5.6,
   13.1, 16.9, 24.4 — so a chunk never straddles a look change.
 - **Sections 4 and 5 (paint, waveform) are graphic on purpose.** A photoreal pass will
