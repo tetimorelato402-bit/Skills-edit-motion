@@ -224,6 +224,35 @@ Load-bearing for it, if it gets built:
   warning — and screenshots come back showing arbitrary earlier states.
   `scripts/check-bloom.py` asserts coverage is monotonic and is what catches it.
 
+## The Room — a music visualiser (project 004)
+
+`projects/004-the-room/` is the first piece here where **the sound drives the motion**
+rather than the other way round. It is a fun project and page content, not a study.
+Read its `BRIEF.md`. Two facts govern it:
+
+- **WebGL 2 runs in this container.** A raymarched room with a real fisheye renders at
+  **0.30 s/frame empty, ~0.6 s/frame with the crowd and haze**, at 1080x1920 — still
+  faster than 001's DOM engine. `source/room.html` keeps the same `renderFrame(t)`
+  contract, so `render.py --start/--end` re-renders a range the same way.
+- **The fisheye is a lens, not a filter.** The barrel is applied to the ray direction
+  before marching. Two things follow that are easy to get wrong and were:
+  **the screen is not isotropic** — `uv` is -1..1 on *both* axes, so x must be scaled by
+  the aspect or the lens stretches and the corners go black; and **anything drawn in
+  screen space must be projected through the same distortion**, or it detaches from its
+  source (the lamp's bloom sat away from the lamp in every tilted shot until the lamp was
+  projected into the distorted ray space and compared there).
+- **GLSL has `mix()`, not `lerp()`.** The JS half of the file has `lerp`, the shader half
+  does not, and the shader fails to compile silently — `renderFrame` just never appears.
+  `render.py` listens for `pageerror`; check it before assuming a timeout is a hang.
+- **The song is never burnt in**, exactly as in 001. The export carries the room's own
+  sound plus **a quiet click on every beat whose only job is alignment**: in the Reel
+  editor, slide the track until its kick sits on the click. Both are metronomic at
+  **128.000 BPM**, so once aligned they stay aligned for the whole 30 s. The film is
+  **16 bars = 30.0 s** and the alignment instruction is one line: *put the song's drop
+  at 16.9 s*.
+- **The camera shakes on the KICK; the lens breathes on the SUB.** Two channels. Driving
+  both from one envelope reads as noise rather than as impact.
+
 ## Blender in this container
 
 `pip install bpy==4.5.13` gives Blender as a Python module and **Cycles on CPU works**
