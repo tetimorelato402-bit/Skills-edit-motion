@@ -171,7 +171,9 @@ what got briefed; ARC is still the strongest 3D move whenever it is picked up.)
 
 ## The pitch film — "It isn't moving yet"
 
-`projects/003-it-isnt-moving-yet/` is **at gate 1**, and it is the one project here with
+`projects/003-it-isnt-moving-yet/` is **27 bars, cut to a track, and it loops** — Act I in Blender, everything
+after the bloom in `video.html`. What remains is finish, not structure: Act I at full
+resolution on a GPU, the soundtrack off `sound.py`, and a grade. It is the one project here with
 **two stacks in one film**: Act I is Blender/Cycles (`source/blender/`), everything after
 the bloom is the 001 HTML engine (`source/video.html`). It is **not a numbered study** —
 the directory is numbered for ordering only; the studies are the craft, this is the offer.
@@ -186,12 +188,30 @@ answered on screen.
 
 Load-bearing for it, if it gets built:
 
+- **All five techniques show the SAME POPPY.** Identical content, five languages — that
+  is the demonstration, and it is what stops the back half being five unrelated clips.
+  Each technique's entry transition is the technique announcing itself (the grid snaps in
+  as tiles, the collage arrives as a torn wipe, the ink floods); a generic dissolve
+  belongs to no technique and would undo it. **T9's ink line is generated from the
+  flower's own geometry** — the same petal profile and projected axes the bloom uses —
+  which is what turned the film's one un-buildable asset into code.
+- **A scene must stay visible an eighth past its own bar.** The incoming wipe reveals over
+  the outgoing picture; cut the old scene at its last frame and the wipe uncovers the bare
+  page, flashing empty parchment between every technique.
 - **The ground never leaves the warm family; the accent may.** Five techniques each get
   their own accent colour, which is the only sanctioned exception to the palette rule
   above — bone and umber stay constant under all five, as do the oil-plate surface and the
   125 BPM grid. That is what stops five palettes reading as five different films.
-- **Same 125 BPM grid as 001**, so `sound.py` and the beat helpers transfer directly.
-  **17 bars = 32.64s**, and the bloom is five beats (`bt(2)`–`bt(7)`, 2.4s).
+- **129 BPM, and the grid is MEASURED, not chosen.** The film is cut to Luifer's
+  *Gracias a Ti* from 46.555s. `scripts/track.py` fitted the tempo at 129.000 exactly and
+  found two breaks that end on downbeats: a **hard, sample-exact silence** at the track's
+  beats 138–144, and a musical drop-out at 188–192. Those are the film's two quietest
+  moments and they were not designed — the film was moved onto them. `BPM` in `plant.py`
+  and in `video.html` are the only two places the tempo lives; everything else is `bt()`.
+  **`DETACH` and the studio's start are not free numbers** — re-derive them from the audio
+  before moving them. See `audio/README.md`.
+  **27 bars = 50.23s at 129 BPM**, all of it Blender, one leg: Act I eleven bars, the
+  studio eleven, the break one, the loop back four.
 - **Act I is a dead POPPY in a mason jar, in the dark, growing and blooming** — seven
   bars, `bt(0)`–`bt(28)`. The poppy is chosen for camera reasons, not botanical ones: its
   bud reads as dead, its head lifts before it opens (anticipation performed by the plant),
@@ -199,18 +219,115 @@ Load-bearing for it, if it gets built:
   overlapping petals, not four — four gives a front-on camera two blades instead of a bowl. It makes the film's question literal rather than metaphorical.
   **The chat box was cut entirely**; there is no interface anywhere in the film, which is
   what disposes of the "I asked AI to..." risk. The question appears as pure type.
+- **The transition is a PETAL FALLING, and the birds-eye arc is gone.** The room goes out
+  around the open flower, one petal peels on `bt(37)`, and on `bt(38)` it lets go *and the
+  music stops in the same frame*. Six beats of falling through total silence, then the
+  music returns on the downbeat and the paint detonates out of it. Twice on the way down
+  the whole frame glitches into a language that is coming — two frames, a substitution,
+  never a tint on the petal. The arc was the CAMERA doing something; a petal letting go is
+  the FLOWER doing something, and it leaves an object that can come back. **You cannot loop
+  a camera move.**
+- **The back half is Blender now — five LOOKS on the flower, in the room.** teti asked for
+  the languages to happen on the flower rather than in a cut to 2D. So the room was a studio
+  the whole time: on `bt(44)` every light comes on inside a sixteenth, the walls are a cyc,
+  and the flower is the subject of a shoot. Editorial / grid (voxel remesh) / collage (petals
+  torn off, tape) / ink (Freestyle) / painted (impasto off the brush plate), each a rig + a
+  material + a camera + one word of the question; then cutting, then the strobe of all five
+  on one flower, then the collapse back to the single beam. `source/attic/` holds the
+  retired 2D half. `STUDIO_GAIN` is the one exposure number — the rig was a stop and a half
+  over until it existed. Anything a look *moves* (the collage's petals) the pose must put
+  back, location included.
+- **The film ends where it starts.** The last four bars are Blender again: one more petal
+  falls out of the black, the camera pulls back to reveal it is falling into the jar, and
+  the beam dies the way it arrived in bar 1. Both sides of that join are black, so there is
+  nothing to match. There is **no end card and no `teti.`** — teti chose a pure loop, so the
+  question is asked once in bar 1 and every loop restates it. Losing the mark is a real
+  cost and BRIEF.md records it rather than forgetting it.
+- **Resume from the first MISSING frame, not the file count**, and fill the gap rather
+  than everything after it. A container restart lost frames 118-167 and kept everything
+  later; the count said 168, so the render resumed at 168 and extended a sequence with a
+  fifty-frame hole in the growth. ffmpeg would have made a two-second jump cut out of it
+  without a word.
+- **Frame directories carry a timeline signature, and a mismatch wipes them.** Resume-by-
+  counting cannot tell "already rendered" from "rendered under different constants": after
+  the re-cut, `build.sh` found 369 Act I frames and 2304 studio frames from the old 18-bar
+  125 BPM version and counted them as progress. Nothing errors — every stale frame is a
+  valid PNG of a plausible picture. `build.sh` also copies the extracted textures itself
+  rather than trusting that someone remembered to.
+- **`act1_last.png` / `poppy.png` / `handoff.py` are RETIRED with the 2D half.** They
+  existed to hand a Blender frame to Chromium. There is no handoff any more — the studio is
+  the same Blender scene with the lights on — so nothing is extracted, projected or
+  composited between media. `scripts/handoff.py` still runs and its lessons (extract, never
+  type; sample the plate, not the join) are in `BUILD.md` for whenever a 2D pass returns.
+- **It has to read as ONE flower across the drop.** The key pulls back 42% through the
+  fall so the petal holds one colour instead of swinging dim-to-blazing as the camera
+  closes; and the drop is a switch on the SAME scene — nothing is cut to, nothing is
+  composited — so there is no join to hide any more. That is the whole reason the studio
+  moved into Blender.
 - **The paint bloom erupts out of the flower head, and the join is extracted, never typed.**
   `scripts/handoff.py` projects the head through Act I's real camera and k-means clusters
   the rendered poppy for the palette, lifting it **in value only** — the same method that
   produced 001's palette from the oil portrait. Re-run it after any change to the Blender
   camera or lighting, or the paint silently starts in the wrong place in the wrong colour.
   The 3D act is not cut away from, it is covered; the two worlds share exactly one frame.
+- **The flower carries the five accents itself, in both acts.** The stem strobes through
+  them on a thirty-second grid while it climbs, hits decaying `(1-p)**1.6` so it is violent
+  when the plant is dead and gone by the bud; and each technique in the back half recolours
+  the poppy to its own accent with `mix-blend-mode: color` (hue and saturation from the
+  tint, **luminance from the source**, so the brushwork survives). `ACCENTS` in `plant.py`
+  and `AC` in `video.html` are the same five hexes and must stay so — but Blender's inputs
+  are linear, so `plant.py` converts sRGB→linear on the way in; pasting a hex straight in
+  renders ~40% bright and pastel. The glitch's randomness is a hashed frame index, never
+  `random()`: `set_time(t)` must stay a pure function of `t` or re-rendering a range comes
+  back different from the first pass.
+- **A bounce light lifts the plant, and it is light-linked to the plant.** One warm area
+  light low and camera-right, `light_linking.receiver_collection` on the plant collection.
+  Unlinked it puts a second pool on the table and the beam stops being the only light in
+  the room — the same lesson as the rim spot, paid for twice.
+- **The flower has to survive filling a 1080-wide frame, and four things did not.** A
+  smooth transmissive petal is moulded plastic — it needs a crumple bump plus a roughness
+  variation off the same noise, on **Generated** coordinates (Object coordinates swim when
+  the petal's scale animates 0→1). Veining stretched base-to-tip, and any sheen over it,
+  turn the birds-eye into brushed satin — both were built and removed. One crimp wave at
+  six samples per period is a smooth lobe, so six petals are a balloon; a 7-period harmonic
+  fixes it. And from directly above an upright cylinder is a disc, so 52 vertical stamens
+  were a bead necklace — splayed 26-44° they read as a radiating fringe instead, which is
+  the paint bloom's own figure one shot early. Every jitter is a **hashed index, never
+  `random()`**: a resumed render chunk rebuilds the scene and must get the same flower.
+- **Cycles cost here, measured: 540x960 at 24 samples is 11.1s/frame, at 48 it is 19.9s.**
+  The denoiser closes the gap, so 24 is the setting. A CREASED petal costs about three
+  times a smooth one, which turns the 68-minute act into three hours; `adaptive_threshold
+  = 0.02` with a 6-sample floor buys most of it back, because the dark two-thirds of a
+  frame lit by one beam needs nothing the denoiser cannot finish. Act I renders
+  at 540 and is lanczos-upscaled to 1080 at conform time; **the two acts are conformed
+  separately and concatenated, never filtered together** — `setsar=1` on both legs or
+  `concat` refuses them, and Act I uses `framerate=` (which blends) not `fps=` (which
+  duplicates and judders on the camera arc), because Cycles was not asked for motion blur.
+  Grain goes on **both** legs at the same strength, or the join reads as a change of stock.
 - **The bloom is textured with `scripts/brushplate.py`, a neutral-grey plate carrying only
   value.** 001's paper plates do nothing over saturated colour — there is no value range
   left to push, and the paint reads as flat vector fill. A grey plate in `overlay` carves
   strokes into any hue without shifting it: the palette rule expressed as a texture.
+- **Act I is lit by ONE beam from above** landing on the floor as a pool, with the camera
+  starting across a dark room and travelling into it. **The lights cut to black on
+  `bt(27)`** — two frames, a switch not a fade — so the film holds on nothing for a beat
+  and the bloom detonates out of a hole rather than out of a lit frame.
+- **In Blender, aim lights with `aim_at(ob, target)` and never by typed Euler angles**, and
+  remember that `volume_bounces` defaults to 0 — which is no scattering at all, so a beam
+  renders as nothing. Both failures look exactly like "the value is too low". A lamp's
+  footprint on the table is also what photographs, not the lamp: use light linking rather
+  than hunting for a position where the spill hides.
 - **`plant.py` has no keyframes.** It builds the scene once and `set_time(t)` moves it,
-  the same contract as `renderFrame(t)`, so the 125 BPM grid stays the only clock.
+  the same contract as `renderFrame(t)`, so the 129 BPM grid stays the only clock. **That
+  contract includes the LIGHTS**, and it was broken once: the key follows the falling petal
+  from `DETACH` onward and was never aimed home again, so its rotation depended on which
+  times had already been evaluated. Sequential renders never notice — `t` only increases —
+  but `handoff.py` evaluates the end of the act and then goes back to the open flower, and
+  got a 96%-black plate because the beam was still pointing where the petal lands thirteen
+  beats later. Anything that evaluates out of order hits it.
+- **Watch long jobs with something that knows what the output should look like.** That black
+  plate was caught by the monitor waiting on it measuring the frame and printing
+  `dark 96% (want ~10%)`. The render succeeded and reported nothing wrong.
 - **The question returns unchanged at the end and the viewer supplies the answer.**
   Putting a line under it is the one edit that breaks the film.
 - **Every bloom petal has its own fixed duration**, rather than all of them ending when
@@ -276,12 +393,21 @@ This is what makes the 120fps → `tmix` → 30 house shutter runnable here at a
 
 ## Fonts
 
-The film needs **Inter** (400–900) plus ten families for the end-card type cycle:
+**Study 001** needs **Inter** (400–900) plus ten families for its end-card type cycle:
 Playfair Display, Anton, EB Garamond, IBM Plex Mono, Oswald, Caveat, Bodoni Moda,
-Zilla Slab, DM Serif Display, Space Grotesk. They are referenced by family name and
-resolved through fontconfig, so install them system-wide (`/usr/local/share/fonts/`
-then `fc-cache -f`) before rendering. Missing families silently fall back to sans-serif
-and the cycle stops reading as a cycle — check with `fc-list : family`.
+Zilla Slab, DM Serif Display, Space Grotesk. Those are resolved through fontconfig, so
+install them system-wide (`/usr/local/share/fonts/`, then `fc-cache -f`) before rendering
+and check with `fc-list : family` — a missing family falls back to sans-serif in silence
+and the cycle stops reading as a cycle.
+
+**003 does not depend on any of that, deliberately.** It self-hosts Inter and IBM Plex
+Mono from `projects/003-it-isnt-moving-yet/source/fonts/*.woff2` via `@font-face`, in
+`video.html`, `question.html` and `glitch.html` alike. This container has been restarted
+twice mid-build and came back both times with an empty `/usr/local/share/fonts`; the one
+pass that was still relying on a system install rendered a 132px 800-weight line in
+DejaVu and nobody would have noticed until the film was assembled. **`fc-list` is a check
+somebody has to remember to run. An `@font-face` is not.** 003 has no end card any more,
+so the ten display families are not needed by it at all.
 
 ## Open decisions
 

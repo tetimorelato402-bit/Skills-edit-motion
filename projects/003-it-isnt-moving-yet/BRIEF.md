@@ -1,10 +1,16 @@
 # "It isn't moving yet" — Creative Brief
 
-teti studio · **the master** · 9:16 · **17 bars = 32.64s** · 125 BPM · no post date
+teti studio · **the master** · 9:16 · **27 bars = 50.23s** · **129 BPM** · no post date
+
+Cut to Luifer, *Gracias a Ti*, from **46.555s** — the track's bar 25. The tempo, the
+section boundaries and the two quietest moments in the film are all measured off that
+recording rather than chosen; `audio/README.md` has the numbers and `scripts/track.py`
+re-derives them. **The film ends where it began and loops.**
 
 **Act I is 3D.** A dead plant in a mason jar, in the dark, that grows and blooms —
-Blender/Cycles, seven bars. Everything after the bloom is the 2D paint world. See
-"The jar" below; this replaced the chat-box opening entirely.
+Blender/Cycles, eleven bars. Then the 2D paint world for twelve. Then **Blender again for
+the last four**, because the film closes into a loop: one more petal falls, back into the
+jar it grew from, and the last frame is the first frame.
 
 Produced from a full `big-video-project` interview (36 questions), then **substantially
 re-briefed** when teti corrected the premise. Read the revision note below before
@@ -61,8 +67,40 @@ there is no AI on screen.
   poppy red is already the accent, so the 2D paint does not have to match the flower — it
   is the same colour because it came from it. *(Runner-up, banked: a hyacinth bulb forced
   in the jar neck, roots growing down into the water.)*
-- **Seven bars, `bt(0)`–`bt(28)`, 13.44s.** Nearly half the film is dark and slow before
+- **Eight bars, `bt(0)`–`bt(32)`, 15.36s.** Nearly half the film is dark and slow before
   anything fast happens. That is the contrast the second half is spending.
+- **THE FALL IS THE TRANSITION.** *(This replaced the birds-eye arc. The arc is described
+  in the revision note at the bottom of this section, with why it went.)*
+
+  The flower opens, and then the room goes out around it — the fill and the bounce to
+  nothing, the beam closing from 7° to 4° — until there is one lit flower in a black
+  frame. On `bt(37)` a single petal starts to peel. On `bt(38)` it lets go, **and the
+  music stops in the same frame.** It falls for six beats through total silence, lit by a
+  beam that has narrowed to just it, and on `bt(44)` the music slams back on the downbeat
+  and the paint detonates out of the petal.
+
+  The silence is not an effect added to the film. It is *in the track* — a hard,
+  sample-exact stop running its beats 138 to 144 — and the film was moved onto it.
+
+  Twice on the way down the **whole frame glitches into one of the languages that is
+  coming** for two frames and snaps back: the modular grid, then the torn collage. It is
+  the fault the stem had in bar 2, arrived at the flower, and this time it is not a colour,
+  it is a whole language.
+
+  **Why this and not the arc.** The arc was the *camera* doing something. A petal letting
+  go is the *flower* doing something — and in a film about dead things becoming alive,
+  every beat handed to the subject instead of the rig argues its own case. It also leaves
+  an object that can come back: the film ends on a second petal, falling into the jar. You
+  cannot loop a camera move.
+
+- **One light: a direct beam from above, landing on the floor.** The camera starts across
+  a dark room, small, outside the light, and travels into it over the whole act. There is
+  no second lamp in the room — the only other light is a rim linked to the glass alone so
+  it cannot touch the table.
+- **The last beat of Act I is BLACK.** The lights cut on `bt(27)` — two frames, a switch
+  and not a dimmer — and the film holds on nothing for one beat before the bloom. That
+  beat is what makes the paint an event rather than a transition: it detonates out of a
+  hole in the film, on the downbeat.
 - **The bloom erupts from the flower head, and both the position and the palette are
   extracted rather than typed.** `scripts/handoff.py` projects the flower head through
   Act I's actual camera — (540, 450), dead centre, 23% down — so nudging the Blender
@@ -199,35 +237,39 @@ Synthesised, never licensed — the house rule since 001, and `sound.py` already
 
 ---
 
-## Beat sheet — 17 bars at 125 BPM
+## Beat sheet — 27 bars at 129 BPM
 
-Bar = 1.92s. Beat = 0.48s. `bt(n)` = beat n from frame 0, as in `video.html`.
-Total 68 beats = **32.64s**.
+A bar is **1.86047s**, a beat **0.46512s**, a sixteenth **0.11628s**. Nothing may be
+re-timed to a value that is not a multiple of a sixteenth. Every boundary below is written
+in `bt()` in both engines, so the tempo lives in exactly two constants.
 
-| Bar | Time | Screen | Type | Sound |
-|---|---|---|---|---|
-| Bar | Beats | Screen | Type | Sound |
-|---|---|---|---|---|
-| **1** | `bt(0)`–`bt(4)` | **Black, then the jar.** A mason jar on a dark table, lit by one warm rake from behind left. Almost nothing is visible. Nothing moves. | the question fades up over the dark, `MICRO`, and holds | Room tone. A single low pulse on `bt(0)`. |
-| **2–6** | `bt(4)`–`bt(24)` | **The stem climbs.** Slow, continuous, over five bars — the growth is never cut to, it just does not stop. Leaves unfurl on the eighths as the stem passes them. Dead brown warms toward living olive so gradually that no single moment is the change. The camera pushes in across the whole act. | the question leaves at `bt(8)`; the frame is wordless from here to the end card | The bed builds one element per bar. No drums yet. |
-| **7** | `bt(24)`–`bt(28)` | **The bud swells and opens.** The petals — rust, the same accent as the paint — lift off the calyx and open on the last two beats. | — | The riser. Everything pulls out on the last beat. |
-| **8–9** | `bt(28)`–`bt(36)` | **THE BLOOM.** Paint detonates out of the flower head for five beats and takes the whole frame. The plant is not cut away from: it is **covered**. This is the handoff from the 3D world to the 2D one, and the only frame in the film where both exist. | — | The drop lands exactly on the ignition. Full arrangement at once. |
-| **10** | `bt(36)`–`bt(40)` | **T5 — white space editorial.** One word at enormous scale on near-empty ground, entering left, exiting right. | — | Groove. Hit on the landing. |
-| **11** | `bt(40)`–`bt(44)` | **T6 — modular grid.** The frame becomes tiles; blocks slide through cells and one passes across the mark, briefly occluding it. Everything snaps. | — | Tighter hats, hit per snap. |
-| **12** | `bt(44)`–`bt(48)` | **T3 — torn collage.** Tape at 6–14°, torn edges, colour blocks wiping the frame between beats. The loudest bar. | — | Peak energy, clap on 2 and 4. |
-| **13** | `bt(48)`–`bt(52)` | **T9 — ink on one colour.** Black line drawings appearing and dissolving on flat mustard. Two colours, nothing else. | — | Bass and hats pull out. Pen-scratch foley. |
-| **14** | `bt(52)`–`bt(56)` | **T7 — painted frame.** Brush-drawn, frame to frame, painted lettering. The film resolves into teti's own hand. | — | Riser under it. |
-| **15** | `bt(56)`–`bt(60)` | **All five at once.** Tiled, moving left and right — "showing everywhere", the range stated in one image. | — | Peak. |
-| **16** | `bt(60)`–`bt(64)` | Everything drains off and **the question returns**, in exactly the type, size and position it held in bar 1. **Nothing is added.** It sits there while the viewer supplies the answer. This bar is the film's whole argument and it contains no new element — the temptation to put a line under it will be enormous and it must be refused. | the question, unchanged | Breakdown to near-silence, then one low tone. |
-| **17** | `bt(64)`–`bt(68)` | `teti.` resolves out of the paint — the same mark as the profile picture. Hold. No offer, no handle, no link. Then cut back to the dark jar on the final frame, so the film loops into itself. | `teti.` | Thins to the last hit on the loop point. |
+Track column is where that bar sits in *Gracias a Ti*, which starts at 46.555s.
 
-**Ratio check.** The jar = 13.44s. Bloom = 2.40s. Five techniques = 9.60s (one bar each,
-fast, as asked). Nearly half the film is spent earning the second half. The bloom is the hero and the
-five are the proof, and the proof still gets six times the screen time. That ratio was
-set when this was an ad and it survives the re-brief for a different reason: a master
-that spends its length on one spectacle is a showreel of one trick.
+| Bar | Beats | Screen | Track |
+|---|---|---|---|
+| **1** | `bt(0)`–`bt(4)` | **Black, then a shaft.** A beam drops from above and lands on the table as a pool; the jar stands in it, small, far away, in a dark room. Nothing moves. The question fades up over the dark, one line per beat. | groove |
+| **2–6** | `bt(4)`–`bt(24)` | **The stem climbs**, slow and continuous over five bars — never cut to, it simply does not stop. Leaves unfurl on the eighths as it passes them. Dead brown warms toward living olive so gradually that no frame is the change. **The stem glitches through the five accent colours** on a thirty-second grid, violent at the base and gone by the bud. The question leaves at `bt(8)`; the film is wordless from here to the end of it. | groove |
+| **7** | `bt(24)`–`bt(27)` | **The bud swells and opens, in the beam.** The head lifts, the sepals split back and are shed, the petals uncrease. The camera has arrived — it started across the room and ends inside the light. | groove |
+| **7–10** | `bt(27)`–`bt(37)` | **The room goes out around it.** Fill and bounce to nothing, the beam closing to 4°. One lit flower, black frame. | groove thinning |
+| **10** | `bt(37)`–`bt(38)` | **One petal peels**, on the last beat of music there is. | last beat |
+| **10–11** | `bt(38)`–`bt(44)` | **THE FALL.** It lets go and the music stops in the same frame. Six beats, one petal, one beam, nothing else — the quietest the film gets, immediately before the loudest. Twice the whole frame glitches into a language that is coming (`bt(40)` the grid, `bt(42)` the collage), two frames each. | **HARD SILENCE** — the track's beats 138–144 |
+| **12** | `bt(44)`–`bt(48)` | **THE DROP — THE ROOM WAS A STUDIO THE WHOLE TIME.** The petal touches the table, the music slams back, and every light comes on *inside a sixteenth* — a switch, not a fade. The walls are a white cyclorama. The camera pulls back from the fallen petal to a wide of the flower on the cyc. Nothing is cut to: the same room, the same flower, with the lights on. | — | music returns |
+| **13–15** | `bt(48)`–`bt(58)` | **THE FIVE, STATED.** Two beats each, on the flower, in the room: **EDITORIAL** — white cyc, one soft key, *how* two metres tall standing behind the flower, the camera dollying past. **GRID** — the flower's geometry voxelises, snapping between block resolutions on the sixteenths, *do you* lying flat on the floor. **COLLAGE** — the petals tear off the head and hang in the air as red paper with tape across them, *make* in cut-out white, handheld. **INK** — Freestyle draws the flower as a black line on a mustard field, *ideas that aren't* hand-set lower left. **PAINTED** — impasto plum off the brush plate under a raking key, *alive,* brush-lettered **on the face of a petal**. | one word per look | groove |
+| **16–17** | `bt(58)`–`bt(68)` | **CUTTING.** The five looks cut against each other — six on the beat, then eight on the eighths — in a fixed sequence, never the same look twice in a row. | — | building |
+| **18–19** | `bt(68)`–`bt(76)` | **THE STROBE.** One flower, all five languages, on the eighths. Identical content, five voices, nothing else changes — the film's claim made as loudly as it can be made. *alive?* held behind it the whole time, in each look's own material. The question completes here. | *alive?* | **peak** |
+| **20–22** | `bt(76)`–`bt(88)` | **THE COLLAPSE.** The looks go out in reverse — painted, ink, collage, grid, editorial — and the rig dims across each so the room is *arriving* at the dark. Over the last bar the Act I beam comes back, narrowing onto the flower. | — | thinning |
+| **23** | `bt(88)`–`bt(92)` | **THE BREAK.** The picture leaves with the music and drains to black over one bar. | **near-silence** — beats 188–192 |
+| **24–26** | `bt(92)`–`bt(105)` | **One more petal falls.** Out of the black, in Blender again, the same object and the same light. The camera holds close for two bars, then pulls back — and the room opens out around it to reveal it is falling into the jar. | quiet outro |
+| **27** | `bt(105)`–`bt(108)` | **It lands, and the beam dies** the way it arrived in bar 1. The last frame is the first frame. The film loops, and asks again. | quiet outro |
 
----
+**The question is asked once as a sentence**, in bar 1, and never answered. Its words come
+back one per look in the studio — around the flower, on the floor, on a petal — and *alive?*
+lands on all five at once. By the end of the studio the whole question has been restated in
+five voices on one flower, and the answer is what the viewer just watched. teti chose a
+pure loop — no returning question, no `teti.`, no card. Every loop restates it, which is
+more times than a closing card would have managed; the cost is that the film no longer
+carries the mark, and the end card no longer resolves into the profile picture. That was a
+decided thing and it has been un-decided deliberately, not forgotten.
 
 ## Issues — read this section twice
 
