@@ -237,6 +237,12 @@ Load-bearing for it, if it gets built:
   retired 2D half. `STUDIO_GAIN` is the one exposure number — the rig was a stop and a half
   over until it existed. Anything a look *moves* (the collage's petals) the pose must put
   back, location included.
+- **The studio is shot on a 24mm (a phone's 0.5x) and the switch is ONE camera.** The fall
+  zooms 65 → 24mm over seven beats and the reveal's first frame is the fall's last frame
+  with the lights on; the collapse zooms back to 65 so the break inherits Act I's glass.
+  Every look has a designed SET behind it (`_setpieces()`: flats, boards, torn sheets,
+  strokes, an easel) in the camera's azimuth frame, like the rig and the words. See
+  `BUILD.md` for the word placement gotchas the wide lens introduced.
 - **The film ends where it starts.** The last four bars are Blender again: one more petal
   falls out of the black, the camera pulls back to reveal it is falling into the jar, and
   the beam dies the way it arrived in bar 1. Both sides of that join are black, so there is
