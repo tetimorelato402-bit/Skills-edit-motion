@@ -380,6 +380,10 @@ Read its `BRIEF.md`. Two facts govern it:
   EGL_PLATFORM=surfaceless` does get it running) and then renders a *default cube* at
   540x960 in 40s — far slower than Cycles, because llvmpipe is software rasterisation.
   EEVEE is a dead end here; do not retry it.
+- **The container is reclaimed ~5 minutes after the session goes idle**, taking every
+  background job with it. A `nohup` render does not keep it alive; an armed `Monitor`
+  does. Launch the render, then Monitor its frame count until it exits — otherwise a
+  five-hour render becomes forty relaunches at five minutes each.
 - **Full-resolution Blender sequences are a desktop job.** Approve the act here as stills
   and low-res motion tests, render it where there is a GPU.
 

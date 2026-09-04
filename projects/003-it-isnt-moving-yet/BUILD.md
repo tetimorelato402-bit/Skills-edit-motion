@@ -182,6 +182,14 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   its own `@font-face` off `source/fonts/inter.woff2` and was never exposed;
   `question.html` and `glitch.html` were relying on a system install and now do the same.
   `fc-list` is a check somebody has to remember to run. An `@font-face` is not.
+- **The cloud container is reclaimed about five minutes after the session goes idle,
+  and that is what the "random restarts" were.** Forty-six relaunches of the studio leg
+  each got ~5 minutes of Cycles before the VM went away and the next scheduled check-in
+  booted a fresh one (`uptime` read 0 min at every check-in, and the 3-minute watcher
+  never wrote a third line). A background `nohup` does not count as activity. Arming a
+  `Monitor` on the frame count kept the session live and the same container rendered
+  the last 60 frames and assembled the film in one 25-minute run. For any render longer
+  than a few minutes here: launch it, then keep a Monitor on it until it exits.
 - **Resume from the first MISSING frame, not from the file count.** Counting files and
   starting at the count is only correct if they are contiguous, and a container restart
   does not promise that: this one came back having lost frames 118-167 while keeping
