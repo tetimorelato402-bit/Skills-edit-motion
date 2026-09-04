@@ -182,6 +182,50 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   its own `@font-face` off `source/fonts/inter.woff2` and was never exposed;
   `question.html` and `glitch.html` were relying on a system install and now do the same.
   `fc-list` is a check somebody has to remember to run. An `@font-face` is not.
+- **The switch is one camera, and the studio is shot on a 24mm.** The fall used to push
+  in until the petal filled the frame (built for the retired 2D bloom to erupt out of),
+  and the reveal then cut to a second camera on the landed petal — two consecutive
+  frame-filling petals, one dark, one lit, read as a cut between two shots. Now
+  `_fall_camera(t)` is a pure function used by BOTH the fall and the reveal's first
+  frame: it holds the petal at a third of the frame, zooms 65mm → 24mm over the seven
+  beats of the peel and the fall, rises to look down on the landing, and the first lit
+  frame is the last dark frame with the lights on. The petal lands flat ON the floor
+  (`LAND_Z`, `faller_rot` settling to pi over the last half beat, and `_pose_open` using
+  the same pose) — at the old cut it hopped 4.6cm, invisible only because of the cut.
+  The follow also blends in over the peel beat; switching to it on bt(37) hopped the
+  frame 18cm.
+- **The studio lens is a phone's 0.5x, on purpose, and the collapse zooms back.** Act I's
+  65mm frames 27-37cm across at studio distances; a flower, a jar, a word and a stand
+  do not fit in 30cm ("everything is so compressed in together"). At 24mm from ~1.4m
+  the frame is 0.76m wide, the flower is a fifth of it, and the set behind it is in
+  shot. Every look's camera is at 0.62x its telephoto distance; every word was
+  re-measured in NDC (`world_to_camera_view`, resolution set AFTER `Scene()`) and
+  rescaled. Two lens gotchas: the painted look's big word sits on a ray from the camera
+  through a point 14cm BELOW H, because the ray through H is the centre of frame at
+  every push-in and so is the flower head, which sat on the word; and the painted
+  camera must stay above H or that ray goes sideways and the word to infinity. Over
+  the collapse's last four beats the lens returns 24 → 65 while the camera retreats to
+  the break's position, so the break inherits Act I's glass.
+- **The background is a SET, per look — `_setpieces()`.** A bare cyc with a light stand in
+  it is a location; a studio background is designed. Each look dresses the same room in
+  its own language with the same kinds of piece: editorial an umber flat, an off-white
+  flat and two empty plinths; grid graph-paper boards (a Brick texture in object
+  space, flats built at true size so the cells are 5cm), a gridded floor and cubes
+  snapped to the grid; collage torn sheets taped to the wall and scraps on the floor;
+  ink four brush strokes the size of a person, a paper stack and a pot; painted a
+  canvas on an easel (bone impasto) with plum and ochre slabs, a palette with dabs.
+  All of it lives in the camera's azimuth frame like the rig and the words, so a look
+  reads the same from every angle and the world-fixed kit ring supplies the parallax.
+  Paid for on the way: the editorial flat was rust and the rust 'how' (140% of the frame
+  wide) crossed in front of it and vanished — it is umber; a torn edge with 9cm of
+  per-vertex grain is a saw blade, a tear is a slow wander plus 1.4cm of grain; a stroke
+  whose width jitters per vertex is serrated; the easel at x=-1.0 was outside a 24mm
+  frame that spans x -0.43..0.91 at y=1.4.
+- **Re-render a RANGE in place, and delete the old frames first.** The gap-filling resume
+  in `build.sh` looks for MISSING frames, so to re-render 413-982 after a timeline
+  change the stale frames must be removed or it reports the range complete and
+  assembles the old film under the new signature. (And never `pkill -f <pattern>` from
+  a shell whose own command line contains the pattern — it killed itself, twice.)
 - **The cloud container is reclaimed about five minutes after the session goes idle,
   and that is what the "random restarts" were.** Forty-six relaunches of the studio leg
   each got ~5 minutes of Cycles before the VM went away and the next scheduled check-in

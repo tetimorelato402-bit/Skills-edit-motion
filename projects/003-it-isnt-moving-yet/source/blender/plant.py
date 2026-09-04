@@ -56,6 +56,7 @@ FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
 GLITCH_AT = (bt(40), bt(42))
 GLITCH_FR = 2                  # frames each, at 24fps — a sixth of a beat
 ACT_I_END = bt(44)             # 20.465s — eleven bars
+LAND_Z    = 0.012              # where the petal's origin sits once it is lying on the floor
 
 # --- and the other end of the film ----------------------------------------
 # The last four bars are Blender again. The studio drains to black on the
@@ -836,6 +837,20 @@ class Scene:
         shot at all.
         """
         self.lens = 65.0
+        # THE STUDIO IS SHOT WIDE. Act I's 65mm is a telephoto — at 1.3-1.8m
+        # its frame is 27-37cm across, and a 17cm flower plus a jar plus a
+        # word plus a light stand does not fit in 30cm of picture: every look
+        # rendered as things cropping each other ("everything is so compressed
+        # in together"). 30mm on this sensor is a phone's 0.5x: from 0.9-1.2m
+        # the frame is 40-55cm wide, the flower is a third of it, the words
+        # have air, and the kit and the cyc read as a ROOM going round rather
+        # than as bars sweeping the edge. The fall zooms out to it — one lens
+        # change, in the dark, over seven beats, so the switch lands on a
+        # frame that is already wide — and the collapse zooms back in.
+        # 24mm now, cameras a further 15% out: 30mm was "still too zoomed in".
+        # From 1.4m the frame is 0.76m wide and the flower is a fifth of it,
+        # which is what leaves room for a set behind it.
+        self.lens_wide = 24.0
         self.sensor_v = 24.0          # sensor_fit VERTICAL uses sensor_height
         subject_h = 0.62              # table to above the open flower, with air
         self.cam_far = subject_h / (2 * math.tan(
@@ -1063,9 +1078,10 @@ class Scene:
         # where the fallen petal lies at the end of the fall — it stays there
         self.petal_home = self.petals[1].location.copy()
         self.landed, _ = self.faller_at(FALL[1])
-        self.landed = Vector((self.landed.x, self.landed.y, 0.006))
+        self.landed = Vector((self.landed.x, self.landed.y, LAND_Z))
 
         self._dressing()
+        self._setpieces()
 
     # -- THE SET -------------------------------------------------------------
     def _dressing(self):
@@ -1264,6 +1280,248 @@ class Scene:
         # 12. THE LABEL CARD the ink look pins its caption to
         self.card = plane(0.17, 0.095, (0, 0, -5), white)
 
+
+    def _setpieces(self):
+        """
+        THE SET, PER LOOK. A studio background is DESIGNED — flats on stands,
+        blocks, a floor, the things the shoot is about lying around — and a
+        bare cyc with a light stand in it is a location, not a set. Each look
+        dresses the same room with the same kinds of piece in its own
+        language: editorial gets a rust flat and an empty plinth; grid gets
+        graph-paper boards, a gridded floor and its own cubes scattered
+        about; collage gets torn sheets taped to the wall and scraps on the
+        floor; ink gets three brush strokes the size of a person and a stack
+        of paper; painted gets a canvas on an easel, impasto slabs and a
+        palette. Five languages, one room — the same argument the flower
+        makes, made by the furniture.
+
+        Every piece lives in the CAMERA'S AZIMUTH FRAME, like the rig and the
+        words (see _place): the set turns with the orbit so a look reads the
+        same from every angle. The world-fixed kit ring behind them supplies
+        the parallax that says the room is real. All of it is hidden until
+        its look asks for it, and _studio_off hides all of it.
+        """
+        self.sets = {k: [] for k in LOOKS}
+        def M(name, col, rough=0.9, spec=0.1):
+            return principled("set_" + name, **{"Base Color": col, "Roughness": rough,
+                                                "Specular IOR Level": spec})
+        bone   = M("bone",   (0.90, 0.84, 0.70, 1))
+        white  = M("white",  (0.96, 0.95, 0.91, 1))
+        black  = M("black",  (0.035, 0.028, 0.024, 1), 1.0, 0.0)
+        wood   = M("wood",   (0.36, 0.24, 0.13, 1), 0.7)
+        rust   = M("rust",   ACCENTS[0], 0.85, 0.15)
+        # the editorial flat is UMBER, not rust: the rust 'how' is 140% of the
+        # frame wide and crosses in front of whatever stands there, and rust
+        # on rust erased half the word (and 'alive?' in the strobe with it)
+        umber  = M("umber",  (0.14, 0.09, 0.05, 1), 0.88, 0.1)
+        mustard= M("mustard",ACCENTS[3], 0.9)
+        card   = M("card",   (0.62, 0.55, 0.42, 1))
+        ochre  = M("ochre",  (0.55, 0.32, 0.08, 1), 0.85)
+        canvas = self._paint_material_in((0.86, 0.80, 0.66, 1.0), "set_canvas")
+
+        def hashed(n, salt=0):
+            return ((n * 2654435761 + salt * 40503) % 65536) / 65536.0
+
+        def keep(look, ob, loc, rot=(0.0, 0.0, 0.0)):
+            ob.hide_render = True
+            self.sets[look].append((ob, Vector(loc), tuple(rot)))
+            return ob
+
+        def flat(look, name, w, h, loc, mat, rz=0.0, rx=0.0):
+            """A standing flat, w wide and h tall, built at true size so a
+            texture in object space is in metres. Faces -y (the camera)."""
+            v = [(-w/2, 0, 0), (w/2, 0, 0), (w/2, 0, h), (-w/2, 0, h)]
+            ob = mesh_from("set_" + name, v, [(0, 1, 2, 3)], mat)
+            ob.data.shade_flat()
+            return keep(look, ob, loc, (rx, 0.0, rz))
+
+        def slab(look, name, dims, loc, mat, rot=(0, 0, 0)):
+            bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, -9))
+            ob = bpy.context.object
+            ob.name = "set_" + name
+            ob.scale = dims
+            ob.data.materials.append(mat)
+            return keep(look, ob, loc, tuple(math.radians(a) for a in rot))
+
+        def torn(look, name, w, h, loc, mat, seed, rot=(0, 0, 0), flat_on_floor=False):
+            """A sheet with a torn edge: a rectangle whose boundary wanders."""
+            n = 36; pts = []
+            for i in range(n):
+                u = i / n
+                # walk the rectangle's perimeter
+                if u < 0.25:   x, y = -w/2 + w * (u / 0.25), -h/2
+                elif u < 0.5:  x, y = w/2, -h/2 + h * ((u - 0.25) / 0.25)
+                elif u < 0.75: x, y = w/2 - w * ((u - 0.5) / 0.25), h/2
+                else:          x, y = -w/2, h/2 - h * ((u - 0.75) / 0.25)
+                # a slow wander plus a little grain: 0.09 of grain per vertex
+                # rendered as a saw blade, not a tear
+                j = (0.028 * math.sin(u * math.tau * 2.3 + seed) + 0.018 * math.sin(u * math.tau * 5.1 + seed * 1.7)
+                     + (hashed(i, seed) - 0.5) * 0.014)
+                x += j * (1 if abs(x) > w/2 - 1e-6 else 0.3)
+                y += j * (1 if abs(y) > h/2 - 1e-6 else 0.3)
+                pts.append((x, y))
+            if flat_on_floor:
+                verts = [(x, y, 0.0) for x, y in pts] + [(0, 0, 0)]
+            else:
+                verts = [(x, 0.0, y + h/2) for x, y in pts] + [(0, 0, h/2)]
+            c = len(pts)
+            faces = [(i, (i + 1) % c, c) for i in range(c)]
+            ob = mesh_from("set_" + name, verts, faces, mat)
+            ob.data.shade_flat()
+            return keep(look, ob, loc, tuple(math.radians(a) for a in rot))
+
+        def stroke(look, name, length, width, loc, mat, rot=(0, 0, 0), seed=0):
+            """A brush stroke: a lozenge that swells and thins along its
+            length, with a ragged start and a dry, split end."""
+            n = 22; top = []; bot = []
+            for i in range(n):
+                u = i / (n - 1)
+                wv = width * (0.35 + 0.65 * math.sin(math.pi * min(1.0, u * 1.15)) ** 0.6)
+                wv *= 1.0 + 0.14 * math.sin(u * math.tau * 1.7 + seed) + (hashed(i, seed) - 0.5) * 0.06
+                if u > 0.82:
+                    wv *= 1.0 - (u - 0.82) / 0.18 * 0.7
+                x = -length/2 + length * u
+                top.append((x, 0.0, wv/2)); bot.append((x, 0.0, -wv/2))
+            verts = top + bot[::-1] + [(0, 0, 0)]
+            c = len(top) * 2
+            faces = [(i, (i + 1) % c, c) for i in range(c)]
+            ob = mesh_from("set_" + name, verts, faces, mat)
+            ob.data.shade_flat()
+            return keep(look, ob, loc, tuple(math.radians(a) for a in rot))
+
+        def cylv(look, name, r, p0, p1, mat, verts=12):
+            d = Vector(p1) - Vector(p0)
+            bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=d.length,
+                                                location=(0, 0, -9))
+            ob = bpy.context.object
+            ob.name = "set_" + name
+            ob.data.materials.append(mat)
+            q = d.to_track_quat('Z', 'Y').to_euler()
+            return keep(look, ob, (Vector(p0) + Vector(p1)) / 2, (q.x, q.y, q.z))
+
+        # --- EDITORIAL: a rust flat, an off-white flat, an empty plinth ------
+        flat('editorial', 'ed_umber', 1.5, 2.1, (1.05, 1.75, 0.0), umber, rz=math.radians(14))
+        flat('editorial', 'ed_white', 0.95, 1.7, (-1.15, 1.55, 0.0), white, rz=math.radians(-9))
+        slab('editorial', 'ed_plinth', (0.55, 0.55, 0.32), (-0.68, 0.78, 0.16), bone, (0, 0, 8))
+        slab('editorial', 'ed_plinth2', (0.30, 0.30, 0.62), (1.25, 0.95, 0.31), bone, (0, 0, -6))
+
+        # --- GRID: graph-paper boards, a gridded floor, its cubes ------------
+        gridmat = self._grid_material()
+        flat('grid', 'gr_board', 1.4, 2.0, (0.95, 1.65, 0.0), gridmat)
+        flat('grid', 'gr_board2', 1.1, 1.75, (-1.05, 1.8, 0.0), gridmat, rz=math.radians(-6))
+        mat_v = [(-1.2, -0.9, 0.001), (1.2, -0.9, 0.001), (1.2, 1.5, 0.001), (-1.2, 1.5, 0.001)]
+        floor = mesh_from("set_gr_floor", mat_v, [(0, 1, 2, 3)], gridmat)
+        floor.data.shade_flat()
+        keep('grid', floor, (0, 0, 0))
+        cubes = ((0.45, 0.55, 0.12), (-0.62, 0.38, 0.09), (0.82, 0.18, 0.07), (-0.34, 0.92, 0.14),
+                 (0.24, 1.12, 0.10), (-0.95, 0.72, 0.06), (0.62, 0.86, 0.08), (-0.18, 0.42, 0.05),
+                 (0.9, 1.35, 0.55), (-0.7, 1.25, 0.85), (0.35, 1.45, 1.05))
+        for i, (x, y, sz) in enumerate(cubes):
+            z = sz / 2 if i < 8 else sz + 0.4 + 0.35 * hashed(i, 3)
+            # snapped to the 5cm grid, because the grid is the language
+            snap = lambda v: round(v / 0.05) * 0.05
+            slab('grid', f'gr_cube{i}', (sz, sz, sz), (snap(x), snap(y), z), self.mat_grid)
+
+        # --- COLLAGE: torn sheets taped to the wall, scraps on the floor -----
+        sheets = (('bone', 1.05, 0.80, (0.55, 1.62, 0.55), bone, 3, (0, 0, 7)),
+                  ('white', 0.70, 0.95, (-0.85, 1.70, 0.35), white, 5, (0, 0, -11)),
+                  ('mustard', 0.60, 0.45, (1.15, 1.55, 1.45), mustard, 7, (0, 0, -4)),
+                  ('black', 0.45, 0.62, (-0.25, 1.75, 1.35), black, 9, (0, 0, 14)),
+                  ('card', 0.55, 0.40, (0.05, 1.58, 0.95), card, 11, (0, 0, 3)))
+        self.set_tape = []
+        for name, w, h, loc, mat, seed, rot in sheets:
+            torn('collage', 'co_' + name, w, h, loc, mat, seed, rot)
+            for k in range(2):
+                tp = slab('collage', f'co_tape_{name}{k}', (0.09, 0.022, 0.002),
+                          (loc[0] + (-w/2 if k == 0 else w/2) * 0.8 + 0.02,
+                           loc[1] - 0.006, loc[2] + h * (0.92 if k == 0 else 0.15)),
+                          self.mat_tape, (90, 0, 35 + 40 * k + rot[2]))
+        for i, (x, y, sz) in enumerate(((0.62, 0.42, 0.22), (-0.55, 0.30, 0.17), (0.20, 0.95, 0.26),
+                                        (-0.9, 0.85, 0.19))):
+            torn('collage', f'co_scrap{i}', sz, sz * 0.7, (x, y, 0.002),
+                 (bone, white, mustard, card)[i], 20 + i, (0, 0, 30 + 55 * i), flat_on_floor=True)
+
+        # --- INK: three strokes the size of a person, paper, a pot ----------
+        stroke('ink', 'in_s1', 1.9, 0.22, (0.15, 1.72, 1.35), black, (0, 0, 4), 1)
+        stroke('ink', 'in_s2', 1.35, 0.22, (-0.95, 1.66, 0.85), black, (0, 0, 78), 2)
+        stroke('ink', 'in_s3', 1.5, 0.26, (0.85, 1.60, 0.62), black, (0, 0, -26), 3)
+        stroke('ink', 'in_s4', 0.7, 0.10, (-0.35, 1.70, 1.85), black, (0, 0, 9), 4)
+        for k in range(4):
+            slab('ink', f'in_paper{k}', (0.30, 0.42, 0.002),
+                 (-0.58 + 0.012 * k, 0.36 - 0.01 * k, 0.002 + 0.0025 * k), white, (0, 0, -12 + 9 * k))
+        cylv('ink', 'in_pot', 0.034, (0.55, 0.52, 0.0), (0.55, 0.52, 0.055), black, 16)
+        cylv('ink', 'in_brush', 0.005, (0.56, 0.53, 0.05), (0.46, 0.66, 0.28), wood, 8)
+
+        # --- PAINTED: a canvas on an easel, impasto slabs, a palette --------
+        # the easel stands left of the flower and BEHIND it, inside the 24mm
+        # frame (at y=1.4 the frame spans x -0.43..0.91): at x=-1.0 only its
+        # right edge was in shot
+        for k, (x0, y0) in enumerate(((-0.72, 1.60), (-0.32, 1.48))):
+            cylv('painted', f'pa_leg{k}', 0.014, (x0, y0, 0.0), (x0 * 0.94 + 0.03, y0 + 0.02, 1.85), wood)
+        cylv('painted', 'pa_leg2', 0.014, (-0.52, 1.92, 0.0), (-0.49, 1.58, 1.85), wood)
+        cylv('painted', 'pa_bar', 0.012, (-0.86, 1.50, 0.62), (-0.18, 1.36, 0.62), wood)
+        flat('painted', 'pa_canvas', 0.82, 1.08, (-0.52, 1.40, 0.64), canvas, rz=math.radians(11))
+        slab('painted', 'pa_stroke0', (0.42, 0.012, 0.11), (-0.60, 1.385, 1.15), self.mat_paint, (0, 0, 11 + 8))
+        slab('painted', 'pa_stroke1', (0.34, 0.012, 0.09), (-0.42, 1.380, 0.98), ochre, (0, 0, 11 - 14))
+        slab('painted', 'pa_stroke2', (0.26, 0.012, 0.13), (-0.65, 1.380, 0.88), self.mat_paint, (0, 0, 11 + 38))
+        slab('painted', 'pa_wall0', (0.95, 0.03, 0.22), (0.95, 1.72, 1.32), self.mat_paint, (0, 0, -7))
+        slab('painted', 'pa_wall1', (0.70, 0.03, 0.17), (1.15, 1.70, 0.95), ochre, (0, 0, 12))
+        slab('painted', 'pa_wall2', (0.55, 0.03, 0.28), (0.55, 1.74, 1.68), rust, (0, 0, -22))
+        pal = mesh_from("set_pa_palette",
+                        [(0.20 * math.cos(a) * (1.0 + 0.18 * math.cos(2 * a + 0.8)),
+                          0.14 * math.sin(a) * (1.0 + 0.18 * math.sin(3 * a)), 0.004) for a in
+                         [i / 28 * math.tau for i in range(28)]] + [(0, 0, 0.004)],
+                        [(i, (i + 1) % 28, 28) for i in range(28)], wood)
+        pal.data.shade_flat()
+        keep('painted', pal, (0.62, 0.40, 0.0), (0, 0, math.radians(25)))
+        for i, m in enumerate((self.mat_paint, ochre, rust, mustard, bone)):
+            bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.018,
+                                                 location=(0, 0, -9))
+            d = bpy.context.object; d.name = f"set_pa_dab{i}"
+            d.data.materials.append(m); d.scale = (1, 1, 0.45)
+            keep('painted', d, (0.62 + 0.11 * math.cos(i * 1.25), 0.40 + 0.075 * math.sin(i * 1.25), 0.012))
+
+    def _paint_material_in(self, col, name):
+        """The impasto material in another colour (a canvas, a wall slab)."""
+        mat = self._paint_material()
+        mat.name = name
+        mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = col
+        return mat
+
+    def _grid_material(self):
+        """Graph paper: the board's colour with lighter lines every 5cm, in
+        object space (metres, because the flats are built at true size)."""
+        mat = bpy.data.materials.new("set_grid")
+        mat.use_nodes = True
+        nt = mat.node_tree
+        b = nt.nodes["Principled BSDF"]
+        b.inputs["Roughness"].default_value = 0.95
+        b.inputs["Specular IOR Level"].default_value = 0.05
+        br = nt.nodes.new("ShaderNodeTexBrick")
+        br.offset = 0.0
+        br.inputs["Scale"].default_value = 1.0
+        br.inputs["Mortar Size"].default_value = 0.004
+        br.inputs["Mortar Smooth"].default_value = 0.0
+        br.inputs["Brick Width"].default_value = 0.05
+        br.inputs["Row Height"].default_value = 0.05
+        panel = (0.55, 0.60, 0.68, 1.0)
+        br.inputs["Color1"].default_value = panel
+        br.inputs["Color2"].default_value = panel
+        br.inputs["Mortar"].default_value = (0.82, 0.85, 0.90, 1.0)
+        tc = nt.nodes.new("ShaderNodeTexCoord")
+        # x and z of the standing flat, x and y of the floor: swizzle so the
+        # grid is square on both — (x, z) for a flat is (x, y) after this map
+        sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+        add = nt.nodes.new("ShaderNodeVectorMath"); add.operation = 'ADD'
+        comb = nt.nodes.new("ShaderNodeCombineXYZ")
+        nt.links.new(tc.outputs["Object"], sep.inputs["Vector"])
+        m2 = nt.nodes.new("ShaderNodeMath"); m2.operation = 'ADD'
+        nt.links.new(sep.outputs["Y"], m2.inputs[0]); nt.links.new(sep.outputs["Z"], m2.inputs[1])
+        nt.links.new(sep.outputs["X"], comb.inputs["X"]); nt.links.new(m2.outputs[0], comb.inputs["Y"])
+        nt.links.new(comb.outputs["Vector"], br.inputs["Vector"])
+        nt.links.new(br.outputs["Color"], b.inputs["Base Color"])
+        return mat
+
     def _paint_material(self):
         """
         Impasto. Plum, with the brush plate driving both bump and roughness so
@@ -1317,6 +1575,9 @@ class Scene:
             ob.data.materials[0] = self.mat_petal
         for ob in self.props:
             ob.hide_render = True
+        for pieces in self.sets.values():
+            for ob, _, _ in pieces:
+                ob.hide_render = True
         self.cam.data.lens = self.lens
 
     def _place(self, w, local, az, rot=(90.0, 0.0, 0.0)):
@@ -1349,7 +1610,8 @@ class Scene:
             ob.rotation_euler = (math.radians(24), 0, i / len(self.petals) * math.tau)
         self.faller.scale = (1, 1, 1)
         self.faller.location = self.landed
-        self.faller.rotation_euler = (math.radians(96), 0.1, math.radians(38))
+        # exactly the pose the fall lands in, so the switch does not move it
+        self.faller.rotation_euler = self.faller_rot(FALL[1])
         self.mat_stem.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
             .default_value = LIVE_STEM
         self.mat_leaf.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
@@ -1378,6 +1640,13 @@ class Scene:
         self.card.hide_render = True
         petal_mat = self.mat_petal
         R = Rz(az)
+        # THE SET for this look, in the camera's frame; every other look's away
+        for lk, pieces in self.sets.items():
+            for ob, loc, rot in pieces:
+                ob.hide_render = (lk != name)
+                if lk == name:
+                    ob.location = R @ loc
+                    ob.rotation_euler = (rot[0], rot[1], rot[2] + az)
         # a hashed jitter, never random(): the handheld and the tape must
         # rebuild identically on a resumed chunk
         def h(n, salt=0):
@@ -1396,7 +1665,7 @@ class Scene:
             w.scale = (1.35, 1.35, 1.35)
             self._place(w, (0.9 - 1.5 * ease_in_out(u), 1.05, 0.50), az)
             if camera:
-                self.cam.location = R @ Vector((0.42 - 0.7 * u, -1.75, 0.66))
+                self.cam.location = R @ Vector((0.32 - 0.55 * u, -1.38, 0.53))
                 aim_at(self.cam, H + Vector((0, 0, 0.05)))
 
         elif name == 'grid':
@@ -1415,13 +1684,13 @@ class Scene:
             w = self.words['do you']
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
-            w.scale = (0.08, 0.08, 0.08)                    # 0.29m wide in a 0.33m frame
+            w.scale = (0.18, 0.18, 0.18)                    # 60% of the 24mm frame, on the floor (measured)
             self._place(w, (0.0, -0.12, 0.003), az, rot=(0, 0, 0))   # flat on the floor
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
                 # lies — is inside the frame instead of under it
-                self.cam.location = R @ Vector((0.0, -1.30, 1.05))
+                self.cam.location = R @ Vector((0.0, -1.04, 0.85))
                 aim_at(self.cam, H - Vector((0, 0, 0.23)))
 
         elif name == 'collage':
@@ -1456,12 +1725,15 @@ class Scene:
             # it, where the torn petals cannot cover it. Measured in NDC at
             # 480x853 (world_to_camera_view): 0.16 ran the word off the right
             # edge of frame (x to 1.10) — this reads centred with margin.
-            w.scale = (0.115, 0.115, 0.115)
-            self._place(w, (-0.05, 0.30, 0.22), az, rot=(90, -7, 0))
+            w.scale = (0.20, 0.20, 0.20)                    # 52% of the 24mm frame (measured)
+            # z 0.33, not 0.22: on the 30mm the jar stands in front of the
+            # lower word and ate the 'a' — "m[jar]ke". Above the jar's mouth
+            # only the stem crosses it.
+            self._place(w, (-0.05, 0.30, 0.33), az, rot=(90, -7, 0))
             # handheld
             if camera:
-                self.cam.location = R @ Vector((0.22 + (h(1, 3) - 0.5) * 0.02, -1.15,
-                                                0.55 + (h(2, 3) - 0.5) * 0.015))
+                self.cam.location = R @ Vector((0.17 + (h(1, 3) - 0.5) * 0.02, -0.92,
+                                                0.45 + (h(2, 3) - 0.5) * 0.015))
                 aim_at(self.cam, H + R @ Vector(((h(3, 3) - 0.5) * 0.02, 0, 0.02)))
 
         elif name == 'ink':
@@ -1476,14 +1748,18 @@ class Scene:
             # two lines, like a museum label, because one line at any size a
             # phone can read runs under the stem and loses its last word
             w.data.body = "ideas that\naren't"
-            w.scale = (0.024, 0.024, 0.024)                 # ~12px cap height on a phone
+            # 1.5x the telephoto size, card and all: on the 30mm the label
+            # measured 18% of the frame wide, ~70px on a phone — a caption
+            # nobody could read. Text and card scale about the card's centre.
+            w.scale = (0.046, 0.046, 0.046)
             # ...on a white card, left of the stem, like a label on a wall
-            self._place(w, (-0.152, -0.122, 0.36), az)
+            self._place(w, (-0.085 + (-0.152 + 0.085) * 1.9, -0.122, 0.36), az)
             self.card.hide_render = False
+            self.card.scale = (0.17 * 1.9, 0.095 * 1.9, 1)   # plane() sizes by scale
             self.card.location = R @ Vector((-0.085, -0.12, 0.36))
             self.card.rotation_euler = (math.radians(90), 0, az)
             if camera:
-                self.cam.location = R @ Vector((0.0, -1.55, 0.50))
+                self.cam.location = R @ Vector((0.0, -1.24, 0.41))
                 aim_at(self.cam, H)
 
         elif name == 'painted':
@@ -1496,7 +1772,7 @@ class Scene:
             # the look has a word a phone can read as well as one on the petal
             wb = self.words_big['alive,']
             wb.data.materials[0] = self.type_mats['plum']
-            wb.scale = (0.11, 0.11, 0.11)
+            wb.scale = (0.22, 0.22, 0.22)                   # 0.11 measured 14% wide on the 30mm; 0.28 hit 96% at the push-in
             petal_mat = self.mat_paint
             # TYPE ON THE FLOWER. Brush-lettered onto the face of petal 3,
             # riding its transform so it stays on the petal whatever the
@@ -1505,7 +1781,7 @@ class Scene:
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['paper']
             w.data.extrude = 0.0015
-            w.scale = (0.020, 0.020, 0.020)
+            w.scale = (0.028, 0.028, 0.028)                 # 0.020 measured 3% wide on the 30mm
             # ON THE PETAL. Not parented — the petal's local frame has its
             # cupped face on -Z and the text vanished behind it. It is placed
             # in world space a hair off the petal's surface, on whichever face
@@ -1518,7 +1794,11 @@ class Scene:
                 # undersides at a grazing angle and anything written on them
                 # foreshortens to a sliver — the word was on the petal in
                 # every earlier render and legible in none of them.
-                self.cam.location = R @ Vector((0.30 - 0.12 * pu, -1.30 + 0.50 * pu, 0.60 + 0.22 * pu))
+                # ABOVE H, always: the big word is placed on the ray from the
+                # camera through H down to z=0.22, and a camera level with H
+                # sends that ray sideways and the word to infinity. Same
+                # look-down angles as the 65mm version (7.5 -> 26 degrees).
+                self.cam.location = R @ Vector((0.24 - 0.09 * pu, -1.04 + 0.39 * pu, 0.57 + 0.17 * pu))
             bpy.context.view_layer.update()
             # THE BIG WORD SITS ON THE CAMERA'S OWN AIM RAY, through H. Every
             # other look's camera sits ON its R-frame's y-axis, so a fixed
@@ -1528,9 +1808,18 @@ class Scene:
             # edge at the closest push-in. A point on the ray from the camera
             # through H is centre-frame at ANY camera offset, because aim_at
             # already points the lens at every point on that line.
+            # ...THROUGH A POINT BELOW H. The ray through H itself is the
+            # centre of frame at every push-in — which is exactly where the
+            # flower head is, so on the wide lens the head sat on the word
+            # and it read "a....,". The ray through H-0.22 is below-centre
+            # at every push-in, and there only the stem crosses it.
             camv = Vector(self.cam.location)
-            k = (0.22 - camv.z) / (H.z - camv.z)
-            wb.location = camv + k * (H - camv)
+            # z=0.27, above the jar's mouth: at 0.16 the jar stood in front
+            # of the 'v' — "ali[jar]e,". Between the mouth and the petals
+            # only the stem crosses it.
+            Hl = H - Vector((0, 0, 0.14))
+            k = (0.27 - camv.z) / (Hl.z - camv.z)
+            wb.location = camv + k * (Hl - camv)
             wb.rotation_euler = (math.radians(90), 0, az)
             # petal 3 was a guess, and it turned out to be the one under the
             # bowl with two others over it. The front petal is whichever has
@@ -1623,6 +1912,7 @@ class Scene:
         self.table.hide_render = True
         self.cyc.hide_render = False
         self._pose_open()
+        self.cam.data.lens = self.lens_wide
         H = Vector((0.0, 0.0, 0.43))
         az = studio_az(t)
         R = Rz(az)
@@ -1638,15 +1928,21 @@ class Scene:
             # a stand at the edge of the room reads as a huge soft-edged bar
             # sweeping the frame, not a light stand in the background. It
             # appears once the wide is actually established, in STATED.
+            # THE KIT IS THERE FROM THE FIRST LIT FRAME now that the lens is
+            # wide: at 30mm from 0.6m a stand at r=1.9 is a stand, not a bar.
             for ob in self.props:
-                ob.hide_render = True
+                ob.hide_render = False
             on = ease_out(seg(t, REVEAL[0], REVEAL[0] + BEAT / 4))
             self._look('editorial', 0.0, t, strength=on, az=az)
             pull = ease_in_out(seg(t, REVEAL[0], REVEAL[1]))
-            start = self.landed + Vector((0.10, -0.55, 0.16))
-            end = R @ Vector((0.42, -1.75, 0.66))
+            # FROM EXACTLY WHERE THE FALL LEFT IT. The first lit frame is the
+            # last dark frame with the lights on — same camera, same lens,
+            # same petal in the same place — and only then does it lift and
+            # pull back to find the flower standing in a studio.
+            start, aim0, _ = self._fall_camera(FALL[1])
+            end = R @ Vector((0.32, -1.38, 0.53))
             self.cam.location = start + (end - start) * pull
-            aim_at(self.cam, self.landed + (H + Vector((0, 0, 0.05)) - self.landed) * pull)
+            aim_at(self.cam, aim0 + (H + Vector((0, 0, 0.05)) - aim0) * pull)
             self.words['how'].scale = (0, 0, 0)
             return
 
@@ -1692,6 +1988,7 @@ class Scene:
                 ow.scale = (0, 0, 0)
             for ow in self.words_big.values():
                 ow.scale = (0, 0, 0)
+            self.card.hide_render = True      # ink's label, blank here, is noise
             w = self.words[LAST_WORD]
             w.data.font = self.font_black
             w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
@@ -1699,9 +1996,9 @@ class Scene:
             # behind the stem, because at head height the flower hides it —
             # a 0.32m word at z=0.42 rendered as an 'a' and a '?' poking out
             # either side of the petals, for eight beats, at the peak.
-            w.scale = (0.22, 0.22, 0.22)
+            w.scale = (0.46, 0.46, 0.46)                    # 80% of the 24mm frame (measured)
             self._place(w, (0.0, 0.85, 0.20), az)
-            self.cam.location = R @ Vector((0.0, -1.55, 0.52))
+            self.cam.location = R @ Vector((0.0, -1.24, 0.43))
             aim_at(self.cam, H)
             return
 
@@ -1737,11 +2034,19 @@ class Scene:
             # generic position instead, off wherever their word assumed the
             # lens would be. Blending from wherever editorial's own camera
             # already put it keeps the join smooth.
-            if li == 0:
+            # ...AND THE LENS TIGHTENS BACK TO ACT I's. Over the last four
+            # beats the 30mm becomes the 65mm again while the camera retreats
+            # to where the break stands: the frame closes onto the flower as
+            # the lights go, and the room arrives at the dark in the same
+            # glass it left it in. The grid span keeps its own aim, blended.
+            zz = ease_in_out(seg(tt, 8 * BEAT, 12 * BEAT))
+            self.cam.data.lens = self.lens_wide + (self.lens - self.lens_wide) * zz
+            if li <= 1:
                 cur = Vector(self.cam.location)
                 target = R @ Vector((0.15, -1.60, 0.50))
-                self.cam.location = cur + (target - cur) * back
-                aim_at(self.cam, H)
+                self.cam.location = cur + (target - cur) * zz
+                own = H - Vector((0, 0, 0.23)) if li == 1 else H
+                aim_at(self.cam, own + (H - own) * zz)
             return
 
         # THE BREAK. One beam, and then not even that. az is 0 here — home —
@@ -1758,6 +2063,7 @@ class Scene:
         aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
         self.haze.inputs["Density"].default_value = 9.0 * (1.0 - die)
         self.cam.location = (0.15, -1.60, 0.50)
+        self.cam.data.lens = self.lens
         aim_at(self.cam, H)
 
     def faller_at(self, t):
@@ -1774,7 +2080,12 @@ class Scene:
         would put the whole descent in the first half-second of three bars.
         """
         u = seg(t, *FALL)
-        z = 0.436 + (0.052 - 0.436) * u          # head height down to the table
+        # ...to the FLOOR, at the height the landed petal lies, on the last
+        # frame of the fall. It used to stop 5cm up and the studio then put it
+        # at 0.6cm: a 4.6cm hop, hidden by a cut that no longer exists — the
+        # camera now runs straight through the switch, and a petal that hops
+        # as the lights come on is the one thing the viewer would see.
+        z = 0.436 + (LAND_Z - 0.436) * u         # head height down to the floor
         # THE SWING HAS TO CLEAR THE FLOWER, and that is a lighting requirement
         # before it is a botanical one. The beam comes straight down through the
         # head, so a petal that drops more or less vertically spends the whole
@@ -1791,6 +2102,53 @@ class Scene:
         swing = 0.19 * u + 0.030 * math.sin(u * math.tau * 1.9)
         drift = 0.055 * u + 0.014 * math.sin(u * math.tau * 1.3 + 1.1)
         return Vector((swing, drift, z)), u
+
+    def faller_rot(self, t):
+        """
+        The falling petal's rotation — the peel, then the tumble, then the
+        LANDING. The tumble is deliberately out of phase with the swing: a
+        petal that rolls in time with its own sway reads as a keyframed prop.
+        Over the last half beat it settles flat: pitch to pi (the blade's cup
+        upward, so nothing goes through the floor) and the roll to nothing.
+        The tumble already ends within 7 degrees of flat, so the settle is a
+        petal finding the floor, not a snap. _pose_open uses the same pose,
+        which is what keeps the petal still through the switch.
+        """
+        peel = ease_in(seg(t, *DETACH))
+        uu = max(0.0, seg(t, *FALL))
+        rx = math.radians(30 + 74 * peel) + 1.9 * uu + 0.55 * math.sin(uu * 5.3)
+        ry = 0.42 * math.sin(uu * math.tau * 2.3)
+        rz = math.radians(30) + 1.2 * uu
+        land = ease_in_out(seg(t, FALL[1] - BEAT / 2, FALL[1]))
+        return (rx + (math.pi - rx) * land, ry * (1.0 - land), rz)
+
+    def _fall_camera(self, t):
+        """
+        The camera that goes down with the petal: (location, aim, lens), a
+        pure function of t. Used by the fall AND by the reveal's first frame,
+        so the switch is a change of light and nothing else.
+
+        It holds the petal a little above centre and comes in from the framing
+        distance to 0.62m — no further. It used to push to a third of that,
+        so that the petal filled the frame for the paint to erupt out of; the
+        paint is gone and a frame-filling orange shape followed by a cut to a
+        frame-filling peach shape was the whole reason the transition read as
+        two shots. On the way it ZOOMS OUT, 65mm to 30mm, and rises to 24cm
+        over the petal — so it arrives on the landing looking down at a small
+        petal on a dark floor, framed wide, and when the lights come on the
+        room is simply there around it.
+        """
+        fp, u = self.faller_at(t)
+        cl = ease_in_out(seg(t, DETACH[0], FALL[1]))
+        lens = self.lens + (self.lens_wide - self.lens) * cl
+        r = self.cam_near + (0.62 - self.cam_near) * cl
+        az = math.radians(-90.0 + 16.0 * cl)
+        dz = 0.035 * (1.0 - cl) + 0.24 * cl
+        loc = fp + Vector((r * math.cos(az), r * math.sin(az), dz))
+        # lead the petal: aim below it so it sits high and falls through the
+        # middle; more lead at the end, so the floor it lands on is in shot
+        aim = fp - Vector((0.0, 0.0, 0.026 * (1.0 - 0.4 * u) + 0.03 * cl))
+        return loc, aim, lens
 
     def returner_at(self, t):
         """
@@ -1996,13 +2354,7 @@ class Scene:
                 pos = base + Vector((0.0, 0.0, -0.006 * peel))
             self.faller.location = pos
             self.faller.scale = (swell, swell, swell)
-            # The tumble is deliberately out of phase with the swing: a petal
-            # that rolls in time with its own sway reads as a keyframed prop.
-            uu = max(0.0, seg(t, *FALL))
-            self.faller.rotation_euler = (
-                math.radians(30 + 74 * peel) + 1.9 * uu + 0.55 * math.sin(uu * 5.3),
-                0.42 * math.sin(uu * math.tau * 2.3),
-                math.radians(30) + 1.2 * uu)
+            self.faller.rotation_euler = self.faller_rot(t)
 
         # dead to alive, in the material rather than in a swap
         life = seg(t, CLIMB[0] + BAR, OPEN[1])
@@ -2175,19 +2527,15 @@ class Scene:
         if t < DETACH[0]:
             self.cam.location = ground
             self.cam.rotation_euler = (math.radians(90), 0, 0)
+            self.cam.data.lens = self.lens
         else:
-            fp, u = self.faller_at(t)
-            # in from the framing distance to a third of it, so the petal grows
-            # through the fall and is nearly frame-filling when the paint takes
-            # it — the studio needs something big to erupt out of
-            cl = ease_in_out(seg(t, DETACH[0], FALL[1]))
-            r = dist + (0.34 * self.cam_near - dist) * cl
-            # a few degrees of drift around it, so three bars of falling has
-            # some parallax in it and the background dark is not a flat card
-            az = math.radians(-90.0 + 9.0 * cl)
-            self.cam.location = fp + Vector((
-                r * math.cos(az), r * math.sin(az), 0.035 * (1.0 - cl)))
-            # lead the petal: aim a little BELOW it, so it sits high in frame
-            # and falls down through the middle rather than hanging in it
+            # THE FOLLOW STARTS FROM WHERE THE CAMERA IS. The follow's own
+            # start is 18cm higher than the travel's end and aimed at the head
+            # instead of level, and switching to it on bt(37) hopped the whole
+            # frame on the peel. It blends in over the peel beat instead.
+            loc, aim, lens = self._fall_camera(t)
+            w = ease_in_out(seg(t, DETACH[0], DETACH[1]))
+            self.cam.location = ground + (loc - ground) * w
+            self.cam.data.lens = lens
             self.cam.rotation_euler = (math.radians(90), 0, 0)
-            aim_at(self.cam, fp - Vector((0.0, 0.0, 0.026 * (1.0 - 0.4 * u))))
+            aim_at(self.cam, Vector((0.0, 0.0, ground.z)) + (aim - Vector((0.0, 0.0, ground.z))) * w)
