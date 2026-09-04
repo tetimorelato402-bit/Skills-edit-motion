@@ -56,6 +56,7 @@ FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
 GLITCH_AT = (bt(40), bt(42))
 GLITCH_FR = 2                  # frames each, at 24fps — a sixth of a beat
 ACT_I_END = bt(44)             # 20.465s — eleven bars
+LAND_Z    = 0.012              # where the petal's origin sits once it is lying on the floor
 
 # --- and the other end of the film ----------------------------------------
 # The last four bars are Blender again. The studio drains to black on the
@@ -836,6 +837,17 @@ class Scene:
         shot at all.
         """
         self.lens = 65.0
+        # THE STUDIO IS SHOT WIDE. Act I's 65mm is a telephoto — at 1.3-1.8m
+        # its frame is 27-37cm across, and a 17cm flower plus a jar plus a
+        # word plus a light stand does not fit in 30cm of picture: every look
+        # rendered as things cropping each other ("everything is so compressed
+        # in together"). 30mm on this sensor is a phone's 0.5x: from 0.9-1.2m
+        # the frame is 40-55cm wide, the flower is a third of it, the words
+        # have air, and the kit and the cyc read as a ROOM going round rather
+        # than as bars sweeping the edge. The fall zooms out to it — one lens
+        # change, in the dark, over seven beats, so the switch lands on a
+        # frame that is already wide — and the collapse zooms back in.
+        self.lens_wide = 30.0
         self.sensor_v = 24.0          # sensor_fit VERTICAL uses sensor_height
         subject_h = 0.62              # table to above the open flower, with air
         self.cam_far = subject_h / (2 * math.tan(
@@ -1063,7 +1075,7 @@ class Scene:
         # where the fallen petal lies at the end of the fall — it stays there
         self.petal_home = self.petals[1].location.copy()
         self.landed, _ = self.faller_at(FALL[1])
-        self.landed = Vector((self.landed.x, self.landed.y, 0.006))
+        self.landed = Vector((self.landed.x, self.landed.y, LAND_Z))
 
         self._dressing()
 
@@ -1349,7 +1361,8 @@ class Scene:
             ob.rotation_euler = (math.radians(24), 0, i / len(self.petals) * math.tau)
         self.faller.scale = (1, 1, 1)
         self.faller.location = self.landed
-        self.faller.rotation_euler = (math.radians(96), 0.1, math.radians(38))
+        # exactly the pose the fall lands in, so the switch does not move it
+        self.faller.rotation_euler = self.faller_rot(FALL[1])
         self.mat_stem.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
             .default_value = LIVE_STEM
         self.mat_leaf.node_tree.nodes["Principled BSDF"].inputs["Base Color"] \
@@ -1396,7 +1409,7 @@ class Scene:
             w.scale = (1.35, 1.35, 1.35)
             self._place(w, (0.9 - 1.5 * ease_in_out(u), 1.05, 0.50), az)
             if camera:
-                self.cam.location = R @ Vector((0.42 - 0.7 * u, -1.75, 0.66))
+                self.cam.location = R @ Vector((0.28 - 0.48 * u, -1.20, 0.46))
                 aim_at(self.cam, H + Vector((0, 0, 0.05)))
 
         elif name == 'grid':
@@ -1415,13 +1428,13 @@ class Scene:
             w = self.words['do you']
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
-            w.scale = (0.08, 0.08, 0.08)                    # 0.29m wide in a 0.33m frame
+            w.scale = (0.15, 0.15, 0.15)                    # 73% of the wide frame, on the floor
             self._place(w, (0.0, -0.12, 0.003), az, rot=(0, 0, 0))   # flat on the floor
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
                 # lies — is inside the frame instead of under it
-                self.cam.location = R @ Vector((0.0, -1.30, 1.05))
+                self.cam.location = R @ Vector((0.0, -0.90, 0.74))
                 aim_at(self.cam, H - Vector((0, 0, 0.23)))
 
         elif name == 'collage':
@@ -1456,12 +1469,15 @@ class Scene:
             # it, where the torn petals cannot cover it. Measured in NDC at
             # 480x853 (world_to_camera_view): 0.16 ran the word off the right
             # edge of frame (x to 1.10) — this reads centred with margin.
-            w.scale = (0.115, 0.115, 0.115)
-            self._place(w, (-0.05, 0.30, 0.22), az, rot=(90, -7, 0))
+            w.scale = (0.16, 0.16, 0.16)                    # 60% of the 30mm frame (measured)
+            # z 0.33, not 0.22: on the 30mm the jar stands in front of the
+            # lower word and ate the 'a' — "m[jar]ke". Above the jar's mouth
+            # only the stem crosses it.
+            self._place(w, (-0.05, 0.30, 0.33), az, rot=(90, -7, 0))
             # handheld
             if camera:
-                self.cam.location = R @ Vector((0.22 + (h(1, 3) - 0.5) * 0.02, -1.15,
-                                                0.55 + (h(2, 3) - 0.5) * 0.015))
+                self.cam.location = R @ Vector((0.15 + (h(1, 3) - 0.5) * 0.02, -0.80,
+                                                0.39 + (h(2, 3) - 0.5) * 0.015))
                 aim_at(self.cam, H + R @ Vector(((h(3, 3) - 0.5) * 0.02, 0, 0.02)))
 
         elif name == 'ink':
@@ -1476,14 +1492,18 @@ class Scene:
             # two lines, like a museum label, because one line at any size a
             # phone can read runs under the stem and loses its last word
             w.data.body = "ideas that\naren't"
-            w.scale = (0.024, 0.024, 0.024)                 # ~12px cap height on a phone
+            # 1.5x the telephoto size, card and all: on the 30mm the label
+            # measured 18% of the frame wide, ~70px on a phone — a caption
+            # nobody could read. Text and card scale about the card's centre.
+            w.scale = (0.036, 0.036, 0.036)
             # ...on a white card, left of the stem, like a label on a wall
-            self._place(w, (-0.152, -0.122, 0.36), az)
+            self._place(w, (-0.1855, -0.122, 0.36), az)
             self.card.hide_render = False
+            self.card.scale = (0.17 * 1.5, 0.095 * 1.5, 1)   # plane() sizes by scale
             self.card.location = R @ Vector((-0.085, -0.12, 0.36))
             self.card.rotation_euler = (math.radians(90), 0, az)
             if camera:
-                self.cam.location = R @ Vector((0.0, -1.55, 0.50))
+                self.cam.location = R @ Vector((0.0, -1.08, 0.36))
                 aim_at(self.cam, H)
 
         elif name == 'painted':
@@ -1496,7 +1516,7 @@ class Scene:
             # the look has a word a phone can read as well as one on the petal
             wb = self.words_big['alive,']
             wb.data.materials[0] = self.type_mats['plum']
-            wb.scale = (0.11, 0.11, 0.11)
+            wb.scale = (0.22, 0.22, 0.22)                   # 0.11 measured 14% wide on the 30mm; 0.28 hit 96% at the push-in
             petal_mat = self.mat_paint
             # TYPE ON THE FLOWER. Brush-lettered onto the face of petal 3,
             # riding its transform so it stays on the petal whatever the
@@ -1505,7 +1525,7 @@ class Scene:
             w.data.font = self.font_bold
             w.data.materials[0] = self.type_mats['paper']
             w.data.extrude = 0.0015
-            w.scale = (0.020, 0.020, 0.020)
+            w.scale = (0.028, 0.028, 0.028)                 # 0.020 measured 3% wide on the 30mm
             # ON THE PETAL. Not parented — the petal's local frame has its
             # cupped face on -Z and the text vanished behind it. It is placed
             # in world space a hair off the petal's surface, on whichever face
@@ -1518,7 +1538,11 @@ class Scene:
                 # undersides at a grazing angle and anything written on them
                 # foreshortens to a sliver — the word was on the petal in
                 # every earlier render and legible in none of them.
-                self.cam.location = R @ Vector((0.30 - 0.12 * pu, -1.30 + 0.50 * pu, 0.60 + 0.22 * pu))
+                # ABOVE H, always: the big word is placed on the ray from the
+                # camera through H down to z=0.22, and a camera level with H
+                # sends that ray sideways and the word to infinity. Same
+                # look-down angles as the 65mm version (7.5 -> 26 degrees).
+                self.cam.location = R @ Vector((0.21 - 0.08 * pu, -0.90 + 0.34 * pu, 0.55 + 0.15 * pu))
             bpy.context.view_layer.update()
             # THE BIG WORD SITS ON THE CAMERA'S OWN AIM RAY, through H. Every
             # other look's camera sits ON its R-frame's y-axis, so a fixed
@@ -1623,6 +1647,7 @@ class Scene:
         self.table.hide_render = True
         self.cyc.hide_render = False
         self._pose_open()
+        self.cam.data.lens = self.lens_wide
         H = Vector((0.0, 0.0, 0.43))
         az = studio_az(t)
         R = Rz(az)
@@ -1638,15 +1663,21 @@ class Scene:
             # a stand at the edge of the room reads as a huge soft-edged bar
             # sweeping the frame, not a light stand in the background. It
             # appears once the wide is actually established, in STATED.
+            # THE KIT IS THERE FROM THE FIRST LIT FRAME now that the lens is
+            # wide: at 30mm from 0.6m a stand at r=1.9 is a stand, not a bar.
             for ob in self.props:
-                ob.hide_render = True
+                ob.hide_render = False
             on = ease_out(seg(t, REVEAL[0], REVEAL[0] + BEAT / 4))
             self._look('editorial', 0.0, t, strength=on, az=az)
             pull = ease_in_out(seg(t, REVEAL[0], REVEAL[1]))
-            start = self.landed + Vector((0.10, -0.55, 0.16))
-            end = R @ Vector((0.42, -1.75, 0.66))
+            # FROM EXACTLY WHERE THE FALL LEFT IT. The first lit frame is the
+            # last dark frame with the lights on — same camera, same lens,
+            # same petal in the same place — and only then does it lift and
+            # pull back to find the flower standing in a studio.
+            start, aim0, _ = self._fall_camera(FALL[1])
+            end = R @ Vector((0.28, -1.20, 0.46))
             self.cam.location = start + (end - start) * pull
-            aim_at(self.cam, self.landed + (H + Vector((0, 0, 0.05)) - self.landed) * pull)
+            aim_at(self.cam, aim0 + (H + Vector((0, 0, 0.05)) - aim0) * pull)
             self.words['how'].scale = (0, 0, 0)
             return
 
@@ -1692,6 +1723,7 @@ class Scene:
                 ow.scale = (0, 0, 0)
             for ow in self.words_big.values():
                 ow.scale = (0, 0, 0)
+            self.card.hide_render = True      # ink's label, blank here, is noise
             w = self.words[LAST_WORD]
             w.data.font = self.font_black
             w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
@@ -1699,9 +1731,9 @@ class Scene:
             # behind the stem, because at head height the flower hides it —
             # a 0.32m word at z=0.42 rendered as an 'a' and a '?' poking out
             # either side of the petals, for eight beats, at the peak.
-            w.scale = (0.22, 0.22, 0.22)
+            w.scale = (0.36, 0.36, 0.36)                    # 83% of the 30mm frame (0.22 was 51%)
             self._place(w, (0.0, 0.85, 0.20), az)
-            self.cam.location = R @ Vector((0.0, -1.55, 0.52))
+            self.cam.location = R @ Vector((0.0, -1.08, 0.37))
             aim_at(self.cam, H)
             return
 
@@ -1737,11 +1769,19 @@ class Scene:
             # generic position instead, off wherever their word assumed the
             # lens would be. Blending from wherever editorial's own camera
             # already put it keeps the join smooth.
-            if li == 0:
+            # ...AND THE LENS TIGHTENS BACK TO ACT I's. Over the last four
+            # beats the 30mm becomes the 65mm again while the camera retreats
+            # to where the break stands: the frame closes onto the flower as
+            # the lights go, and the room arrives at the dark in the same
+            # glass it left it in. The grid span keeps its own aim, blended.
+            zz = ease_in_out(seg(tt, 8 * BEAT, 12 * BEAT))
+            self.cam.data.lens = self.lens_wide + (self.lens - self.lens_wide) * zz
+            if li <= 1:
                 cur = Vector(self.cam.location)
                 target = R @ Vector((0.15, -1.60, 0.50))
-                self.cam.location = cur + (target - cur) * back
-                aim_at(self.cam, H)
+                self.cam.location = cur + (target - cur) * zz
+                own = H - Vector((0, 0, 0.23)) if li == 1 else H
+                aim_at(self.cam, own + (H - own) * zz)
             return
 
         # THE BREAK. One beam, and then not even that. az is 0 here — home —
@@ -1758,6 +1798,7 @@ class Scene:
         aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
         self.haze.inputs["Density"].default_value = 9.0 * (1.0 - die)
         self.cam.location = (0.15, -1.60, 0.50)
+        self.cam.data.lens = self.lens
         aim_at(self.cam, H)
 
     def faller_at(self, t):
@@ -1774,7 +1815,12 @@ class Scene:
         would put the whole descent in the first half-second of three bars.
         """
         u = seg(t, *FALL)
-        z = 0.436 + (0.052 - 0.436) * u          # head height down to the table
+        # ...to the FLOOR, at the height the landed petal lies, on the last
+        # frame of the fall. It used to stop 5cm up and the studio then put it
+        # at 0.6cm: a 4.6cm hop, hidden by a cut that no longer exists — the
+        # camera now runs straight through the switch, and a petal that hops
+        # as the lights come on is the one thing the viewer would see.
+        z = 0.436 + (LAND_Z - 0.436) * u         # head height down to the floor
         # THE SWING HAS TO CLEAR THE FLOWER, and that is a lighting requirement
         # before it is a botanical one. The beam comes straight down through the
         # head, so a petal that drops more or less vertically spends the whole
@@ -1791,6 +1837,53 @@ class Scene:
         swing = 0.19 * u + 0.030 * math.sin(u * math.tau * 1.9)
         drift = 0.055 * u + 0.014 * math.sin(u * math.tau * 1.3 + 1.1)
         return Vector((swing, drift, z)), u
+
+    def faller_rot(self, t):
+        """
+        The falling petal's rotation — the peel, then the tumble, then the
+        LANDING. The tumble is deliberately out of phase with the swing: a
+        petal that rolls in time with its own sway reads as a keyframed prop.
+        Over the last half beat it settles flat: pitch to pi (the blade's cup
+        upward, so nothing goes through the floor) and the roll to nothing.
+        The tumble already ends within 7 degrees of flat, so the settle is a
+        petal finding the floor, not a snap. _pose_open uses the same pose,
+        which is what keeps the petal still through the switch.
+        """
+        peel = ease_in(seg(t, *DETACH))
+        uu = max(0.0, seg(t, *FALL))
+        rx = math.radians(30 + 74 * peel) + 1.9 * uu + 0.55 * math.sin(uu * 5.3)
+        ry = 0.42 * math.sin(uu * math.tau * 2.3)
+        rz = math.radians(30) + 1.2 * uu
+        land = ease_in_out(seg(t, FALL[1] - BEAT / 2, FALL[1]))
+        return (rx + (math.pi - rx) * land, ry * (1.0 - land), rz)
+
+    def _fall_camera(self, t):
+        """
+        The camera that goes down with the petal: (location, aim, lens), a
+        pure function of t. Used by the fall AND by the reveal's first frame,
+        so the switch is a change of light and nothing else.
+
+        It holds the petal a little above centre and comes in from the framing
+        distance to 0.62m — no further. It used to push to a third of that,
+        so that the petal filled the frame for the paint to erupt out of; the
+        paint is gone and a frame-filling orange shape followed by a cut to a
+        frame-filling peach shape was the whole reason the transition read as
+        two shots. On the way it ZOOMS OUT, 65mm to 30mm, and rises to 24cm
+        over the petal — so it arrives on the landing looking down at a small
+        petal on a dark floor, framed wide, and when the lights come on the
+        room is simply there around it.
+        """
+        fp, u = self.faller_at(t)
+        cl = ease_in_out(seg(t, DETACH[0], FALL[1]))
+        lens = self.lens + (self.lens_wide - self.lens) * cl
+        r = self.cam_near + (0.62 - self.cam_near) * cl
+        az = math.radians(-90.0 + 16.0 * cl)
+        dz = 0.035 * (1.0 - cl) + 0.24 * cl
+        loc = fp + Vector((r * math.cos(az), r * math.sin(az), dz))
+        # lead the petal: aim below it so it sits high and falls through the
+        # middle; more lead at the end, so the floor it lands on is in shot
+        aim = fp - Vector((0.0, 0.0, 0.026 * (1.0 - 0.4 * u) + 0.03 * cl))
+        return loc, aim, lens
 
     def returner_at(self, t):
         """
@@ -1996,13 +2089,7 @@ class Scene:
                 pos = base + Vector((0.0, 0.0, -0.006 * peel))
             self.faller.location = pos
             self.faller.scale = (swell, swell, swell)
-            # The tumble is deliberately out of phase with the swing: a petal
-            # that rolls in time with its own sway reads as a keyframed prop.
-            uu = max(0.0, seg(t, *FALL))
-            self.faller.rotation_euler = (
-                math.radians(30 + 74 * peel) + 1.9 * uu + 0.55 * math.sin(uu * 5.3),
-                0.42 * math.sin(uu * math.tau * 2.3),
-                math.radians(30) + 1.2 * uu)
+            self.faller.rotation_euler = self.faller_rot(t)
 
         # dead to alive, in the material rather than in a swap
         life = seg(t, CLIMB[0] + BAR, OPEN[1])
@@ -2175,19 +2262,15 @@ class Scene:
         if t < DETACH[0]:
             self.cam.location = ground
             self.cam.rotation_euler = (math.radians(90), 0, 0)
+            self.cam.data.lens = self.lens
         else:
-            fp, u = self.faller_at(t)
-            # in from the framing distance to a third of it, so the petal grows
-            # through the fall and is nearly frame-filling when the paint takes
-            # it — the studio needs something big to erupt out of
-            cl = ease_in_out(seg(t, DETACH[0], FALL[1]))
-            r = dist + (0.34 * self.cam_near - dist) * cl
-            # a few degrees of drift around it, so three bars of falling has
-            # some parallax in it and the background dark is not a flat card
-            az = math.radians(-90.0 + 9.0 * cl)
-            self.cam.location = fp + Vector((
-                r * math.cos(az), r * math.sin(az), 0.035 * (1.0 - cl)))
-            # lead the petal: aim a little BELOW it, so it sits high in frame
-            # and falls down through the middle rather than hanging in it
+            # THE FOLLOW STARTS FROM WHERE THE CAMERA IS. The follow's own
+            # start is 18cm higher than the travel's end and aimed at the head
+            # instead of level, and switching to it on bt(37) hopped the whole
+            # frame on the peel. It blends in over the peel beat instead.
+            loc, aim, lens = self._fall_camera(t)
+            w = ease_in_out(seg(t, DETACH[0], DETACH[1]))
+            self.cam.location = ground + (loc - ground) * w
+            self.cam.data.lens = lens
             self.cam.rotation_euler = (math.radians(90), 0, 0)
-            aim_at(self.cam, fp - Vector((0.0, 0.0, 0.026 * (1.0 - 0.4 * u))))
+            aim_at(self.cam, Vector((0.0, 0.0, ground.z)) + (aim - Vector((0.0, 0.0, ground.z))) * w)
