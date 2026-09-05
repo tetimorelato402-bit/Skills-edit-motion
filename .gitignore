@@ -1,1 +1,9 @@
 .DS_Store
+__pycache__/
+*.pyc
+
+# the alternate soundtracks regenerate from sound.py in two seconds each
+projects/001-why-motion-editors/sound_*.wav
+
+# the room's guide track regenerates from sound_room.py in a second
+projects/004-the-room/room.wav
