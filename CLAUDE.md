@@ -243,10 +243,21 @@ Load-bearing for it, if it gets built:
 - **The back half is CALM, to match the piano, and it has NO WORDS.** Five looks of two
   bars each under one slow unbroken turn of the room; a look change is a dip of the
   lights, not a cut; no strobe, no glitch frames, no handheld. The question is asked
-  once, in bar 1. Every look has a designed SET behind it instead (`_setpieces()`:
-  flats, a moon, boards and cubes, torn paper, an enso and strokes, canvases on
-  easels), in the camera's azimuth frame like the rig, with slow `motion(u)` on some
-  pieces. See `BUILD.md` — "The back half is CALM now".
+  once, in bar 1.
+- **THE ROOM IS WHAT THE TECHNIQUE THREW AWAY, and it is derived from the petal's own
+  profile, never drawn by eye.** Editorial adds nothing (the real kit — the control);
+  grid puts the petal rasterised into the floor's own cells beside its true contour,
+  with the dropped cells lifting away; collage pins the flower's five other petals up
+  flat on a six-slot sheet with one slot empty; ink draws the flower as a botanical
+  plate from its own geometry; painted reduces it to marks in the film's own colour
+  constants. A set that is merely the mood of its look is a label standing behind its
+  own subject.
+- **ONE GESTURE, FIVE TRANSLATIONS.** `gesture_at(u)` lifts the fallen petal off the
+  floor and settles it back, the same curve over the same eight beats in every look,
+  in that look's material. Five costumes on a still object demonstrate nothing; one
+  event said five ways is the film's whole claim. See `BUILD.md`.
+- **`scripts/vintage_room.py`** hangs the SAME painting (`canvas_marks()`) in an old
+  room, as a still for an image-to-video model.
 - **The film ends where it starts.** The last four bars are Blender again: one more petal
   falls out of the black, the camera pulls back to reveal it is falling into the jar, and
   the beam dies the way it arrived in bar 1. Both sides of that join are black, so there is

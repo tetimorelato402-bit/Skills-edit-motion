@@ -221,6 +221,49 @@ sync with the 125 BPM grid, and a pure function of `t` is not.
   per-vertex grain is a saw blade, a tear is a slow wander plus 1.4cm of grain; a stroke
   whose width jitters per vertex is serrated; the easel at x=-1.0 was outside a 24mm
   frame that spans x -0.43..0.91 at y=1.4.
+- **The room is what the technique THREW AWAY, and it is derived, never drawn.**
+  "I don't get how those designs reveal anything about the difference in the flowers."
+  They didn't: the sets were mood boards, one label per look, and a blue grid wall
+  behind a blue blocky flower says the same thing twice. Each of the five techniques
+  destroys some information about the flower and keeps the rest — that is what makes
+  them languages rather than paint jobs — so the room now holds the destroyed part,
+  built from the petal's own profile (`petal_profile`, `petal_outline`, both taken
+  from `blade()`'s width law, so they cannot drift apart from the flower):
+  **editorial** keeps everything and adds nothing — the real studio and its real kit,
+  the control that proves the other four are evidence; **grid** keeps volume and
+  rounds off curve, so the floor carries the petal rasterised into the floor's own
+  5cm cells (`raster_cells`, `quads_mesh`) with its true contour drawn beside it and
+  the cells the rounding dropped lifting away; **collage** keeps the pieces, so the
+  wall is a six-slot specimen sheet holding the flower's five other petals flattened
+  (the same `blade()` with cup, bend and crimp zero) and one empty traced outline —
+  the petal that is on the floor; **ink** keeps the edge, so the wall is a botanical
+  plate of the flower drawn from its own geometry (six contours rotated the way the
+  head is built, `contour_ribbon`); **painted** keeps value and gesture, so the canvas
+  is the flower reduced to marks in the film's own colour constants (`canvas_marks`).
+  The kit ring is editorial's alone — a C-stand flag cannot stand in front of the
+  drawing that IS the evidence.
+- **One gesture, five translations: the fallen petal lifts.** The back half used to be
+  a still object in five costumes, which demonstrates nothing. `gesture_at(u)` lifts
+  the petal that fell off the floor, turns it over and settles it back, the same curve
+  over the same eight beats in every look, in that look's material — blocks lift
+  mechanically, paper lightly, a drawn line as a drawing, paint as a mark. Every term
+  vanishes at u=0 and u=1, so it is on the floor at both ends: the dip between looks
+  never catches it in the air and the break inherits the room it found. The collage no
+  longer throws the flower's petals into the air — that fought the gesture for the eye
+  and left the room nothing to say.
+- **`scripts/vintage_room.py` hangs the same painting in an old room**, as a still to
+  feed an image-to-video model. It imports `canvas_marks()`, so the picture on that
+  wall and the canvas on the film's easel are one painting: change the marks and both
+  change. Four things it cost to learn. `primitive_cube_add(size=1)` scaled by `dims`
+  has FULL extent `dims`, so a frame built from half-lengths comes out as four short
+  bars floating clear of the picture. **Coplanar marks z-fight**: the seven overlapping
+  strokes of the flower head, all at one depth, rendered as a mottled black mass with
+  an ochre rim, which looks exactly like a colour mistake — each mark now sits a third
+  of a millimetre in front of the last, in the room AND in the film. **Filmic drags a
+  saturated vermilion to brown** while the wallpaper beside it looks right, so a plate
+  meant to be fed to a model renders on `Standard`. And a wall lit for a bright render
+  blows to white and takes every colour with it: one window in a small room is not much
+  light, so the palette is darker than it looks right on paper.
 - **The back half is CALM now, and that is a decision about the track.** "Look at the
   piano, the calm. It needs to match perfectly." The first cut of the studio was
   arranged like a drop — a beat-kicked orbit, cuts on beats then eighths, a strobe of
