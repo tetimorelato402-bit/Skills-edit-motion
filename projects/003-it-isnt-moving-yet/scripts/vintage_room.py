@@ -294,11 +294,14 @@ def main():
 
     # eye level, a little to the left of the picture and turned onto it, so
     # the room runs away to the right and the window light comes across
-    bpy.ops.object.camera_add(location=(-0.52, 0.86, 1.28))
+    # BACK, far enough that the ROOM is the subject and the picture is
+    # something in it. Framed on the painting the plate is a photograph of a
+    # painting, which is not what it is for.
+    bpy.ops.object.camera_add(location=(-0.86, -1.55, 1.46))
     cam = bpy.context.object
-    cam.data.lens = 36.0 if W >= H else 30.0
+    cam.data.lens = 33.0 if W >= H else 26.0
     cam.data.sensor_fit = 'AUTO'
-    aim_at(cam, Vector((px + 0.02, py - 0.22, pz - 0.13)))
+    aim_at(cam, Vector((px - 0.10, py - 1.05, pz - 0.40)))
 
     sc = bpy.context.scene
     sc.camera = cam
