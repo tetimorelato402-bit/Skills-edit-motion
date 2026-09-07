@@ -1,25 +1,40 @@
 #!/usr/bin/env python3
 """
-The Anvil slideshow.
+The Anvil deck, cut to its own beat.
 
-A slideshow, deliberately: one screen at a time, held long enough to read,
-cut on a rhythm. No push-ins, no parallax, no device tilting in 3D. The
-screens are the content and an effect would only be something in front of
-them — teti asked for a deck, not a showreel.
+Still a slideshow — one screen at a time, held long enough to read. What
+changed is that the holds are BARS and not arbitrary seconds, so every
+transition lands on a downbeat with a click on it, and the screens arrive on
+a spring instead of a dissolve.
 
-The one piece of motion is a 5-frame dissolve between screens inside a
-section, and a hard cut on the section cards. That is enough to say "next"
-without saying "look at me".
+Three rules out of Apple's fluid-interface work decide the motion, and they
+are the reason this reads as crafted rather than as effects:
 
-Slides are built in HTML and screenshot, rather than composited in PIL,
-because the captions have to be set in Playfair and Plex — the app's own
-faces — and those are woff2, which PIL cannot open but a browser can.
+  HARMONY   the click, the strike and the first frame of the new screen are
+            the same frame. Latency between the senses is what kills the
+            illusion, so the cue times come from deck.py, which is also what
+            the encoder counts frames against.
+  BOUNCE ONLY WHERE MOMENTUM IS IMPLIED
+            screens are critically damped — they arrive and stop. Section
+            cards, which land on the heavy thunk, get a little overshoot,
+            because something with weight behind it is allowed to overshoot.
+  HINT IN THE DIRECTION
+            everything rises INTO place, so the motion points at where the
+            deck is going rather than merely interpolating to it.
 
+The picture is composed from three layers rather than one flat slide, so the
+caption can lead the screen by two frames — a caption and a phone arriving
+on the identical frame reads as one lump sliding, which is the thing that
+makes template decks look like template decks.
+
+    python3 source/sound.py --out outputs/anvil.wav
     python3 source/slideshow.py --out outputs/anvil-slideshow.mp4
 """
 import argparse
+import math
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import imageio_ffmpeg
@@ -27,51 +42,10 @@ import numpy as np
 from PIL import Image
 from playwright.sync_api import sync_playwright
 
-W, H, FPS = 1080, 1920, 30
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from deck import DECK, FPS, FRAMES_PER_BAR, H, W, sequence  # noqa: E402
+
 CHROME = os.environ.get("CHROME", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
-
-# section title, then (screen id, caption, one line of what it is)
-DECK = [
-    ("Onboarding", "Four screens to a circle", [
-        ("s01-welcome",    "Prove it",        "The whole pitch in two words and one sentence"),
-        ("s02-name",       "Your name",       "The name your circle sees on everything you prove"),
-        ("s03-circle",     "Your circle",     "Join with a code, or start one. Four to eight people"),
-        ("s04-permission", "Location",        "Asked once, at the end, with the reason in plain terms"),
-    ]),
-    ("The promise", "Say it before you do it", [
-        ("s06-commit",  "New commitment", "Where, how often, who sees it, and the deal in three clauses"),
-        ("s07-place",   "New place",      "A drawn map and a 150m ring. Your circle only sees the name"),
-        ("s08-promise", "It is binding",  "A receipt for the promise, and everyone has been told"),
-    ]),
-    ("The proof", "A place, and a photo taken in it", [
-        ("s09-watching", "In range",   "Anvil knows you are there, and says so before you shoot"),
-        ("s10-captured", "The proof",  "Location, distance and time attached. It cannot be deleted"),
-        ("s05-home",     "Standings",  "Streaks with a number on them, and this week under each name"),
-    ]),
-    ("The consequence", "What a broken promise looks like", [
-        ("s11-miss",   "A Miss",       "Announced, in rust, at the top of everybody's board"),
-        ("s13-week",   "The week",     "Nobody is ranked mid-week. It settles on Sunday"),
-        ("s12-streak", "The record",   "Every square is a day with a photo and a location behind it"),
-    ]),
-    ("The circle", "The people who notice", [
-        ("s14-circle", "Geeked",     "Six people, and what each of them is carrying"),
-        ("s15-invite", "The invite", "A code that dies in a day, and only two seats left"),
-        ("s16-member", "A member",   "Their commitments, their record, their last proof"),
-        ("s17-board",  "All time",   "Longest unbroken run. Volume is not the point"),
-    ]),
-    ("The routine", "What you owe this week", [
-        ("s18-routine",     "Due today",    "One card, one action, and the week under it"),
-        ("s20-commitments", "Promises",     "Three live, one retired, each with its own streak"),
-        ("s19-detail",      "A commitment", "Eight weeks of it, and the way out if you need one"),
-    ]),
-    ("You", "Your own record", [
-        ("s21-profile",  "You",       "Two misses in nine weeks. Both were Fridays"),
-        ("s22-settings", "Settings",  "Short, because there is not much to configure"),
-        ("s23-privacy",  "What Anvil knows", "Three things shared, two things never collected"),
-    ]),
-]
-
-CARD_S, SCREEN_S, FADE = 1.5, 2.6, 5      # seconds, seconds, frames
 
 CSS = """
 @font-face{font-family:'Playfair';src:url('fonts/playfair.woff2') format('woff2');font-weight:400 900}
@@ -81,63 +55,84 @@ CSS = """
 body{background:#0E0B09}
 .slide{width:1080px;height:1920px;position:relative;overflow:hidden;
   background:#151009;color:#E3DACD;font-family:Inter}
-/* the ground is the app's own ink, one step darker, so a bone screen sitting
-   on it reads as lit rather than as pasted onto a black rectangle */
 .slide::after{content:'';position:absolute;inset:0;
   background:radial-gradient(120% 78% at 50% 36%, rgba(158,124,82,.16), transparent 68%)}
 .in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
     align-items:center;padding:104px 0 92px}
+.cap{display:flex;flex-direction:column;align-items:center;text-align:center}
 .kick{font:500 20px Plex;letter-spacing:.34em;color:#9E7C52;text-transform:uppercase}
 .ttl{font-family:Playfair;font-weight:500;font-size:62px;letter-spacing:-.015em;margin-top:22px}
-.sub{font:400 25px/1.45 Inter;color:rgba(227,218,205,.62);margin-top:18px;max-width:760px;
-     text-align:center}
-.shot{margin-top:46px;width:648px;border-radius:90px;overflow:hidden;
+.sub{font:400 25px/1.45 Inter;color:rgba(227,218,205,.62);margin-top:18px;max-width:760px}
+/* the shadow has to live INSIDE the element that gets screenshot, or the
+   element-clip cuts it off and the phone sits on the ground with a hard edge */
+.shotwrap{margin-top:46px;padding:70px}
+.shot{width:648px;border-radius:90px;overflow:hidden;
       box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(227,218,205,.09)}
 .shot img{width:100%;display:block}
 .card .kick{font-size:24px}
-.card .big{font-family:Playfair;font-weight:500;font-size:132px;line-height:1.02;
-           letter-spacing:-.02em;margin-top:34px;text-align:center}
+.card .ttl{font-size:132px;line-height:1.02;letter-spacing:-.02em;margin-top:34px}
 .card .sub{font-size:30px;margin-top:26px}
 .mark{position:absolute;left:0;right:0;bottom:52px;text-align:center;z-index:3;
-      font:700 26px Playfair;color:rgba(227,218,205,.34);letter-spacing:.02em}
-
+      font:700 26px Playfair;color:rgba(227,218,205,.34)}
+.hidein .in,.hidein .mark{display:none}
 """
 
 
 def build_html(path: Path):
-    parts = [f"<meta charset='utf-8'><style>{CSS}</style>"]
+    p = [f"<meta charset='utf-8'><style>{CSS}</style>"]
+    p.append("<div class='slide hidein' id='ground'></div>")
     n = 0
     for sec, blurb, screens in DECK:
-        parts.append(
-            f"<div class='slide card' id='c{n}'><div class='in' style='justify-content:center'>"
-            f"<div class='kick'>Anvil</div><div class='big'>{sec}</div>"
-            f"<div class='sub'>{blurb}</div></div></div>")
+        p.append(f"<div class='slide card' id='c{n}'>"
+                 f"<div class='in' style='justify-content:center'><div class='cap'>"
+                 f"<div class='kick'>Anvil</div><div class='ttl'>{sec}</div>"
+                 f"<div class='sub'>{blurb}</div></div></div></div>")
         n += 1
         for sid, cap, line in screens:
-            parts.append(
-                f"<div class='slide' id='s{n}'><div class='in'>"
-                f"<div class='kick'>{sec}</div><div class='ttl'>{cap}</div>"
-                f"<div class='sub'>{line}</div>"
-                f"<div class='shot'><img src='../outputs/screens/{sid}.png'></div>"
-                f"</div><div class='mark'>Anvil</div></div>")
+            p.append(f"<div class='slide' id='s{n}'><div class='in'>"
+                     f"<div class='cap'><div class='kick'>{sec}</div>"
+                     f"<div class='ttl'>{cap}</div><div class='sub'>{line}</div></div>"
+                     f"<div class='shotwrap'><div class='shot'>"
+                     f"<img src='../outputs/screens/{sid}.png'></div></div>"
+                     f"</div><div class='mark'>Anvil</div></div>")
             n += 1
-    path.write_text("\n".join(parts))
-    return n
+    path.write_text("\n".join(p))
+
+
+def spring(n, damping=1.0, response=0.34):
+    """Normalised 1 -> 0 settle. Critically damped by default: it arrives and
+    it stops. Under-damped only where the sound already implied weight."""
+    w = 4.0 / response
+    t = np.arange(n) / FPS
+    if damping >= 1.0:
+        return (1 + w * t) * np.exp(-w * t)
+    wd = w * math.sqrt(1 - damping ** 2)
+    return np.exp(-damping * w * t) * (np.cos(wd * t) + (damping * w / wd) * np.sin(wd * t))
+
+
+def over(bg, fg, alpha, x, y):
+    """Composite an RGBA layer onto a float RGB canvas at (x, y)."""
+    h, w = fg.shape[:2]
+    x0, y0 = max(0, x), max(0, y)
+    x1, y1 = min(W, x + w), min(H, y + h)
+    if x1 <= x0 or y1 <= y0:
+        return
+    sub = fg[y0 - y:y1 - y, x0 - x:x1 - x]
+    a = alpha[y0 - y:y1 - y, x0 - x:x1 - x][..., None]
+    bg[y0:y1, x0:x1] = bg[y0:y1, x0:x1] * (1 - a) + sub * a
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="outputs/anvil-slideshow.mp4")
-    ap.add_argument("--slides", default="outputs/slides")
+    ap.add_argument("--audio", default="outputs/anvil.wav")
     args = ap.parse_args()
 
     here = Path(__file__).resolve().parent
     html = here / "slides.html"
-    total = build_html(html)
-    sl = Path(args.slides)
-    sl.mkdir(parents=True, exist_ok=True)
+    build_html(html)
 
-    order = []
+    layers = {}
     with sync_playwright() as p:
         launch = dict(args=["--force-color-profile=srgb", "--font-render-hinting=none"])
         if os.path.exists(CHROME):
@@ -147,49 +142,92 @@ def main():
         pg.goto(html.as_uri())
         pg.evaluate("document.fonts.ready")
         pg.wait_for_timeout(700)
-        ids = pg.eval_on_selector_all(".slide", "e => e.map(x => x.id)")
-        for sid in ids:
-            f = sl / f"{sid}.png"
-            pg.locator("#" + sid).screenshot(path=str(f))
-            order.append((f, CARD_S if sid.startswith("c") else SCREEN_S,
-                          sid.startswith("c")))
-        br.close()
-    print(f"  {len(order)} slides of {total}", flush=True)
+        tmp = Path("/tmp/_anvil_layers"); tmp.mkdir(exist_ok=True)
 
-    # --- assemble. Frames are piped straight to the encoder: 2000 frames of
-    # 1080x1920 PNG on disk is a couple of gigabytes and this container's
-    # writable allowance is not that big.
-    out = Path(args.out)
-    out.parent.mkdir(parents=True, exist_ok=True)
+        pg.locator("#ground").screenshot(path=str(tmp / "ground.png"))
+        ground = np.asarray(Image.open(tmp / "ground.png").convert("RGB")).astype(np.float32)
+
+        for kind, sid, sec in sequence():
+            item = {}
+            for part in (("cap", "shotwrap") if kind == "screen" else ("cap",)):
+                loc = pg.locator(f"#{sid} .{part}")
+                box = loc.bounding_box()
+                slide = pg.locator(f"#{sid}").bounding_box()
+                f = tmp / f"{sid}_{part}.png"
+                loc.screenshot(path=str(f), omit_background=True)
+                im = np.asarray(Image.open(f).convert("RGBA")).astype(np.float32)
+                item[part] = (im[..., :3], im[..., 3] / 255.0,
+                              int(round(box["x"] - slide["x"])),
+                              int(round(box["y"] - slide["y"])))
+            layers[sid] = item
+        br.close()
+    print(f"  {len(layers)} slides, layered", flush=True)
+
+    out = Path(args.out); out.parent.mkdir(parents=True, exist_ok=True)
+    silent = out.with_suffix(".silent.mp4")
     wr = imageio_ffmpeg.write_frames(
-        str(out), (W, H), fps=FPS, codec="libx264", quality=None,
+        str(silent), (W, H), fps=FPS, codec="libx264", quality=None,
         macro_block_size=1, ffmpeg_log_level="error",
         output_params=["-crf", "18", "-preset", "slow", "-pix_fmt", "yuv420p",
-                       "-profile:v", "high", "-movflags", "+faststart"])
+                       "-profile:v", "high"])
     wr.send(None)
-    imgs = [np.asarray(Image.open(f).convert("RGB")) for f, _, _ in order]
+
+    RISE, LEAD = 22, 2                     # frames of settle, caption lead
+    seq = sequence()
     nframes = 0
-    for i, (arr, (_, secs, is_card)) in enumerate(zip(imgs, order)):
-        hold = int(round(secs * FPS))
-        # a section card cuts hard; screens inside a section dissolve, which is
-        # what tells you a section has ended without a caption saying so
-        if i and not is_card and not order[i - 1][2]:
-            prev = imgs[i - 1]
-            for k in range(FADE):
-                a = (k + 1) / (FADE + 1)
-                wr.send(np.ascontiguousarray(
-                    (prev * (1 - a) + arr * a).astype(np.uint8)))
-            hold -= FADE
-            nframes += FADE
-        buf = np.ascontiguousarray(arr)
-        for _ in range(hold):
-            wr.send(buf)
-        nframes += hold
+    for kind, sid, sec in seq:
+        item = layers[sid]
+        # the two springs: the card lands with weight, a screen just arrives
+        s_cap = spring(RISE, 0.86 if kind == "card" else 1.0, 0.36)
+        s_shot = spring(RISE, 1.0, 0.34)
+        settled = None
+        for f in range(FRAMES_PER_BAR):
+            # a global breath on the kick — the room reacts to the beat while
+            # the UI itself stays absolutely still, which is the only way to
+            # cut to music without the interface looking like it is wobbling
+            g = 1.0
+            if f < 2:
+                g = 1.035
+            elif f == 2:
+                g = 1.015
+            elif 36 <= f < 38:
+                g = 1.018
+
+            if f >= RISE and settled is not None and g == 1.0:
+                wr.send(settled); nframes += 1
+                continue
+
+            canvas = ground.copy()
+            cap, ca, cx, cy = item["cap"]
+            k = f if f < RISE else RISE - 1
+            dy = s_cap[k] * 24.0
+            over(canvas, cap, ca * min(1.0, (f + 1) / 3.0), cx, cy + int(round(dy)))
+            if "shotwrap" in item:
+                sh, sa, sx, sy = item["shotwrap"]
+                ks = max(0, f - LEAD)
+                ks = ks if ks < RISE else RISE - 1
+                dys = s_shot[ks] * 46.0
+                over(canvas, sh, sa * min(1.0, max(0, f - LEAD + 1) / 4.0),
+                     sx, sy + int(round(dys)))
+            if g != 1.0:
+                canvas *= g
+            frame = np.ascontiguousarray(np.clip(canvas, 0, 255).astype(np.uint8))
+            if f == RISE - 1 and g == 1.0:
+                settled = frame
+            wr.send(frame); nframes += 1
     wr.close()
-    print(f"  {nframes} frames, {nframes / FPS:.1f}s -> {out}")
-    print(subprocess.run(
-        [imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-i", str(out)],
-        capture_output=True, text=True).stderr.strip().split("Duration")[1][:78])
+    print(f"  {nframes} frames, {nframes / FPS:.1f}s", flush=True)
+
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    subprocess.run([ff, "-y", "-v", "error", "-i", str(silent), "-i", args.audio,
+                    "-map", "0:v", "-map", "1:a", "-c:v", "copy",
+                    "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                    "-shortest", str(out)], check=True)
+    silent.unlink()
+    info = subprocess.run([ff, "-hide_banner", "-i", str(out)],
+                          capture_output=True, text=True).stderr
+    print("  " + [l.strip() for l in info.splitlines() if "Duration" in l][0])
+    print(f"  -> {out}")
 
 
 if __name__ == "__main__":
