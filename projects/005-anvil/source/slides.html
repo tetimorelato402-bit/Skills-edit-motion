@@ -1,0 +1,59 @@
+<meta charset='utf-8'><style>
+@font-face{font-family:'Playfair';src:url('fonts/playfair.woff2') format('woff2');font-weight:400 900}
+@font-face{font-family:'Inter';src:url('fonts/inter.woff2') format('woff2');font-weight:100 900}
+@font-face{font-family:'Plex';src:url('fonts/plexmono.woff2') format('woff2');font-weight:400 700}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0E0B09}
+.slide{width:1080px;height:1920px;position:relative;overflow:hidden;
+  background:#151009;color:#E3DACD;font-family:Inter}
+/* the ground is the app's own ink, one step darker, so a bone screen sitting
+   on it reads as lit rather than as pasted onto a black rectangle */
+.slide::after{content:'';position:absolute;inset:0;
+  background:radial-gradient(120% 78% at 50% 36%, rgba(158,124,82,.16), transparent 68%)}
+.in{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;
+    align-items:center;padding:104px 0 92px}
+.kick{font:500 20px Plex;letter-spacing:.34em;color:#9E7C52;text-transform:uppercase}
+.ttl{font-family:Playfair;font-weight:500;font-size:62px;letter-spacing:-.015em;margin-top:22px}
+.sub{font:400 25px/1.45 Inter;color:rgba(227,218,205,.62);margin-top:18px;max-width:760px;
+     text-align:center}
+.shot{margin-top:46px;width:648px;border-radius:90px;overflow:hidden;
+      box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(227,218,205,.09)}
+.shot img{width:100%;display:block}
+.card .kick{font-size:24px}
+.card .big{font-family:Playfair;font-weight:500;font-size:132px;line-height:1.02;
+           letter-spacing:-.02em;margin-top:34px;text-align:center}
+.card .sub{font-size:30px;margin-top:26px}
+.mark{position:absolute;left:0;right:0;bottom:52px;text-align:center;z-index:3;
+      font:700 26px Playfair;color:rgba(227,218,205,.34);letter-spacing:.02em}
+
+</style>
+<div class='slide card' id='c0'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>Onboarding</div><div class='sub'>Four screens to a circle</div></div></div>
+<div class='slide' id='s1'><div class='in'><div class='kick'>Onboarding</div><div class='ttl'>Prove it</div><div class='sub'>The whole pitch in two words and one sentence</div><div class='shot'><img src='../outputs/screens/s01-welcome.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s2'><div class='in'><div class='kick'>Onboarding</div><div class='ttl'>Your name</div><div class='sub'>The name your circle sees on everything you prove</div><div class='shot'><img src='../outputs/screens/s02-name.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s3'><div class='in'><div class='kick'>Onboarding</div><div class='ttl'>Your circle</div><div class='sub'>Join with a code, or start one. Four to eight people</div><div class='shot'><img src='../outputs/screens/s03-circle.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s4'><div class='in'><div class='kick'>Onboarding</div><div class='ttl'>Location</div><div class='sub'>Asked once, at the end, with the reason in plain terms</div><div class='shot'><img src='../outputs/screens/s04-permission.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c5'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>The promise</div><div class='sub'>Say it before you do it</div></div></div>
+<div class='slide' id='s6'><div class='in'><div class='kick'>The promise</div><div class='ttl'>New commitment</div><div class='sub'>Where, how often, who sees it, and the deal in three clauses</div><div class='shot'><img src='../outputs/screens/s06-commit.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s7'><div class='in'><div class='kick'>The promise</div><div class='ttl'>New place</div><div class='sub'>A drawn map and a 150m ring. Your circle only sees the name</div><div class='shot'><img src='../outputs/screens/s07-place.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s8'><div class='in'><div class='kick'>The promise</div><div class='ttl'>It is binding</div><div class='sub'>A receipt for the promise, and everyone has been told</div><div class='shot'><img src='../outputs/screens/s08-promise.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c9'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>The proof</div><div class='sub'>A place, and a photo taken in it</div></div></div>
+<div class='slide' id='s10'><div class='in'><div class='kick'>The proof</div><div class='ttl'>In range</div><div class='sub'>Anvil knows you are there, and says so before you shoot</div><div class='shot'><img src='../outputs/screens/s09-watching.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s11'><div class='in'><div class='kick'>The proof</div><div class='ttl'>The proof</div><div class='sub'>Location, distance and time attached. It cannot be deleted</div><div class='shot'><img src='../outputs/screens/s10-captured.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s12'><div class='in'><div class='kick'>The proof</div><div class='ttl'>Standings</div><div class='sub'>Streaks with a number on them, and this week under each name</div><div class='shot'><img src='../outputs/screens/s05-home.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c13'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>The consequence</div><div class='sub'>What a broken promise looks like</div></div></div>
+<div class='slide' id='s14'><div class='in'><div class='kick'>The consequence</div><div class='ttl'>A Miss</div><div class='sub'>Announced, in rust, at the top of everybody's board</div><div class='shot'><img src='../outputs/screens/s11-miss.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s15'><div class='in'><div class='kick'>The consequence</div><div class='ttl'>The week</div><div class='sub'>Nobody is ranked mid-week. It settles on Sunday</div><div class='shot'><img src='../outputs/screens/s13-week.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s16'><div class='in'><div class='kick'>The consequence</div><div class='ttl'>The record</div><div class='sub'>Every square is a day with a photo and a location behind it</div><div class='shot'><img src='../outputs/screens/s12-streak.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c17'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>The circle</div><div class='sub'>The people who notice</div></div></div>
+<div class='slide' id='s18'><div class='in'><div class='kick'>The circle</div><div class='ttl'>Geeked</div><div class='sub'>Six people, and what each of them is carrying</div><div class='shot'><img src='../outputs/screens/s14-circle.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s19'><div class='in'><div class='kick'>The circle</div><div class='ttl'>The invite</div><div class='sub'>A code that dies in a day, and only two seats left</div><div class='shot'><img src='../outputs/screens/s15-invite.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s20'><div class='in'><div class='kick'>The circle</div><div class='ttl'>A member</div><div class='sub'>Their commitments, their record, their last proof</div><div class='shot'><img src='../outputs/screens/s16-member.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s21'><div class='in'><div class='kick'>The circle</div><div class='ttl'>All time</div><div class='sub'>Longest unbroken run. Volume is not the point</div><div class='shot'><img src='../outputs/screens/s17-board.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c22'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>The routine</div><div class='sub'>What you owe this week</div></div></div>
+<div class='slide' id='s23'><div class='in'><div class='kick'>The routine</div><div class='ttl'>Due today</div><div class='sub'>One card, one action, and the week under it</div><div class='shot'><img src='../outputs/screens/s18-routine.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s24'><div class='in'><div class='kick'>The routine</div><div class='ttl'>Promises</div><div class='sub'>Three live, one retired, each with its own streak</div><div class='shot'><img src='../outputs/screens/s20-commitments.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s25'><div class='in'><div class='kick'>The routine</div><div class='ttl'>A commitment</div><div class='sub'>Eight weeks of it, and the way out if you need one</div><div class='shot'><img src='../outputs/screens/s19-detail.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide card' id='c26'><div class='in' style='justify-content:center'><div class='kick'>Anvil</div><div class='big'>You</div><div class='sub'>Your own record</div></div></div>
+<div class='slide' id='s27'><div class='in'><div class='kick'>You</div><div class='ttl'>You</div><div class='sub'>Two misses in nine weeks. Both were Fridays</div><div class='shot'><img src='../outputs/screens/s21-profile.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s28'><div class='in'><div class='kick'>You</div><div class='ttl'>Settings</div><div class='sub'>Short, because there is not much to configure</div><div class='shot'><img src='../outputs/screens/s22-settings.png'></div></div><div class='mark'>Anvil</div></div>
+<div class='slide' id='s29'><div class='in'><div class='kick'>You</div><div class='ttl'>What Anvil knows</div><div class='sub'>Three things shared, two things never collected</div><div class='shot'><img src='../outputs/screens/s23-privacy.png'></div></div><div class='mark'>Anvil</div></div>

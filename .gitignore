@@ -7,3 +7,6 @@ projects/001-why-motion-editors/sound_*.wav
 
 # the room's guide track regenerates from sound_room.py in a second
 projects/004-the-room/room.wav
+
+# Anvil: the slide PNGs regenerate from screens.html in seconds
+projects/005-anvil/outputs/slides/
