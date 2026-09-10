@@ -10,3 +10,7 @@ projects/004-the-room/room.wav
 
 # Anvil: the slide PNGs regenerate from screens.html in seconds
 projects/005-anvil/outputs/slides/
+
+# a humanise pass is an edit of an uploaded clip, not project work; the tool
+# is the thing worth keeping, the render regenerates in twenty seconds
+tools/outputs/
