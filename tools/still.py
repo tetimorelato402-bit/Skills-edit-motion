@@ -85,14 +85,30 @@ def vignette(lin, strength, cx=0.46, cy=0.44, sx=1.06, sy=1.32, reach=0.86):
 
 # ------------------------------------------------------------------ grade
 def grade(plate, exposure=0.45, white=4.5, halation=0.70, vig=0.40,
-          vibrance=0.26, structure=0.62):
+          vibrance=0.26, structure=0.62, dither=0.5, seed=0):
     """
     Steps 1-8. Takes uint8 RGB, returns float 0..1, no grain and no sharpen.
 
     Everything here is a property of the PICTURE, so a sequence can share one
     call per distinct source frame and move a camera around inside the result.
+
+    DITHER GOES IN FIRST, before anything looks at the values. A very dark
+    plate holds its whole picture in a handful of code values — the aerial
+    shot here lives between 4 and 11 — so lifting it two and a half stops
+    stretches every one of those steps into a visible contour, and the smooth
+    pool of light around the runner comes out as tree rings. Adding sub-LSB
+    noise at the point of quantisation turns the steps back into a gradient.
+    The film grain in film_finish() cannot do this job: by then the banding is
+    already baked into the picture, and grain lies on top of it rather than
+    dissolving it. Dither before the lift, grain after it.
     """
-    lin = to_linear(plate.astype(np.float32) / 255.0)
+    x = plate.astype(np.float32)
+    if dither > 0:
+        r = np.random.default_rng(seed)
+        # TPDF: the sum of two uniforms, which is what actually decorrelates
+        # the error from the signal rather than merely adding noise to it
+        x = x + (r.random(x.shape, np.float32) + r.random(x.shape, np.float32) - 1.0) * dither
+    lin = to_linear(np.clip(x, 0, 255) / 255.0)
 
     # ----------------------------------------------------------- halation
     # The single biggest difference between this and a photograph. A bright
