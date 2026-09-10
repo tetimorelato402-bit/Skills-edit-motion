@@ -27,11 +27,18 @@ def main():
         # <img> assigned mid-render paints nothing on the frame it appears on,
         # and a cut that lands on a half-decoded screen is invisible in the log.
         pg.evaluate("""async () => {
+            // Every family, explicitly. font-display:block plus a face that is
+            // not used until second 9 means document.fonts.ready can resolve
+            // before that face is fetched, and the frame silently falls back.
+            const fams=['Archivo','Shoulders','Bebas','Serif',
+                        'Redacted','Grotesk','Mono'];
+            await Promise.all(fams.map(f => document.fonts.load('900 100px "'+f+'"')));
             await document.fonts.ready;
-            const names=['s05-home','s06-commit','s07-place','s17-board','s12-streak',
-                         's09-watching','s11-miss','s13-week','s10-captured'];
-            await Promise.all(names.map(n => {
-                const i=new Image(); i.src='screens/'+n+'.png';
+            // and the proof photos: an <img> assigned mid-render paints nothing
+            // on the frame it appears on, and a cut that lands on a half-decoded
+            // photo is invisible in the log.
+            await Promise.all(['proof_a','proof_b','proof_c','fill'].map(n => {
+                const i=new Image(); i.src='ui/'+n+'.png';
                 return i.decode().catch(()=>{});
             }));
         }""")
