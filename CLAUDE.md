@@ -376,6 +376,37 @@ Read its `BRIEF.md`. Two facts govern it:
 - **The camera shakes on the KICK; the lens breathes on the SUB.** Two channels. Driving
   both from one envelope reads as noise rather than as impact.
 
+## Anvil — "Sit still. Keep up." (project 005)
+
+`projects/005-anvil/` is a brand film for **someone else's brand**, so teti's warm-family
+palette rule does not apply to it. Read its `BRIEF.md`.
+
+**The ad is a reading test.** Text types out in a white studio while the film tries to pull
+the viewer's eyes away, and the copy's argument is that holding attention is the point — so
+form and argument are the same object. That is the only reason it works as an ad.
+
+- **Distractions never obscure the text, and this is enforced by construction.** The
+  distraction layer is built BEFORE the type, so it sits behind it in the stacking order
+  and cannot paint over a word no matter what is added later. The first pass had it on top
+  and a two-frame colour flash swallowed the whole sentence. `SAFE` is the rectangle
+  decoration stays out of; everything travels in the bands above and below it.
+- **The strongest distraction is a SECOND THING WORTH READING**, not a moving shape. The
+  decoy stream competes for the same faculty the viewer is being tested on; shapes only
+  compete for peripheral vision.
+- **THE STOP and the payoff are not the same moment.** Every distraction dies at
+  `STOP_BAR`, and the payoff does not start typing for another beat. Tied together, the
+  build's silence is never actually heard — the measured drop into the payoff went from
+  5 dB to 19 dB once they were split. The gap is the pivot of the film.
+- **The type auto-fits** (`fitSize`), because the copy is still being written. It measures
+  the longest line and scales to the safe rectangle, so new copy cannot silently run off
+  the frame the way hand-tuned line breaks do.
+- **Reading speed is the constraint, not taste.** The type ramps 15→26 characters per
+  second (roughly 190→310 wpm) so it is comfortable at the start and a genuine push by the
+  end. Check it at ~390 px wide.
+- **120 BPM, 16 bars, 32.0 s.** Every distraction enters on a beat; motion off the grid
+  reads as an accident rather than as pressure.
+- **Fonts are self-hosted**, for 003's reason.
+
 ## Blender in this container
 
 `pip install bpy==4.5.13` gives Blender as a Python module and **Cycles on CPU works**

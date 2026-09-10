@@ -7,3 +7,6 @@ projects/001-why-motion-editors/sound_*.wav
 
 # the room's guide track regenerates from sound_room.py in a second
 projects/004-the-room/room.wav
+
+# the Anvil guide track regenerates from sound.py in a second
+projects/005-anvil/anvil.wav
