@@ -1,74 +1,71 @@
 # Anvil — "Sit still. Keep up."
 
-A brand film for **Anvil**. Not teti's studio work and not in teti's palette: this is a
-client-facing piece for someone else's brand, so the warm family rule does not apply here.
+A brand film for **Anvil**, the app designed in `projects/005-anvil/`. Not teti's studio
+work and not in teti's palette — this uses Anvil's own.
 
 ## The idea
 
 **The ad is a test, and the viewer either passes it or does not.**
 
-A white studio. Text types itself out. The viewer has to keep reading while the film
-actively tries to pull their eyes away — and the thing the text is *saying* is that being
-able to do exactly that is the point. Form and argument are the same object, which is the
-only reason this works as an ad rather than as a poster.
+Text types out and *accelerates* until it cannot be read, while the film pulls the eye
+away — and what pulls it away is **the Anvil app itself**. Being distracted by the product
+is the joke and the sell in one move, and it means the ad carries real product footage
+without stopping for a demo.
 
-The copy, from teti:
+**14.0 s — 7 bars at 120 BPM.** Direct, not narrated.
 
-> When you picked your friends you didn't get the choice between who you met first or who
-> you met last. You chose who stayed. You chose who got to know the real you.
-> Challenge yourself, let them see the real you. Don't sit still, don't let the
-> distractions get to you. Pick a task, choose your friends. Download Anvil.
-
-It opens on **SIT STILL. KEEP UP.** and it cuts to Anvil.
-
-## The one rule that makes it work
-
-**Distractions never obscure the text.** They arrive at the edges, they move, they flash,
-they offer a second thing to read — but the sentence in the middle stays fully legible for
-every frame it is on screen. Cover the words and the test stops being winnable, the viewer
-disengages, and the argument collapses into an annoyance. The tension has to come from
-*temptation*, not from obstruction.
-
-The corollary: the strongest distraction is not a shape, it is **a second stream of text**.
-Something else worth reading is far harder to ignore than something merely moving.
-
-## Escalation
-
-The film gets harder on purpose, then stops dead:
-
-| bars | what distracts |
+| bar | |
 |---|---|
-| 1 | nothing — the instruction, alone |
-| 2–3 | one small drifting element, easy to dismiss |
-| 4–5 | shapes entering from the edges, a two-frame colour flash |
-| 6–7 | a notification card; the type speeds up |
-| 8–10 | **a decoy text stream** in the corner, also typing |
-| 11–12 | everything at once, the frame shaking |
-| 13 | **total stop.** White, silent, still. The payoff line. |
-| 14–16 | Pick a task. Choose your friends. Download Anvil. Cut. |
+| 1–1.5 | **GET READY.** SIT STILL. / KEEP UP., then 3 · 2 · 1 on the beat. The "1" is rust. |
+| 1.5–5.25 | **THE TEST.** Five pages, 16 → 62 characters per second, a different typeface each. |
+| 5.25–5.75 | **THE PAUSE.** One second. Nothing on screen, nothing in the speakers. |
+| 5.75–6.5 | **THE PAYOFF.** "Don't sit still." typed slowly, alone. |
+| 6.5–7 | ANVIL. *Pick a task. Choose your friends.* |
 
-The stop at bar 13 is the whole film. Everything before it exists to make that silence
-land, and if the escalation is not genuinely uncomfortable the silence is worth nothing.
+## Four rules, all load-bearing
 
-## Load-bearing
+1. **The distractions are EDITS, not objects.** Jump cuts, flash frames, zoom punches,
+   stutters in the type, ghost doubles, and the app cutting in on the beat. A drifting
+   shape is decoration; a cut is something a motion editor did on purpose, and it reads
+   as craft rather than as clutter. This replaced an earlier pass of floating dots.
+2. **Nothing obscures the text for longer than a blink.** The distraction layer is built
+   *before* the type so it cannot paint over a word, every full-frame event is capped at
+   two frames, and the device sits in one of four slots that are all outside `SAFE`. The
+   device is 1279 px tall, so any top edge between `SAFE.y-1279` and `SAFE.y+SAFE.h`
+   crosses the sentence — one pass put it at y=120 and it sat straight over the words.
+3. **Every event lands on the 120 BPM grid.** Off-grid motion reads as an accident rather
+   than as pressure, and this film has to feel deliberate.
+4. **The film stops.** A full second of nothing, at −72 dB against a −15.7 dB build — a
+   56 dB cliff. Everything before it is spent buying that second.
 
-- **Reading speed is the real constraint**, not taste. The type ramps from about 16 to 24
-  characters per second — roughly 190 to 290 words per minute — so it is comfortably
-  readable at the start and genuinely a push by the end. Check it at ~390 px wide, because
-  that is a Reel, and a line that is easy on a laptop can be unreadable on a phone.
-- **The film is on a 120 BPM grid**: a beat is 0.5 s, a bar 2 s, and it runs **16 bars =
-  32 s**. Every distraction enters on a beat. Motion that lands off the grid reads as an
-  accident rather than as pressure.
-- **Fonts are self-hosted** (`source/fonts/`), for the reason 003 learned the hard way:
-  this container has come back from restarts with an empty `/usr/local/share/fonts`, and a
-  silent fallback to DejaVu would not be noticed until the film was assembled.
+## The sound is three stages, and the design is in the sync
 
-## Open — teti to confirm
+- **LOCKED** — one key per character, on the frame the letter appears. The viewer learns
+  that sound and picture are the same clock without being told.
+- **UNLOCKED** — from the speed-up the keys run progressively late (a smooth curve to
+  ~165 ms), some doubling, some dropped. Breaking a sync the viewer has *already learned*
+  is far more disorienting than noise, because they can hear that it is wrong. Random
+  jitter would just read as a broken render.
+- **DEAD** — the pause, inside one frame.
 
-1. **What Anvil actually is.** The middle of the film has to explain the idea and that
-   explanation is not written yet; there is a marked slot for it in `video.html`. Everything
-   around it is built and does not depend on the answer.
-2. **Anvil's brand colours and logotype.** The film is currently black on white with one
-   accent standing in. The end card is a placeholder.
-3. **Black on white, or white on black?** teti asked for "full white" — read here as a white
-   studio with black type, because white type on white cannot be read. Trivial to invert.
+## Load-bearing detail
+
+- **RUST is the app's colour for a Miss**, so every distraction in the film is rust: the
+  antagonist wears the product's own failure state. Palette sampled off the app —
+  bone `#E3DACD`, ink `#231C15`, gold `#9E7C52`, rust `#9A3B21`, card `#EEE9DE`.
+- **The type auto-fits to one size per register.** Sizing each page to its own longest
+  line makes the type jump between pages, which reads as sloppy rather than as emphasis.
+- **Palette constants are declared at the top of the file.** The type is built before the
+  distraction layer, so a `const` declared down there is in the temporal dead zone when
+  the instruction line asks for `INK` — and the file then fails to define `renderFrame`
+  at all, which looks exactly like a render hang rather than like an error.
+- **`render.py` decodes the app screens before the first screenshot.** An `<img>` assigned
+  mid-render paints nothing on the frame it appears on, and a cut landing on a
+  half-decoded screen is invisible in the log.
+- **Fonts are self-hosted** — Inter, IBM Plex Mono, Playfair — for 003's reason.
+
+## Open
+
+1. **Anvil's logotype.** The end card sets the name in Inter; a real mark should replace it.
+2. **The copy is mine, from the product facts in `005-anvil/BRIEF.md`.** teti should
+   rewrite it in Anvil's voice — the type auto-fits, so new copy cannot break the layout.

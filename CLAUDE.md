@@ -391,36 +391,44 @@ Read its `BRIEF.md`. Two facts govern it:
 - **The camera shakes on the KICK; the lens breathes on the SUB.** Two channels. Driving
   both from one envelope reads as noise rather than as impact.
 
-## Anvil — "Sit still. Keep up." (project 005)
+## Anvil — the app (005) and the film (006)
 
-`projects/005-anvil/` is a brand film for **someone else's brand**, so teti's warm-family
-palette rule does not apply to it. Read its `BRIEF.md`.
+Two separate projects for the same client, built by two sessions in parallel:
 
-**The ad is a reading test.** Text types out in a white studio while the film tries to pull
-the viewer's eyes away, and the copy's argument is that holding attention is the point — so
-form and argument are the same object. That is the only reason it works as an ad.
+- **`projects/005-anvil/`** is the **UI design pass** — 23 screens at real device metrics,
+  a measured palette, and a slideshow. Its `BRIEF.md` is the source of truth for what Anvil
+  *is*: a deal you make in front of a circle, one task, one place, and a streak they can
+  see. **bone `#E3DACD` · card `#EEE9DE` · ink `#231C15` · gold `#9E7C52` · rust `#9A3B21`.**
+  No green and no iOS red — a kept day is ink, a broken one is rust.
+- **`projects/006-anvil-film/`** is the **brand film**. Read its `BRIEF.md`.
 
-- **Distractions never obscure the text, and this is enforced by construction.** The
-  distraction layer is built BEFORE the type, so it sits behind it in the stacking order
-  and cannot paint over a word no matter what is added later. The first pass had it on top
-  and a two-frame colour flash swallowed the whole sentence. `SAFE` is the rectangle
-  decoration stays out of; everything travels in the bands above and below it.
-- **The strongest distraction is a SECOND THING WORTH READING**, not a moving shape. The
-  decoy stream competes for the same faculty the viewer is being tested on; shapes only
-  compete for peripheral vision.
-- **THE STOP and the payoff are not the same moment.** Every distraction dies at
-  `STOP_BAR`, and the payoff does not start typing for another beat. Tied together, the
-  build's silence is never actually heard — the measured drop into the payoff went from
-  5 dB to 19 dB once they were split. The gap is the pivot of the film.
-- **The type auto-fits** (`fitSize`), because the copy is still being written. It measures
-  the longest line and scales to the safe rectangle, so new copy cannot silently run off
-  the frame the way hand-tuned line breaks do.
-- **Reading speed is the constraint, not taste.** The type ramps 15→26 characters per
-  second (roughly 190→310 wpm) so it is comfortable at the start and a genuine push by the
-  end. Check it at ~390 px wide.
-- **120 BPM, 16 bars, 32.0 s.** Every distraction enters on a beat; motion off the grid
-  reads as an accident rather than as pressure.
-- **Fonts are self-hosted**, for 003's reason.
+The film is a **reading test**: 14 s, type accelerating 16 → 62 characters per second until
+it cannot be read, and **the Anvil app itself is what distracts you** — which is the joke
+and the sell at once, and puts real product footage in the ad without a demo beat.
+
+- **The distractions are EDITS, not objects** — jump cuts, flash frames, zoom punches,
+  type stutters, ghost doubles, the app cutting in on the beat. A drifting shape is
+  decoration; a cut is something a motion editor did on purpose. This replaced a first
+  pass of floating dots and is the single biggest improvement in the piece.
+- **RUST is the app's Miss colour, so every distraction is rust.** The antagonist wears
+  the product's failure state.
+- **Nothing obscures the text for longer than a blink**, enforced by construction: the
+  distraction layer is built *before* the type, full-frame events cap at two frames, and
+  the device sits in four slots all outside `SAFE`. The device is 1279 px tall, so any top
+  edge between `SAFE.y-1279` and `SAFE.y+SAFE.h` crosses the sentence.
+- **The sound's design is in its SYNC, in three stages.** Locked (a key on the frame each
+  letter appears, so the viewer learns the clock), unlocked (keys running to ~165 ms late
+  on a smooth curve, doubling and dropping), then dead. **Breaking a sync the viewer has
+  already learned beats adding noise** — they can hear that it is wrong. The pause measures
+  −72 dB against a −15.7 dB build, a 56 dB cliff.
+- **Declare shared consts at the TOP of the file.** The type is built before the distraction
+  layer, so a palette `const` declared down there is in the temporal dead zone when the
+  first line asks for it — and the file then never defines `renderFrame`, which looks
+  exactly like a render hang rather than like an error.
+- **`render.py` decodes the app screens before the first screenshot**, or a cut lands on a
+  half-decoded `<img>` and paints nothing, silently.
+- **Type auto-fits to one size per register**, so new copy cannot run off the frame — but
+  fit across the whole group, not per page, or the size jumps between pages.
 
 ## Blender in this container
 

@@ -23,6 +23,19 @@ def main():
         pg.on("pageerror", lambda e: errs.append(str(e)))
         pg.goto("file://"+a.html)
         pg.wait_for_function("window.renderFrame!==undefined")
+        # decode the app screens and the faces BEFORE the first screenshot. An
+        # <img> assigned mid-render paints nothing on the frame it appears on,
+        # and a cut that lands on a half-decoded screen is invisible in the log.
+        pg.evaluate("""async () => {
+            await document.fonts.ready;
+            const names=['s05-home','s06-commit','s07-place','s17-board','s12-streak',
+                         's09-watching','s11-miss','s13-week','s10-captured'];
+            await Promise.all(names.map(n => {
+                const i=new Image(); i.src='screens/'+n+'.png';
+                return i.decode().catch(()=>{});
+            }));
+        }""")
+        time.sleep(0.6)
         if errs: sys.exit("shader/page error:\n"+"\n".join(errs))
         if a.bands:
             pg.evaluate("j=>window.loadBands(j)", json.load(open(a.bands)))
