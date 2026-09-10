@@ -1,13 +1,27 @@
 #!/usr/bin/env python3
 """
-Three angles of one run, on a single ramp of time. Twelve bars, no dissolves.
+Three angles of one run, on a single ramp of time. Eleven bars, hard cuts.
 
 The three clips are the same action from three distances — inside the fabric,
 the runner in full from the reverse side, and the bird's eye — so the film is
 built as a scale progression: TEXTURE, then FIGURE, then LANDSCAPE. One
 continuous acceleration runs underneath all three, the way flagramp.py does,
-and the movements themselves shorten (5 bars, 4 bars, 3 bars) so the film
-speeds up twice over: once inside each movement and once across them.
+and the movements themselves shorten (4 bars, 4 bars, 3 bars) so the film
+speeds up twice over: once inside each movement and once across them. Eleven
+bars is 30.00s exactly at 88 BPM.
+
+THE CUTS ARE CUTS. An earlier version dissolved through a pixel grid, and the
+grid is the wrong instrument here for a simple reason: no film has ever
+pixelated between two shots, so it reads as an artifact rather than as an
+edit. What makes a hard cut feel like cinema is not a device laid over it —
+it is that the eye does not have to go looking for the subject again. So the
+incoming shot is nudged so the banner arrives roughly where the outgoing
+banner was, and that nudge eases away over one bar, after which the shot is
+framed entirely on its own terms. Position is matched, never size: the three
+shots are a scale progression and the flag shrinking across each cut is the
+whole point. The only thing laid over a cut is LIGHT — the halation swells
+for a few frames as the new shot lands, so the join is carried by the lamp
+behind the fabric, which is the one thing all three shots actually share.
 
 The order is not a taste call. Only clip A is 3326x2494; B and C are 640x480.
 The opening is nearly frozen and magnified, which is the one place softness
@@ -52,12 +66,12 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from humanise import band_noise                                       # noqa: E402
-from still import film_finish, grade, to_linear, to_srgb              # noqa: E402
+from still import blur, film_finish, grade, to_linear, to_srgb        # noqa: E402
 
 BPM = 88.0                        # reported, not measured — see flagramp.py
 BEAT = 60.0 / BPM
 BAR = 4 * BEAT
-BARS = 12                         # 32.73s, inside teti's 30-35s
+BARS = 11                         # 30.00s exactly at 88 BPM
 FPS = 24
 N = int(round(BARS * BAR * FPS))  # 785
 W_OUT, H_OUT = 1440, 1080
@@ -83,14 +97,14 @@ CLIPS = {
 }
 
 # clip, bars, source range, ramp exponent, window width start/end (plate px)
-MOVES = [("A", 5, (100, 113), 2.2, (1500, 1900)),
-         ("B", 4, (15, 93), 1.2, (566, 638)),
-         ("C", 3, (2, 122), 0.6, (600, 638))]
+MOVES = [("A", 4, (92, 120), 2.0, (1500, 1980)),
+         ("B", 4, (8, 118), 1.1, (566, 638)),
+         ("C", 3, (1, 123), 0.5, (600, 638))]
 
-# (centre frame, frames before, frames after). The second is deliberately
-# lopsided: C comes OUT of the grid slowly, which is what hides its contours
-# through the moment the cut most exposes them.
-GRID_MAX = 58
+# How long the incoming shot keeps its match offset before easing back to its
+# own framing: one bar. Longer and the cut stops being a cut and becomes a move.
+MATCH_BARS = 1.0
+MATCH_CAP = 0.10          # never displace the frame more than a tenth of it
 
 
 def bars_to_frames(b):
@@ -198,18 +212,6 @@ def sample(pl, t, box, margin=None):
     return both[y0 - sy0:y0 - sy0 + bh, x0 - sx0:x0 - sx0 + bw]
 
 
-def gridify(img, cell):
-    """Average into square cells and hold them — 003's grammar, and here it
-    also does a job: it is the one treatment that absorbs C's contouring
-    instead of fighting it."""
-    if cell < 1.6:
-        return img
-    h, w = img.shape[:2]
-    nx, ny = max(1, int(round(w / cell))), max(1, int(round(h / cell)))
-    small = cv2.resize(img, (nx, ny), interpolation=cv2.INTER_AREA)
-    return cv2.resize(small, (w, h), interpolation=cv2.INTER_NEAREST)
-
-
 def flag_track(path, n):
     """Where the banner is. Thresholds are PERCENTILE-based, not absolute:
     the three plates differ by two and a half stops, so a fixed cut that finds
@@ -225,8 +227,8 @@ def flag_track(path, n):
         L = a.mean(2)
         m = (L > np.percentile(L, 99.0)) & ((a[..., 0] - a[..., 2]) > 6)
         ys, xs = np.nonzero(m)
-        out.append((xs.mean() * step, ys.mean() * step) if len(xs) > 8
-                   else (out[-1] if out else (w / 2, h / 2)))
+        out.append((xs.mean() * step, ys.mean() * step, len(xs) / L.size)
+                   if len(xs) > 8 else (out[-1] if out else (w / 2, h / 2, 0.0)))
     return np.array(out), w, h
 
 
@@ -272,7 +274,7 @@ def main():
     for tag, spec in CLIPS.items():
         tr, w, h = flag_track(spec["path"], 10 ** 9)
         spec["w"], spec["h"] = w, h
-        tracks[tag] = (smooth(tr[:, 0], 41), smooth(tr[:, 1], 41))
+        tracks[tag] = (smooth(tr[:, 0], 41), smooth(tr[:, 1], 41), tr[:, 2])
         plates[tag] = Plates(tag, spec, len(tr))
         plates[tag].build()
         print(f"  {tag}: {len(tr)} frames {w}x{h}", flush=True)
@@ -296,7 +298,7 @@ def main():
         t = float(np.clip(t, 0, plates[tag].n - 1.001))
         uu = float(np.clip(u, 0, 1))
         ww = w0 + (w1 - w0) * (uu * uu * (3 - 2 * uu))
-        fx, fy = tracks[tag]
+        fx, fy, _ = tracks[tag]
         W, H = CLIPS[tag]["w"], CLIPS[tag]["h"]
         if tag == "A":
             cx = float(np.interp(t, np.arange(len(fx)), fx)) + (-240 + 520 * uu)
@@ -309,7 +311,37 @@ def main():
         return tag, t, cx, cy, ww
 
     cuts = [bounds[1][0], bounds[2][0]]
-    trans = [(cuts[0], 8, 8), (cuts[1], 12, 30)]
+
+    def flag_screen(mi, f):
+        """Where the banner sits in the OUTPUT frame, 0..1, for movement mi."""
+        tag, t, cx, cy, ww = move_state(mi, f)
+        W, H = CLIPS[tag]["w"], CLIPS[tag]["h"]
+        bw = min(int(round(ww)), W); bh = min(int(round(bw * H_OUT / W_OUT)), H)
+        x0 = max(0, min(W - bw, int(round(cx - bw / 2))))
+        y0 = max(0, min(H - bh, int(round(cy - bh / 2))))
+        fx, fy, _ = tracks[tag]
+        gx = float(np.interp(t, np.arange(len(fx)), fx))
+        gy = float(np.interp(t, np.arange(len(fy)), fy))
+        return (gx - x0) / bw, (gy - y0) / bh
+
+    # A CUT IS CINEMA; A PIXEL GRID IS AN ARTIFACT. What makes a hard cut read
+    # as an edit rather than a jolt is that the eye does not have to go looking
+    # for the subject again: the thing it was watching is still roughly where
+    # it left it. So the incoming shot is nudged so the banner lands where the
+    # outgoing banner was, and that offset eases away over one bar — after
+    # which the shot is framed entirely on its own terms. Matching POSITION
+    # only, never size: the three shots are a scale progression and shrinking
+    # the flag across each cut is the whole point.
+    match = {}
+    for ci, c in enumerate(cuts):
+        ox, oy = flag_screen(ci, c - 1)
+        ix, iy = flag_screen(ci + 1, c)
+        match[ci + 1] = (float(np.clip(ox - ix, -MATCH_CAP, MATCH_CAP)),
+                         float(np.clip(oy - iy, -MATCH_CAP, MATCH_CAP)))
+        print(f"  cut {ci + 1} @ {c}: banner {ox:.2f},{oy:.2f} -> {ix:.2f},{iy:.2f}"
+              f"   match nudge {match[ci + 1][0]:+.3f},{match[ci + 1][1]:+.3f}", flush=True)
+
+    match_len = MATCH_BARS * BAR * FPS
 
     rng = np.random.default_rng(11)
     wob_x = band_noise(N, FPS, 0.3, 2.0, rng) * 2.4
@@ -327,7 +359,13 @@ def main():
         tag, t, cx, cy, ww = move_state(mi, f)
         W, H = CLIPS[tag]["w"], CLIPS[tag]["h"]
         bw = int(min(round(ww), W)); bh = int(min(round(bw * H_OUT / W_OUT), H))
-        x0 = int(round(cx - bw / 2 + wob_x[f])); y0 = int(round(cy - bh / 2 + wob_y[f]))
+        mx = my = 0.0
+        if mi in match:
+            e = np.clip((f - bounds[mi][0]) / match_len, 0, 1)
+            k = (1 - e) ** 2                       # strongest on the cut frame, gone by bar 2
+            mx, my = match[mi][0] * bw * k, match[mi][1] * bh * k
+        x0 = int(round(cx - bw / 2 - mx + wob_x[f]))
+        y0 = int(round(cy - bh / 2 - my + wob_y[f]))
         x0 = max(0, min(W - bw, x0)); y0 = max(0, min(H - bh, y0))
         win = sample(plates[tag], t, (x0, y0, bw, bh))
         return np.asarray(Image.fromarray(np.clip(win, 0, 255).astype(np.uint8))
@@ -348,37 +386,38 @@ def main():
         # banded gradient, and it is the only thing that touched these.
         return 1.9 if tag == "C" else 1.25
 
+    # A film cuts. What it is allowed on top of a cut is LIGHT: the halation
+    # swells for a few frames as the new shot arrives, so the join is carried
+    # by the one thing all three shots share — the lamp behind the fabric —
+    # rather than by an effect laid over them. Two frames before, eight after,
+    # because a bloom that fades into the incoming shot reads as the cut
+    # breathing, while one that fades into the outgoing reads as a mistake.
+    cutw = np.zeros(N)
+    for c in cuts:
+        for f in range(max(0, c - 2), min(N, c + 9)):
+            u = (f - (c - 2)) / 10.0
+            cutw[f] = max(cutw[f], math.sin(math.pi * min(max(u, 0), 1)) ** 1.3)
+
     f0 = max(0, args.f0)
     f1 = min(N, args.f1) if args.f1 else N
     for f in range(f0, f1, step):
-        act = next(((ti, c, pre, post) for ti, (c, pre, post) in enumerate(trans)
-                    if c - pre <= f <= c + post), None)
-        if act is None:
-            mi = next(i for i, (a, b) in enumerate(bounds) if a <= f < b)
-            img = render_side(mi, f)
-            cell = 1.0
-            tag = move_state(mi, f)[0]
-        else:
-            # transition ti sits BETWEEN movement ti and movement ti+1, and
-            # both sides are rendered for every frame of it: the outgoing shot
-            # has to stay alive past its own bar or the grid uncovers nothing.
-            ti, c, pre, post = act
-            p = (f - (c - pre)) / float(pre + post)
-            cell = 1 + (GRID_MAX - 1) * math.sin(math.pi * min(max(p, 0.0), 1.0)) ** 1.15
-            # the crossfade happens where the cells are largest, so the change
-            # of shot is hidden inside the blockiness — you see the picture
-            # break up and rebuild as something else, never a dissolve
-            mix = float(np.clip((f - c) / 2.0 + 0.5, 0, 1))
-            img = (gridify(render_side(ti, f), cell) * (1 - mix)
-                   + gridify(render_side(ti + 1, f), cell) * mix)
-            tag = move_state(ti + (1 if mix >= 0.5 else 0), f)[0]
+        mi = next(i for i, (a_, b_) in enumerate(bounds) if a_ <= f < b_)
+        img = render_side(mi, f)
+        tag = move_state(mi, f)[0]
 
-        lin = to_linear(img) * vig * (flick[f] * fade[f])
+        lin = to_linear(img) * vig
+        if cutw[f] > 0.01:
+            L = lin @ np.array([0.2126, 0.7152, 0.0722], np.float32)
+            hot = np.clip((L - 0.34) / 0.66, 0, None) ** 1.5
+            lin += (blur(hot, 22) * 0.6 + blur(hot, 80) * 0.5)[..., None] \
+                * np.array([1.00, 0.44, 0.22], np.float32) * (0.16 * cutw[f])
+        lin *= flick[f] * fade[f]
+
         out = film_finish(np.clip(to_srgb(lin), 0, 1).astype(np.float32),
                           seed=3000 + f, grain=grain_for(tag))
         wr.send(np.ascontiguousarray(np.asarray(out)))
         if f % 40 == 0:
-            print(f"    {f}/{N}  {tag}  cell {cell:.0f}", flush=True)
+            print(f"    {f}/{N}  {tag}  src {move_state(mi, f)[1]:6.2f}", flush=True)
     wr.close()
 
     ff = imageio_ffmpeg.get_ffmpeg_exe()
