@@ -54,7 +54,9 @@ FALL      = (bt(38), bt(44))   # and falls through six beats of pure silence
 # they fall where the music would have put a snare if there were any music. In a
 # bar and a half of nothing, the ear is still counting.
 GLITCH_AT = (bt(40), bt(42))
-GLITCH_FR = 2                  # frames each, at 24fps — a sixth of a beat
+GLITCH_FR = 0                  # RETIRED: two whole-frame substitutions in a
+                               # calm piano track read as a fault in the file,
+                               # not a preview; the set previews the looks now
 ACT_I_END = bt(44)             # 20.465s — eleven bars
 LAND_Z    = 0.012              # where the petal's origin sits once it is lying on the floor
 
@@ -90,10 +92,15 @@ LAND_Z    = 0.012              # where the petal's origin sits once it is lying 
 # on all five at once. By the end the whole question has been restated in five
 # voices on one flower, and the answer is what you just watched.
 REVEAL    = (bt(44), bt(48))    # lights up, cyc, the camera pulls back
-STATED    = (bt(48), bt(58))    # the five looks, two beats each
-CUTTING   = (bt(58), bt(68))    # cutting between them on beats, then eighths
-ALLFIVE   = (bt(68), bt(76))    # the strobe: all five on one flower — the peak
-COLLAPSE  = (bt(76), bt(88))    # the lights go out one look at a time
+# CALM. The track is a piano over a beat, and the first cut of the back half
+# treated it like a drop: a strobe of five looks on the eighths, the room
+# whipping a quarter-turn per cut, words the size of the frame. "Look at the
+# piano, the calm. It needs to match." So: five looks, TWO BARS EACH, one
+# slow unbroken turn of the room under all of them, a dip of the lights
+# between looks instead of a cut, no words, and the set doing the talking.
+LOOKSPAN  = (bt(48), bt(88))    # five looks, two bars each, in LOOKS order
+LOOK_BEATS = 8
+COLLAPSE  = (bt(84), bt(88))    # the last look's last bar: lights down, beam back
 BREAK     = (bt(88), bt(92))    # the track drops out; the room is one beam again
 LOOKS     = ('editorial', 'grid', 'collage', 'ink', 'painted')
 WORDS     = ('how', 'do you', 'make', "ideas that aren't", 'alive,')
@@ -228,36 +235,19 @@ def Rz(a):
 # camera's azimuth frame, so a look reads identically from every angle and the
 # set is what turns.
 AZ_REVEAL = 30.0   # degrees the reveal pull-back arcs, on top of the dolly
-KICK = 0.42        # fraction of a step the camera takes to land
 
-
-def _kicked(tt, step_len, deg):
-    """Total rotation after tt seconds of `deg` steps every `step_len`."""
-    n = int(tt / step_len)
-    u = (tt - n * step_len) / step_len
-    return deg * (n + ease_out(min(1.0, u / KICK)))
 
 
 def studio_az(t):
-    """Camera azimuth at time t, in radians — a pure function of the grid."""
+    """Camera azimuth at time t, in radians — a pure function of the grid.
+    The reveal arcs 30 degrees; then ONE slow turn over the ten bars of the
+    looks, easing out of the reveal and easing home to az=0 at the break, so
+    the beam that returns is on the axis Act I stood on. No kicks: the room
+    turns the way a turntable does when nobody is nudging it."""
     if t < REVEAL[1]:
         return math.radians(AZ_REVEAL * ease_in_out(seg(t, *REVEAL)))
-    a = AZ_REVEAL
-    if t < STATED[1]:
-        return math.radians(a + _kicked(t - STATED[0], BEAT, 18.0))
-    a += 180.0
-    if t < CUTTING[1]:
-        tt = t - CUTTING[0]
-        if tt < 6 * BEAT:
-            return math.radians(a + _kicked(tt, BEAT, 18.0))
-        return math.radians(a + 108.0 + _kicked(tt - 6 * BEAT, BEAT / 2, 9.0))
-    a += 180.0
-    if t < ALLFIVE[1]:
-        return math.radians(a + _kicked(t - ALLFIVE[0], BEAT / 2, 72.0))
-    a += 16 * 72.0
-    home = math.ceil((a + 180.0) / 360.0) * 360.0
-    if t < COLLAPSE[1]:
-        return math.radians(a + (home - a) * ease_out(seg(t, *COLLAPSE)))
+    if t < LOOKSPAN[1]:
+        return math.radians(AZ_REVEAL + (360.0 - AZ_REVEAL) * ease_in_out(seg(t, *LOOKSPAN)))
     return 0.0
 
 
@@ -377,6 +367,135 @@ def petal_material():
     nt.links.new(both.outputs["Value"], tint.inputs["Scale"])
     nt.links.new(tint.outputs["Vector"], b.inputs["Base Color"])
     return mat
+
+
+# ------------------------------------------------- THE FLOWER'S OWN SHAPE
+# Everything the studio puts in the room is DERIVED from these, never drawn
+# by eye: the room is what each technique did to this petal, so the petal's
+# real profile has to be available outside blade().
+PETAL_L, PETAL_HW, PETAL_FULL = 0.088, 0.080, 0.36
+
+
+def petal_profile(u, halfwidth=PETAL_HW, fullness=PETAL_FULL):
+    """Half-width of the blade at u along its length — blade()'s own law."""
+    return halfwidth * (math.sin(math.pi * u) ** fullness) * (1.0 - 0.25 * u)
+
+
+def petal_outline(n=64, length=PETAL_L, halfwidth=PETAL_HW, fullness=PETAL_FULL):
+    """The petal's closed 2D boundary, base at the origin, tip at +y."""
+    up = [(petal_profile(i / (n - 1), halfwidth, fullness), i / (n - 1) * length)
+          for i in range(n)]
+    return up + [(-x, y) for x, y in up[::-1]]
+
+
+def inside(pt, poly):
+    """Even-odd point-in-polygon."""
+    x, y = pt
+    j = len(poly) - 1
+    hit = False
+    for i in range(len(poly)):
+        xi, yi = poly[i]; xj, yj = poly[j]
+        if (yi > y) != (yj > y) and x < (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi:
+            hit = not hit
+        j = i
+    return hit
+
+
+def raster_cells(poly, cell):
+    """Which cells of a `cell`-metre square grid the polygon covers, and
+    which cells on its boundary it MISSES — the two halves of what
+    quantisation does. Returns (filled, dropped) as lists of cell centres."""
+    xs = [p[0] for p in poly]; ys = [p[1] for p in poly]
+    i0 = int(math.floor(min(xs) / cell)) - 1; i1 = int(math.ceil(max(xs) / cell)) + 1
+    j0 = int(math.floor(min(ys) / cell)) - 1; j1 = int(math.ceil(max(ys) / cell)) + 1
+    filled, dropped = [], []
+    for i in range(i0, i1 + 1):
+        for j in range(j0, j1 + 1):
+            cx, cy = (i + 0.5) * cell, (j + 0.5) * cell
+            corners = sum(inside((cx + dx * cell / 2, cy + dy * cell / 2), poly)
+                          for dx in (-0.92, 0.92) for dy in (-0.92, 0.92))
+            if corners == 4:
+                filled.append((cx, cy))          # wholly inside: the block survives
+            elif corners > 0:
+                dropped.append((cx, cy))         # on the edge: rounded away
+    return filled, dropped
+
+
+def quads_mesh(name, centres, size, mat, plane='xz'):
+    """One mesh of `size` squares at `centres` — hundreds of cells cost one
+    object, which is what makes a rasterised petal affordable."""
+    verts, faces = [], []
+    h = size / 2
+    for cx, cy in centres:
+        n = len(verts)
+        for dx, dy in ((-h, -h), (h, -h), (h, h), (-h, h)):
+            verts.append((cx + dx, 0.0, cy + dy) if plane == 'xz'
+                         else (cx + dx, cy + dy, 0.0))
+        faces.append((n, n + 1, n + 2, n + 3))
+    ob = mesh_from(name, verts, faces, mat)
+    ob.data.shade_flat()
+    return ob
+
+
+def contour_ribbon(name, poly, width, mat, seed=0.0, plane='xz'):
+    """A brushed line running round a closed 2D contour, its width breathing
+    like a loaded brush. Used to DRAW the flower rather than describe it."""
+    n = len(poly)
+    out, inn = [], []
+    for i, (x, y) in enumerate(poly):
+        px, py = poly[i - 1]
+        qx, qy = poly[(i + 1) % n]
+        tx, ty = qx - px, qy - py
+        L = math.hypot(tx, ty) or 1.0
+        nx, ny = -ty / L, tx / L
+        w = width * (0.62 + 0.38 * math.sin(i / n * math.tau * 2.0 + seed))
+        out.append((x + nx * w / 2, y + ny * w / 2))
+        inn.append((x - nx * w / 2, y - ny * w / 2))
+    verts = []
+    for x, y in out + inn:
+        verts.append((x, 0.0, y) if plane == 'xz' else (x, y, 0.0))
+    faces = [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+    ob = mesh_from(name, verts, faces, mat)
+    ob.data.shade_flat()
+    return ob
+
+
+# ------------------------------------------------------------- THE PAINTING
+# The flower reduced to marks, in the flower's OWN colours, in the flower's
+# own composition: a mass where the head is, a line where the stem is, a dark
+# block where the jar is. It hangs on the easel in the painted look, and
+# scripts/vintage_room.py frames the same marks on a wall — one painting, two
+# places, because it is generated rather than drawn twice.
+def canvas_marks():
+    """
+    (key, x, y, length, width, degrees) in canvas-local metres, origin at the
+    canvas centre, for a canvas 0.82 wide and 1.08 tall. Each is a tapered
+    brush mark, not a rectangle: a block of colour is a diagram, a mark that
+    swells and dries is a painting.
+
+    The composition is the flower's own — a mass where the head is, a line
+    where the stem is, a dark block where the jar is, the ground under it —
+    and the colours are the film's constants, so the picture is the flower
+    reduced rather than a picture of a flower.
+    """
+    head = []
+    for k in range(7):
+        a = k / 7 * math.tau
+        head.append((('petal' if k % 2 else 'tip'),
+                     0.00 + 0.115 * math.cos(a), 0.30 + 0.072 * math.sin(a),
+                     0.30, 0.135, math.degrees(a) * 0.34 - 12))
+    return [
+        ('ground', -0.16, -0.455, 0.74, 0.085, 2),
+        ('ground',  0.16, -0.395, 0.42, 0.060, -4),
+        ('jar',     0.01, -0.285, 0.235, 0.215, 90),
+        ('jar',    -0.05, -0.245, 0.150, 0.120, 96),
+        ('dark',    0.05, -0.320, 0.110, 0.080, 84),
+        ('stem',    0.01, -0.010, 0.400, 0.040, 92),
+        ('leaf',   -0.115, -0.055, 0.180, 0.070, 26),
+        ('leaf',    0.130,  0.075, 0.150, 0.060, -24),
+    ] + head + [
+        ('dark',    0.00,  0.295, 0.085, 0.070, 0),
+    ]
 
 
 def mesh_from(name, verts, faces, mat=None):
@@ -1317,31 +1436,65 @@ class Scene:
         mustard= M("mustard",ACCENTS[3], 0.9)
         card   = M("card",   (0.62, 0.55, 0.42, 1))
         ochre  = M("ochre",  (0.55, 0.32, 0.08, 1), 0.85)
-        canvas = self._paint_material_in((0.86, 0.80, 0.66, 1.0), "set_canvas")
+        # PRIMED LINEN, flat. The impasto plate is mapped on Generated
+        # coordinates and a plane has none in its third axis, so it striped the
+        # canvas into corduroy. Volume gets the plate; flat things get paint.
+        canvas = M("canvas", (0.86, 0.80, 0.66, 1), 0.86, 0.06)
 
         def hashed(n, salt=0):
             return ((n * 2654435761 + salt * 40503) % 65536) / 65536.0
 
-        def keep(look, ob, loc, rot=(0.0, 0.0, 0.0)):
+        def keep(look, ob, loc, rot=(0.0, 0.0, 0.0), motion=None):
+            """`motion(u)` -> (dloc, drz): a slow move over the look, so the
+            set is not furniture. Slow: nothing here moves faster than the
+            room turns."""
             ob.hide_render = True
-            self.sets[look].append((ob, Vector(loc), tuple(rot)))
+            self.sets[look].append((ob, Vector(loc), tuple(rot), motion))
             return ob
 
-        def flat(look, name, w, h, loc, mat, rz=0.0, rx=0.0):
+        def flat(look, name, w, h, loc, mat, rz=0.0, rx=0.0, motion=None):
             """A standing flat, w wide and h tall, built at true size so a
             texture in object space is in metres. Faces -y (the camera)."""
             v = [(-w/2, 0, 0), (w/2, 0, 0), (w/2, 0, h), (-w/2, 0, h)]
             ob = mesh_from("set_" + name, v, [(0, 1, 2, 3)], mat)
             ob.data.shade_flat()
-            return keep(look, ob, loc, (rx, 0.0, rz))
+            return keep(look, ob, loc, (rx, 0.0, rz), motion)
 
-        def slab(look, name, dims, loc, mat, rot=(0, 0, 0)):
+        def slab(look, name, dims, loc, mat, rot=(0, 0, 0), motion=None):
             bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, -9))
             ob = bpy.context.object
             ob.name = "set_" + name
             ob.scale = dims
             ob.data.materials.append(mat)
-            return keep(look, ob, loc, tuple(math.radians(a) for a in rot))
+            return keep(look, ob, loc, tuple(math.radians(a) for a in rot), motion)
+
+        def disc(look, name, r, loc, mat, rot=(0, 0, 0), standing=True, motion=None, n=40):
+            pts = [(r * math.cos(a), r * math.sin(a)) for a in [i / n * math.tau for i in range(n)]]
+            if standing:
+                verts = [(x, 0.0, y) for x, y in pts] + [(0, 0, 0)]
+            else:
+                verts = [(x, y, 0.0) for x, y in pts] + [(0, 0, 0)]
+            ob = mesh_from("set_" + name, verts, [(i, (i + 1) % n, n) for i in range(n)], mat)
+            ob.data.shade_flat()
+            return keep(look, ob, loc, tuple(math.radians(a) for a in rot), motion)
+
+        def ring(look, name, r, width, gap_deg, loc, mat, seed=0, n=64):
+            """An enso: a brushed ring, its width breathing, open at one
+            point, the ends thinning the way a loaded brush lifts off."""
+            outer, inner = [], []
+            span = math.radians(360 - gap_deg)
+            for i in range(n):
+                u = i / (n - 1)
+                a = math.radians(-90 + gap_deg / 2) + span * u
+                wv = width * (0.55 + 0.45 * math.sin(u * math.tau * 1.3 + seed))
+                wv *= min(1.0, u / 0.08) ** 0.5 * min(1.0, (1 - u) / 0.12) ** 0.7 + 0.08
+                outer.append((math.cos(a) * (r + wv / 2), 0.0, math.sin(a) * (r + wv / 2)))
+                inner.append((math.cos(a) * (r - wv / 2), 0.0, math.sin(a) * (r - wv / 2)))
+            verts = outer + inner
+            faces = [(i, i + 1, n + i + 1, n + i) for i in range(n - 1)]
+            ob = mesh_from("set_" + name, verts, faces, mat)
+            ob.data.shade_flat()
+            return keep(look, ob, loc)
 
         def torn(look, name, w, h, loc, mat, seed, rot=(0, 0, 0), flat_on_floor=False):
             """A sheet with a torn edge: a rectangle whose boundary wanders."""
@@ -1389,7 +1542,7 @@ class Scene:
             ob.data.shade_flat()
             return keep(look, ob, loc, tuple(math.radians(a) for a in rot))
 
-        def cylv(look, name, r, p0, p1, mat, verts=12):
+        def cylv(look, name, r, p0, p1, mat, verts=12, motion=None):
             d = Vector(p1) - Vector(p0)
             bpy.ops.mesh.primitive_cylinder_add(vertices=verts, radius=r, depth=d.length,
                                                 location=(0, 0, -9))
@@ -1397,76 +1550,207 @@ class Scene:
             ob.name = "set_" + name
             ob.data.materials.append(mat)
             q = d.to_track_quat('Z', 'Y').to_euler()
-            return keep(look, ob, (Vector(p0) + Vector(p1)) / 2, (q.x, q.y, q.z))
+            return keep(look, ob, (Vector(p0) + Vector(p1)) / 2, (q.x, q.y, q.z), motion)
 
-        # --- EDITORIAL: a rust flat, an off-white flat, an empty plinth ------
-        flat('editorial', 'ed_umber', 1.5, 2.1, (1.05, 1.75, 0.0), umber, rz=math.radians(14))
-        flat('editorial', 'ed_white', 0.95, 1.7, (-1.15, 1.55, 0.0), white, rz=math.radians(-9))
-        slab('editorial', 'ed_plinth', (0.55, 0.55, 0.32), (-0.68, 0.78, 0.16), bone, (0, 0, 8))
-        slab('editorial', 'ed_plinth2', (0.30, 0.30, 0.62), (1.25, 0.95, 0.31), bone, (0, 0, -6))
+        def drift(dx=0.0, dy=0.0, dz=0.0, drz=0.0):
+            """Eased travel over the look, both ways symmetric about the middle."""
+            return lambda u: (Vector((dx, dy, dz)) * (ease_in_out(u) - 0.5), drz * (u - 0.5))
 
-        # --- GRID: graph-paper boards, a gridded floor, its cubes ------------
+        def rise(dz, drz=0.0):
+            return lambda u: (Vector((0, 0, dz * u)), drz * u)
+
+        # THE ROOM IS WHAT THE TECHNIQUE THREW AWAY.
+        #
+        # A set that is merely "the mood of this look" is a label standing
+        # behind its own subject: a blue grid wall behind a blue blocky flower
+        # says the same thing twice and reveals nothing. Every one of these
+        # five techniques DESTROYS some information about the flower and keeps
+        # the rest — that is what makes them different languages rather than
+        # different paint jobs — so what goes in the room is the part each one
+        # destroyed, derived from the petal's own profile, never drawn by eye.
+        #
+        #   editorial  keeps everything      -> nothing added. The control.
+        #   grid       keeps volume          -> the curvature it rounded away
+        #   collage    keeps the pieces      -> the parts, pinned up flat
+        #   ink        keeps the edge        -> the drawing, and only that
+        #   painted    keeps value + gesture -> the marks it reduced it to
+
+        # --- EDITORIAL: THE CONTROL. Nothing is added. -----------------------
+        # The room is the real studio and its real kit, undisguised. This is
+        # what proves the other four rooms are evidence rather than decoration:
+        # here is the flower with nothing done to it, in the room as it is.
+
+        # --- GRID: THE CURVATURE IT ROUNDED AWAY -----------------------------
+        # The voxel remesh keeps volume and throws away curve. The wall carries
+        # the petal's own outline rasterised onto a grid, two metres tall — the
+        # blocks that survive the rounding, drawn at a size you can read — and
+        # the cells the rounding DROPPED lift off the panel's edge and drift,
+        # which is the discarded curve leaving the flower.
         gridmat = self._grid_material()
-        flat('grid', 'gr_board', 1.4, 2.0, (0.95, 1.65, 0.0), gridmat)
-        flat('grid', 'gr_board2', 1.1, 1.75, (-1.05, 1.8, 0.0), gridmat, rz=math.radians(-6))
-        mat_v = [(-1.2, -0.9, 0.001), (1.2, -0.9, 0.001), (1.2, 1.5, 0.001), (-1.2, 1.5, 0.001)]
+        mat_v = [(-1.3, -1.0, 0.001), (1.3, -1.0, 0.001), (1.3, 1.5, 0.001), (-1.3, 1.5, 0.001)]
         floor = mesh_from("set_gr_floor", mat_v, [(0, 1, 2, 3)], gridmat)
         floor.data.shade_flat()
         keep('grid', floor, (0, 0, 0))
-        cubes = ((0.45, 0.55, 0.12), (-0.62, 0.38, 0.09), (0.82, 0.18, 0.07), (-0.34, 0.92, 0.14),
-                 (0.24, 1.12, 0.10), (-0.95, 0.72, 0.06), (0.62, 0.86, 0.08), (-0.18, 0.42, 0.05),
-                 (0.9, 1.35, 0.55), (-0.7, 1.25, 0.85), (0.35, 1.45, 1.05))
-        for i, (x, y, sz) in enumerate(cubes):
-            z = sz / 2 if i < 8 else sz + 0.4 + 0.35 * hashed(i, 3)
-            # snapped to the 5cm grid, because the grid is the language
-            snap = lambda v: round(v / 0.05) * 0.05
-            slab('grid', f'gr_cube{i}', (sz, sz, sz), (snap(x), snap(y), z), self.mat_grid)
+        # THE EVIDENCE LIES ON THE FLOOR, not on the wall: this look's camera
+        # is the one that looks DOWN (it is the only way to see a floor made
+        # of graph paper), so a panel on the cyc is outside its frame.
+        CELL = 0.05                                    # the floor's own cell
+        S = 5.4                                        # petal 0.088m -> 0.48m
+        poly = [(x * S, y * S) for x, y in petal_outline(96)]
+        filled, dropped = raster_cells(poly, CELL)
+        GX, GY = 0.10, 0.62
+        panel = quads_mesh("set_gr_petal", filled, CELL * 0.92, self.mat_grid, plane='xy')
+        keep('grid', panel, (GX, GY, 0.004))
+        # ...and the same petal's true contour beside it, drawn in line only.
+        # The two together ARE the technique: what it kept, and what it is.
+        ghost = contour_ribbon("set_gr_true", poly, 0.012, black, seed=0.4, plane='xy')
+        keep('grid', ghost, (GX, GY - 0.92, 0.004))
+        # the cells the rounding DROPPED lift off the edge of the raster and
+        # drift — the curvature leaving the flower, one block at a time
+        for k, (cx, cy) in enumerate(dropped[::3][:22]):
+            slab('grid', f'gr_lost{k}', (CELL * 0.92, CELL * 0.92, CELL * 0.92),
+                 (GX + cx * 1.15, GY + cy, 0.03 + 0.26 * hashed(k, 5)),
+                 self.mat_grid, (0, 0, 20 * hashed(k, 7)),
+                 motion=rise(0.06 + 0.14 * hashed(k, 8), math.radians(-30 + 60 * hashed(k, 9))))
+        # a stack of the same cells, squared off: the remainder, put away
+        for k in range(12):
+            col, row = k % 4, k // 4
+            slab('grid', f'gr_pile{k}', (CELL, CELL, CELL),
+                 (-0.62 + col * CELL * 1.04, 0.30 + row * CELL * 1.04, CELL / 2),
+                 self.mat_grid, (0, 0, 3 * (k % 3)))
 
-        # --- COLLAGE: torn sheets taped to the wall, scraps on the floor -----
-        sheets = (('bone', 1.05, 0.80, (0.55, 1.62, 0.55), bone, 3, (0, 0, 7)),
-                  ('white', 0.70, 0.95, (-0.85, 1.70, 0.35), white, 5, (0, 0, -11)),
-                  ('mustard', 0.60, 0.45, (1.15, 1.55, 1.45), mustard, 7, (0, 0, -4)),
-                  ('black', 0.45, 0.62, (-0.25, 1.75, 1.35), black, 9, (0, 0, 14)),
-                  ('card', 0.55, 0.40, (0.05, 1.58, 0.95), card, 11, (0, 0, 3)))
-        self.set_tape = []
-        for name, w, h, loc, mat, seed, rot in sheets:
-            torn('collage', 'co_' + name, w, h, loc, mat, seed, rot)
-            for k in range(2):
-                tp = slab('collage', f'co_tape_{name}{k}', (0.09, 0.022, 0.002),
-                          (loc[0] + (-w/2 if k == 0 else w/2) * 0.8 + 0.02,
-                           loc[1] - 0.006, loc[2] + h * (0.92 if k == 0 else 0.15)),
-                          self.mat_tape, (90, 0, 35 + 40 * k + rot[2]))
-        for i, (x, y, sz) in enumerate(((0.62, 0.42, 0.22), (-0.55, 0.30, 0.17), (0.20, 0.95, 0.26),
-                                        (-0.9, 0.85, 0.19))):
+        # --- COLLAGE: THE PARTS, PINNED UP FLAT ------------------------------
+        # The technique keeps the pieces and throws away continuity. So the
+        # wall is a specimen sheet: the flower's five other petals, the SAME
+        # blade flattened (cup, bend and crimp all zero), taped up at three
+        # times life size where you can count them against the flower.
+        sheet_v = [(-0.72, 0, -0.56), (0.72, 0, -0.56), (0.72, 0, 0.56), (-0.72, 0, 0.56)]
+        sh = mesh_from("set_co_sheet", sheet_v, [(0, 1, 2, 3)], bone)
+        sh.data.shade_flat()
+        SHEET = (-0.02, 1.74, 0.82)
+        keep('collage', sh, SHEET)
+        # SIX SLOTS, FIVE PETALS. The sixth slot holds the traced outline of
+        # the petal that is NOT on the wall, because it is on the floor and
+        # about to lift. You can count them against the flower.
+        PS = 2.5
+        SLOT = ((-0.46, 0.24), (0.0, 0.26), (0.46, 0.22),
+                (-0.46, -0.26), (0.0, -0.24), (0.46, -0.28))
+        for k, (sx, sz) in enumerate(SLOT):
+            ang = math.radians(-14 + 9 * k)
+            base = (SHEET[0] + sx + math.sin(ang) * PETAL_L * PS / 2,
+                    SHEET[1] - 0.004,
+                    SHEET[2] + sz - math.cos(ang) * PETAL_L * PS / 2)
+            if k < 5:
+                v, f = blade(PETAL_L * PS, PETAL_HW * PS, 0.0, 0.0, nu=13, nv=15,
+                             fullness=PETAL_FULL, crimp=0.0)
+                pt = mesh_from(f"set_co_specimen{k}", v, f, self.mat_paper)
+                keep('collage', pt, base, (math.radians(90), ang, 0.0))
+                for t in range(2):
+                    slab('collage', f'co_pin{k}_{t}', (0.05, 0.015, 0.001),
+                         (base[0] + (0.07 if t else -0.07), SHEET[1] - 0.012,
+                          base[2] + (0.17 if t else 0.03)),
+                         self.mat_tape, (90, 0, 22 - 44 * t))
+            else:
+                gap = contour_ribbon("set_co_gap",
+                                     [(x * PS, y * PS) for x, y in petal_outline(56)],
+                                     0.006, black, seed=1.1)
+                keep('collage', gap, base, (0.0, ang, 0.0))
+        # torn edges of the sheet's own stock, on the floor: offcuts
+        for i, (x, y, sz) in enumerate(((0.62, 0.42, 0.20), (-0.55, 0.30, 0.15),
+                                        (0.20, 0.95, 0.24), (-0.9, 0.85, 0.17))):
             torn('collage', f'co_scrap{i}', sz, sz * 0.7, (x, y, 0.002),
-                 (bone, white, mustard, card)[i], 20 + i, (0, 0, 30 + 55 * i), flat_on_floor=True)
+                 (bone, white, card, bone)[i], 20 + i, (0, 0, 30 + 55 * i), flat_on_floor=True)
 
-        # --- INK: three strokes the size of a person, paper, a pot ----------
-        stroke('ink', 'in_s1', 1.9, 0.22, (0.15, 1.72, 1.35), black, (0, 0, 4), 1)
-        stroke('ink', 'in_s2', 1.35, 0.22, (-0.95, 1.66, 0.85), black, (0, 0, 78), 2)
-        stroke('ink', 'in_s3', 1.5, 0.26, (0.85, 1.60, 0.62), black, (0, 0, -26), 3)
-        stroke('ink', 'in_s4', 0.7, 0.10, (-0.35, 1.70, 1.85), black, (0, 0, 9), 4)
-        for k in range(4):
-            slab('ink', f'in_paper{k}', (0.30, 0.42, 0.002),
-                 (-0.58 + 0.012 * k, 0.36 - 0.01 * k, 0.002 + 0.0025 * k), white, (0, 0, -12 + 9 * k))
-        cylv('ink', 'in_pot', 0.034, (0.55, 0.52, 0.0), (0.55, 0.52, 0.055), black, 16)
-        cylv('ink', 'in_brush', 0.005, (0.56, 0.53, 0.05), (0.46, 0.66, 0.28), wood, 8)
+        # --- INK: THE DRAWING, AND ONLY THAT ---------------------------------
+        # The technique keeps the edge and throws away everything else. So the
+        # wall holds the flower's own plan: six petal contours from the same
+        # profile, rotated the way the head is built, with a stem line under
+        # it — a botanical plate of the object standing in front of it.
+        DS = 6.6
+        for k in range(6):
+            a = k / 6 * math.tau + math.radians(30)
+            pol = []
+            for x, y in petal_outline(56):
+                X, Y = x * DS, y * DS
+                pol.append((X * math.cos(a) - Y * math.sin(a),
+                            X * math.sin(a) + Y * math.cos(a)))
+            rib = contour_ribbon(f"set_in_petal{k}", pol, 0.020, black, seed=k * 1.7)
+            keep('ink', rib, (-0.30, 1.66, 1.16))
+        disc('ink', 'in_eye', 0.055, (-0.30, 1.655, 1.16), black)
+        # IN the wall plane, so these rotate about Y (the wall's normal), not
+        # Z: rz yaws a mark out of the drawing and it renders as a slab.
+        stroke('ink', 'in_stem', 0.50, 0.026, (-0.30, 1.66, 0.34), black, (0, 90, 0), 3)
+        stroke('ink', 'in_leaf', 0.26, 0.075, (-0.44, 1.66, 0.46), black, (0, 34, 0), 4)
+        stroke('ink', 'in_leaf2', 0.22, 0.062, (-0.16, 1.66, 0.24), black, (0, -28, 0), 5)
+        # what a brush leaves behind: splatter, a pot, the brush itself
+        for k in range(10):
+            rr = 0.007 + 0.026 * hashed(k, 41) ** 2
+            if k < 6:
+                disc('ink', f'in_spl{k}', rr, (-1.1 + 2.2 * hashed(k, 42), 1.63,
+                                               0.15 + 1.5 * hashed(k, 44)), black)
+            else:
+                disc('ink', f'in_spl{k}', rr, (-0.8 + 1.6 * hashed(k, 45),
+                                               0.25 + 1.0 * hashed(k, 46), 0.0015),
+                     black, standing=False)
+        cylv('ink', 'in_pot', 0.034, (0.58, 0.50, 0.0), (0.58, 0.50, 0.055), black, 16)
+        cylv('ink', 'in_brush', 0.005, (0.59, 0.51, 0.05), (0.49, 0.64, 0.28), wood, 8)
 
-        # --- PAINTED: a canvas on an easel, impasto slabs, a palette --------
-        # the easel stands left of the flower and BEHIND it, inside the 24mm
-        # frame (at y=1.4 the frame spans x -0.43..0.91): at x=-1.0 only its
-        # right edge was in shot
+        # --- PAINTED: THE MARKS IT REDUCED IT TO -----------------------------
+        # The technique keeps value and gesture and throws away detail. The
+        # canvas on the easel holds the flower as marks, in the flower's own
+        # colours (PETAL, PETAL_TIP, LIVE_STEM, LIVE_LEAF, UMBER — the film's
+        # constants, not a guess), in the flower's own composition. It is the
+        # same painting scripts/vintage_room.py hangs on a wall.
+        # FLAT PAINT, not the impasto plate. The brush plate is mapped on
+        # Generated coordinates, which are degenerate on a plane — on the flat
+        # canvas it rendered as corduroy. It stays on the petals, which have
+        # volume for it to bite into.
+        self.mat_marks = {k: principled("mark_" + k, **{"Base Color": c,
+                                                        "Roughness": 0.74,
+                                                        "Specular IOR Level": 0.12})
+                          for k, c in (('petal', PETAL), ('tip', PETAL_TIP),
+                                       ('stem', LIVE_STEM), ('leaf', LIVE_LEAF),
+                                       ('jar', UMBER), ('dark', (0.02, 0.015, 0.012, 1.0)),
+                                       ('ground', (0.50, 0.30, 0.09, 1.0)))}
         for k, (x0, y0) in enumerate(((-0.72, 1.60), (-0.32, 1.48))):
             cylv('painted', f'pa_leg{k}', 0.014, (x0, y0, 0.0), (x0 * 0.94 + 0.03, y0 + 0.02, 1.85), wood)
         cylv('painted', 'pa_leg2', 0.014, (-0.52, 1.92, 0.0), (-0.49, 1.58, 1.85), wood)
         cylv('painted', 'pa_bar', 0.012, (-0.86, 1.50, 0.62), (-0.18, 1.36, 0.62), wood)
-        flat('painted', 'pa_canvas', 0.82, 1.08, (-0.52, 1.40, 0.64), canvas, rz=math.radians(11))
-        slab('painted', 'pa_stroke0', (0.42, 0.012, 0.11), (-0.60, 1.385, 1.15), self.mat_paint, (0, 0, 11 + 8))
-        slab('painted', 'pa_stroke1', (0.34, 0.012, 0.09), (-0.42, 1.380, 0.98), ochre, (0, 0, 11 - 14))
-        slab('painted', 'pa_stroke2', (0.26, 0.012, 0.13), (-0.65, 1.380, 0.88), self.mat_paint, (0, 0, 11 + 38))
-        slab('painted', 'pa_wall0', (0.95, 0.03, 0.22), (0.95, 1.72, 1.32), self.mat_paint, (0, 0, -7))
-        slab('painted', 'pa_wall1', (0.70, 0.03, 0.17), (1.15, 1.70, 0.95), ochre, (0, 0, 12))
-        slab('painted', 'pa_wall2', (0.55, 0.03, 0.28), (0.55, 1.74, 1.68), rust, (0, 0, -22))
+        CA = (-0.55, 1.46, 0.60)
+        ca = math.radians(11)
+        flat('painted', 'pa_canvas', 0.82, 1.08, (CA[0], CA[1], CA[2] - 0.54), canvas,
+             rz=ca)
+
+        def mark(look, name, n, C, cang, sc, key, mx, my, ml, mw, deg):
+            # EACH MARK A THIRD OF A MILLIMETRE IN FRONT OF THE LAST. All of
+            # them at one depth is coplanar geometry, and the seven that make
+            # the flower head z-fight into a black mass — which reads as a
+            # colour bug, not a depth one. Layered is also how paint sits.
+            stroke(look, name, ml * sc, mw * sc,
+                   (C[0] + mx * sc * math.cos(cang),
+                    C[1] - 0.009 - n * 0.00035 - mx * sc * math.sin(cang),
+                    C[2] + my * sc),
+                   self.mat_marks[key], (0, deg, math.degrees(cang)),
+                   seed=n % 7)
+
+        for n, (key, mx, my, ml, mw, deg) in enumerate(canvas_marks()):
+            mark('painted', f'pa_mark{n}', n, CA, ca, 1.0, key, mx, my, ml, mw, deg)
+        # the same subject again, smaller, on a canvas leaning on the wall —
+        # a painter works one thing more than once
+        C2 = (0.86, 1.62, 0.46)
+        c2 = math.radians(-17)
+        flat('painted', 'pa_canvas2', 0.62, 0.82, (C2[0], C2[1], C2[2] - 0.41), canvas, rz=c2)
+        for n, (key, mx, my, ml, mw, deg) in enumerate(canvas_marks()):
+            mark('painted', f'pa_m2{n}', n, C2, c2, 0.76, key, mx, my, ml, mw, deg)
+        for k in range(4):
+            cylv('painted', f'pa_tube{k}', 0.014, (0.30 + 0.09 * k, 0.62 + 0.05 * (k % 2), 0.014),
+                 (0.30 + 0.09 * k + 0.10 * math.cos(0.6 * k), 0.62 + 0.05 * (k % 2) + 0.10 * math.sin(0.6 * k), 0.014),
+                 (self.mat_marks['petal'], ochre, self.mat_marks['leaf'], bone)[k], 10)
+        cylv('painted', 'pa_jarb', 0.045, (-0.62, 0.55, 0.0), (-0.62, 0.55, 0.11), white, 16)
+        for k in range(3):
+            a = 0.5 + 1.1 * k
+            cylv('painted', f'pa_brush{k}', 0.005, (-0.62 + 0.02 * math.cos(a), 0.55 + 0.02 * math.sin(a), 0.06),
+                 (-0.62 + 0.09 * math.cos(a), 0.55 + 0.09 * math.sin(a), 0.36), wood, 8)
         pal = mesh_from("set_pa_palette",
                         [(0.20 * math.cos(a) * (1.0 + 0.18 * math.cos(2 * a + 0.8)),
                           0.14 * math.sin(a) * (1.0 + 0.18 * math.sin(3 * a)), 0.004) for a in
@@ -1474,11 +1758,12 @@ class Scene:
                         [(i, (i + 1) % 28, 28) for i in range(28)], wood)
         pal.data.shade_flat()
         keep('painted', pal, (0.62, 0.40, 0.0), (0, 0, math.radians(25)))
-        for i, m in enumerate((self.mat_paint, ochre, rust, mustard, bone)):
+        # the palette carries the flower's colours, in the flower's order
+        for i, key in enumerate(('petal', 'tip', 'leaf', 'stem', 'jar')):
             bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.018,
                                                  location=(0, 0, -9))
             d = bpy.context.object; d.name = f"set_pa_dab{i}"
-            d.data.materials.append(m); d.scale = (1, 1, 0.45)
+            d.data.materials.append(self.mat_marks[key]); d.scale = (1, 1, 0.45)
             keep('painted', d, (0.62 + 0.11 * math.cos(i * 1.25), 0.40 + 0.075 * math.sin(i * 1.25), 0.012))
 
     def _paint_material_in(self, col, name):
@@ -1576,7 +1861,7 @@ class Scene:
         for ob in self.props:
             ob.hide_render = True
         for pieces in self.sets.values():
-            for ob, _, _ in pieces:
+            for ob, _, _, _ in pieces:
                 ob.hide_render = True
         self.cam.data.lens = self.lens
 
@@ -1630,7 +1915,9 @@ class Scene:
         H = Vector((0.0, 0.0, 0.43))
         cyc = self.mat_cyc.node_tree.nodes["Principled BSDF"].inputs["Base Color"]
         rig = {L: 0.0 for L in (self.skey, self.sfill, self.srim, self.swash)}
-        for w in self.words.values():
+        # NO WORDS in the back half any more — the question is asked once,
+        # in bar 1, and the set carries the languages
+        for w in (*self.words.values(), *self.words_big.values()):
             w.scale = (0, 0, 0)
         for tp in self.tape:
             tp.hide_render = True
@@ -1642,11 +1929,19 @@ class Scene:
         R = Rz(az)
         # THE SET for this look, in the camera's frame; every other look's away
         for lk, pieces in self.sets.items():
-            for ob, loc, rot in pieces:
+            for ob, loc, rot, motion in pieces:
                 ob.hide_render = (lk != name)
                 if lk == name:
-                    ob.location = R @ loc
-                    ob.rotation_euler = (rot[0], rot[1], rot[2] + az)
+                    dloc, drz = motion(u) if motion else (Vector(), 0.0)
+                    ob.location = R @ (loc + dloc)
+                    ob.rotation_euler = (rot[0], rot[1], rot[2] + drz + az)
+        # THE KIT IS EDITORIAL'S. The control look is the real room with its
+        # real stands, boom and flag in it, undisguised — that is what it is
+        # for. In the other four the room holds only what the technique did
+        # to the flower, so a C-stand flag cannot stand in front of the
+        # drawing that IS the evidence.
+        for ob in self.props:
+            ob.hide_render = (name != 'editorial')
         # a hashed jitter, never random(): the handheld and the tape must
         # rebuild identically on a resumed chunk
         def h(n, salt=0):
@@ -1656,14 +1951,6 @@ class Scene:
             cyc.default_value = CYC_BONE
             rig[self.skey], rig[self.sfill], rig[self.swash] = 900, 260, 700
             rig[self.srim] = 160
-            # ONE WORD, TWO METRES TALL, STANDING BEHIND THE FLOWER. The
-            # technique is the imbalance: an object and a word and nothing
-            # else. It crosses slowly, the way the petal crossed the page.
-            w = self.words['how']
-            w.data.font = self.font_black
-            w.data.materials[0] = self.type_mats['rust']
-            w.scale = (1.35, 1.35, 1.35)
-            self._place(w, (0.9 - 1.5 * ease_in_out(u), 1.05, 0.50), az)
             if camera:
                 self.cam.location = R @ Vector((0.32 - 0.55 * u, -1.38, 0.53))
                 aim_at(self.cam, H + Vector((0, 0, 0.05)))
@@ -1676,16 +1963,13 @@ class Scene:
             # depth 6 is nearly the petal again; it steps through them on the
             # sixteenths so the flower is never smoothly "becoming" blocks —
             # it snaps between resolutions, which is the whole language.
-            step = int(u * 8) % 4
-            depth = (4, 5, 3, 6)[step]
+            # ONE step, on the downbeat of its second bar, not eight on the
+            # sixteenths: a block sculpture that resolves once is calm, one
+            # that flickers between resolutions is a strobe.
+            depth = 4 if u < 0.5 else 5
             for so, rm in self.voxel_mods:
                 so.show_render = rm.show_render = True
                 rm.octree_depth = depth
-            w = self.words['do you']
-            w.data.font = self.font_bold
-            w.data.materials[0] = self.type_mats['ink']    # blue on blue-grey had no contrast
-            w.scale = (0.18, 0.18, 0.18)                    # 60% of the 24mm frame, on the floor (measured)
-            self._place(w, (0.0, -0.12, 0.003), az, rot=(0, 0, 0))   # flat on the floor
             if camera:
                 # a little higher and aimed a little lower than the other
                 # looks, so the floor in front of the jar — where the label
@@ -1698,66 +1982,24 @@ class Scene:
             rig[self.skey], rig[self.srim] = 1400, 500     # one hard source
             self.skey.data.size = 0.35
             petal_mat = self.mat_paper
-            # THE PETALS TEAR OFF. Each one leaves the head and hangs in the
-            # air at its own crooked angle, a strip of tape across it — the
-            # flower as five pieces of red paper that used to be a flower.
-            for i, ob in enumerate(self.petals):
-                if i == 0:
-                    continue
-                k = ease_out(seg(u, 0.0 + i * 0.06, 0.45 + i * 0.06))
-                a = i / len(self.petals) * math.tau
-                ob.rotation_euler = (math.radians(24 + 56 * k),
-                                     math.radians((h(i) - 0.5) * 40 * k), a)
-                ob.location = (0.0 + math.cos(a) * 0.19 * k,
-                               0.0 + math.sin(a) * 0.19 * k,
-                               0.43 + (0.05 + 0.16 * h(i, 1)) * k)
-            for j, tp in enumerate(self.tape):
-                i = 1 + (j % 5)
-                pet = self.petals[i]
-                tp.hide_render = False
-                tp.location = pet.matrix_world @ Vector((0.0, 0.05 + 0.03 * (j // 5), 0.004))
-                tp.rotation_euler = (pet.rotation_euler.x, pet.rotation_euler.y,
-                                     pet.rotation_euler.z + math.radians(72 + 30 * h(j, 2)))
-            w = self.words['make']
-            w.data.font = self.font_black
-            w.data.materials[0] = self.type_mats['paper']
-            # low, behind the stem, crooked — a strip of paper with a word on
-            # it, where the torn petals cannot cover it. Measured in NDC at
-            # 480x853 (world_to_camera_view): 0.16 ran the word off the right
-            # edge of frame (x to 1.10) — this reads centred with margin.
-            w.scale = (0.20, 0.20, 0.20)                    # 52% of the 24mm frame (measured)
-            # z 0.33, not 0.22: on the 30mm the jar stands in front of the
-            # lower word and ate the 'a' — "m[jar]ke". Above the jar's mouth
-            # only the stem crosses it.
-            self._place(w, (-0.05, 0.30, 0.33), az, rot=(90, -7, 0))
-            # handheld
+            # THE FLOWER IS NOT TORN APART ANY MORE. It used to throw its five
+            # petals into the air here, which fought the one gesture for the
+            # eye and left nothing for the room to say. The disassembly is on
+            # the WALL instead — the same five petals, flattened and pinned —
+            # so the frame holds the object and the evidence of what the
+            # technique does to it at the same time, and only the fallen
+            # petal moves.
+            # a slow lateral drift, not a handheld jitter: the per-frame
+            # hash read as nerves against a piano
             if camera:
-                self.cam.location = R @ Vector((0.17 + (h(1, 3) - 0.5) * 0.02, -0.92,
-                                                0.45 + (h(2, 3) - 0.5) * 0.015))
-                aim_at(self.cam, H + R @ Vector(((h(3, 3) - 0.5) * 0.02, 0, 0.02)))
+                self.cam.location = R @ Vector((0.17 - 0.10 * math.sin(u * math.pi), -0.92, 0.45))
+                aim_at(self.cam, H + Vector((0, 0, 0.02)))
 
         elif name == 'ink':
             cyc.default_value = CYC_MUSTARD
             rig[self.sfill], rig[self.swash] = 700, 900   # flat, shadowless
             petal_mat = self.mat_ink
             bpy.context.scene.render.use_freestyle = True
-            w = self.words["ideas that aren't"]
-            w.data.font = self.font_reg
-            w.data.materials[0] = self.type_mats['ink']
-            w.data.align_x = 'LEFT'
-            # two lines, like a museum label, because one line at any size a
-            # phone can read runs under the stem and loses its last word
-            w.data.body = "ideas that\naren't"
-            # 1.5x the telephoto size, card and all: on the 30mm the label
-            # measured 18% of the frame wide, ~70px on a phone — a caption
-            # nobody could read. Text and card scale about the card's centre.
-            w.scale = (0.046, 0.046, 0.046)
-            # ...on a white card, left of the stem, like a label on a wall
-            self._place(w, (-0.085 + (-0.152 + 0.085) * 1.9, -0.122, 0.36), az)
-            self.card.hide_render = False
-            self.card.scale = (0.17 * 1.9, 0.095 * 1.9, 1)   # plane() sizes by scale
-            self.card.location = R @ Vector((-0.085, -0.12, 0.36))
-            self.card.rotation_euler = (math.radians(90), 0, az)
             if camera:
                 self.cam.location = R @ Vector((0.0, -1.24, 0.41))
                 aim_at(self.cam, H)
@@ -1768,25 +2010,7 @@ class Scene:
             self.skey.data.size = 0.7
             self.skey.location = R @ Vector((1.9, -0.4, 0.9))
             aim_at(self.skey, H)
-            # ...and the same word, big, low and behind the stem in plum, so
-            # the look has a word a phone can read as well as one on the petal
-            wb = self.words_big['alive,']
-            wb.data.materials[0] = self.type_mats['plum']
-            wb.scale = (0.22, 0.22, 0.22)                   # 0.11 measured 14% wide on the 30mm; 0.28 hit 96% at the push-in
             petal_mat = self.mat_paint
-            # TYPE ON THE FLOWER. Brush-lettered onto the face of petal 3,
-            # riding its transform so it stays on the petal whatever the
-            # petal does.
-            w = self.words['alive,']
-            w.data.font = self.font_bold
-            w.data.materials[0] = self.type_mats['paper']
-            w.data.extrude = 0.0015
-            w.scale = (0.028, 0.028, 0.028)                 # 0.020 measured 3% wide on the 30mm
-            # ON THE PETAL. Not parented — the petal's local frame has its
-            # cupped face on -Z and the text vanished behind it. It is placed
-            # in world space a hair off the petal's surface, on whichever face
-            # the camera can actually see, and takes the petal's rotation so
-            # it lies flat on it.
             pu = ease_in_out(u)
             if camera:
                 # It pushes in AND rises: from level with the flower to
@@ -1799,76 +2023,6 @@ class Scene:
                 # sends that ray sideways and the word to infinity. Same
                 # look-down angles as the 65mm version (7.5 -> 26 degrees).
                 self.cam.location = R @ Vector((0.24 - 0.09 * pu, -1.04 + 0.39 * pu, 0.57 + 0.17 * pu))
-            bpy.context.view_layer.update()
-            # THE BIG WORD SITS ON THE CAMERA'S OWN AIM RAY, through H. Every
-            # other look's camera sits ON its R-frame's y-axis, so a fixed
-            # local (0, y, z) lands centre-frame; painted's camera dollies
-            # off that axis (x: 0.30->0.18) while still aiming at H, so the
-            # same trick put the word's centre at ndc.x~1.0 — off the right
-            # edge at the closest push-in. A point on the ray from the camera
-            # through H is centre-frame at ANY camera offset, because aim_at
-            # already points the lens at every point on that line.
-            # ...THROUGH A POINT BELOW H. The ray through H itself is the
-            # centre of frame at every push-in — which is exactly where the
-            # flower head is, so on the wide lens the head sat on the word
-            # and it read "a....,". The ray through H-0.22 is below-centre
-            # at every push-in, and there only the stem crosses it.
-            camv = Vector(self.cam.location)
-            # z=0.27, above the jar's mouth: at 0.16 the jar stood in front
-            # of the 'v' — "ali[jar]e,". Between the mouth and the petals
-            # only the stem crosses it.
-            Hl = H - Vector((0, 0, 0.14))
-            k = (0.27 - camv.z) / (Hl.z - camv.z)
-            wb.location = camv + k * (Hl - camv)
-            wb.rotation_euler = (math.radians(90), 0, az)
-            # petal 3 was a guess, and it turned out to be the one under the
-            # bowl with two others over it. The front petal is whichever has
-            # its blade's midpoint nearest the lens — that changes with the
-            # push-in, so it is found every frame, not fixed.
-            # ...and chosen by which petal FACES the lens: the largest
-            # |dot(blade normal, direction to camera)| over the five, with the
-            # word on whichever side of the blade that dot says is toward us.
-            # Nearest-midpoint picked petals seen edge-on.
-            camv = Vector(self.cam.location)
-            def facing(q):
-                M = q.matrix_world
-                mid = M @ Vector((0, 0.045, 0))
-                n = (M.to_3x3() @ Vector((0, 0, 1))).normalized()
-                return n.dot((camv - mid).normalized())
-            # NEAREST that faces, not best-facing. Best-facing chose the back
-            # petal's inner face (+0.35) over the front petal's outer face
-            # (-0.32), and the front petals then covered the word entirely —
-            # measured: word at depth 0.93, petals 3 and 4 in front at 0.87.
-            # A word painted on a flower is on the surface you can see.
-            def depth(q):
-                return ((q.matrix_world @ Vector((0, 0.045, 0))) - camv).length
-            front = sorted(self.petals[1:], key=depth)
-            pet = next((q for q in front if abs(facing(q)) >= 0.25),
-                       max(front, key=lambda q: abs(facing(q))))
-            M = pet.matrix_world
-            side = 1.0 if facing(pet) > 0 else -1.0
-            # TOWARD THE TIP, where the crimp dies. The crease that makes
-            # these petals read as tissue is a +/-3.2cm wave at mid-blade,
-            # and a word placed 1.8cm off the mean plane there sits INSIDE
-            # the folds — it was on the petal, correctly, in every render,
-            # and the petal was passing through it. crimp ~ sin(pi*u): at 86%
-            # of the blade it is a third of that and the word clears it.
-            w.location = M @ Vector((0.0, 0.076, 0.020 * side))
-            w.rotation_euler = M.to_euler()
-            if side < 0:
-                # onto the back face by turning about Y, not X: about X the
-                # word faces the right way and reads as a mirror image.
-                w.rotation_euler.rotate_axis('Y', math.pi)
-            # ...and upright for THIS camera. The text's "up" is the blade's
-            # +Y, which points wherever the petal's tip points — from a camera
-            # above the front petal that is straight down the screen. If the
-            # word's up disagrees with the lens's up, spin it half a turn in
-            # its own plane; it stays on the face and reads the right way up.
-            bpy.context.view_layer.update()
-            word_up = (w.matrix_world.to_3x3() @ Vector((0, 1, 0))).normalized()
-            cam_up = (self.cam.matrix_world.to_3x3() @ Vector((0, 1, 0))).normalized()
-            if word_up.dot(cam_up) < 0:
-                w.rotation_euler.rotate_axis('Z', math.pi)
             if camera:
                 aim_at(self.cam, H)
 
@@ -1884,13 +2038,9 @@ class Scene:
             L.data.energy = e * strength * STUDIO_GAIN
         if name != 'collage':
             self.skey.data.size = 1.8
-        if name != 'ink':
-            self.words["ideas that aren't"].data.align_x = 'CENTER'
         if name != 'painted':
             self.skey.location = R @ Vector(self.skey["home"])
             aim_at(self.skey, H)
-            self.words['alive,'].parent = None
-            self.words_big['alive,'].scale = (0, 0, 0)
         # the rest of the rig rides the camera too
         for L in (self.sfill, self.srim):
             L.location = R @ Vector(L["home"])
@@ -1927,7 +2077,7 @@ class Scene:
             # it starts almost on top of the landed petal, close enough that
             # a stand at the edge of the room reads as a huge soft-edged bar
             # sweeping the frame, not a light stand in the background. It
-            # appears once the wide is actually established, in STATED.
+            # appears once the wide is actually established.
             # THE KIT IS THERE FROM THE FIRST LIT FRAME now that the lens is
             # wide: at 30mm from 0.6m a stand at r=1.9 is a stand, not a bar.
             for ob in self.props:
@@ -1949,104 +2099,46 @@ class Scene:
         for ob in self.props:
             ob.hide_render = False
 
-        if t < STATED[1]:
-            i = min(4, int((t - STATED[0]) / (2 * BEAT)))
-            u = seg(t, STATED[0] + i * 2 * BEAT, STATED[0] + (i + 1) * 2 * BEAT)
-            self._look(LOOKS[i], u, t, az=az)
-            return
-
-        if t < CUTTING[1]:
-            # six cuts on the beat, then eight on the eighths, no look twice
-            # in a row: the order is a fixed sequence, not a hash, because a
-            # cut list is a decision.
-            SEQ = (2, 0, 4, 1, 3, 2, 4, 0, 3, 1, 2, 4, 1, 0)
-            tt = t - CUTTING[0]
-            if tt < 6 * BEAT:
-                n = int(tt / BEAT); a = n * BEAT; b = a + BEAT
-            else:
-                n = 6 + int((tt - 6 * BEAT) / (BEAT / 2))
-                a = 6 * BEAT + (n - 6) * BEAT / 2; b = a + BEAT / 2
-            u = seg(tt, a, b)
-            self._look(LOOKS[SEQ[min(n, 13)]], 0.2 + 0.6 * u, t, az=az)
-            return
-
-        if t < ALLFIVE[1]:
-            # THE STROBE. One flower, all five languages, on the eighths, the
-            # room whipping a full quarter-turn with each cut — this is the
-            # fastest the orbit ever moves, because this is the loudest the
-            # claim ever gets. Identical content, five voices, nothing else
-            # changes — not even needing to hold still to prove it.
-            n = int((t - ALLFIVE[0]) / (BEAT / 2))
-            u = seg(t - ALLFIVE[0], n * BEAT / 2, (n + 1) * BEAT / 2)
-            look = LOOKS[n % 5]
-            self._look(look, 0.3 + 0.4 * u, t, az=az)
-            # ...and the last word, held through all of it, in each look's
-            # own material. The question completes here — alone: each look's
-            # own word is parked, or the editorial 'how' puts rust behind the
-            # rust word and eats its baseline.
-            for ow in self.words.values():
-                ow.scale = (0, 0, 0)
-            for ow in self.words_big.values():
-                ow.scale = (0, 0, 0)
-            self.card.hide_render = True      # ink's label, blank here, is noise
-            w = self.words[LAST_WORD]
-            w.data.font = self.font_black
-            w.data.materials[0] = self.type_mats[('rust', 'blue', 'red', 'mustard', 'plum')[n % 5]]
-            # 0.44m wide at 2.4m is 88% of the frame; it sits BELOW the head,
-            # behind the stem, because at head height the flower hides it —
-            # a 0.32m word at z=0.42 rendered as an 'a' and a '?' poking out
-            # either side of the petals, for eight beats, at the peak.
-            w.scale = (0.46, 0.46, 0.46)                    # 80% of the 24mm frame (measured)
-            self._place(w, (0.0, 0.85, 0.20), az)
-            self.cam.location = R @ Vector((0.0, -1.24, 0.43))
-            aim_at(self.cam, H)
-            return
-
-        if t < COLLAPSE[1]:
-            # It comes apart the way it was built, in reverse, and the rig
-            # dims across each look so the room is ARRIVING at the dark rather
-            # than being switched off. The orbit eases back to the SAME AXIS
-            # Act I stood on (studio_az does this on its own), so the beam
-            # that returns over the last look is already lined up with the
-            # jar, not swinging onto it from an angle.
-            spans = ((4, 3.0), (3, 3.0), (2, 2.0), (1, 2.0), (0, 2.0))
-            tt = t - COLLAPSE[0]; acc = 0.0
-            for k, (li, beats) in enumerate(spans):
-                if tt < acc + beats * BEAT or k == len(spans) - 1:
-                    u = seg(tt, acc, acc + beats * BEAT)
-                    fade = 1.0 - 0.85 * (k + u) / len(spans)
-                    self._look(LOOKS[li], 0.2 + 0.6 * u, t, strength=fade, az=az)
-                    break
-                acc += beats * BEAT
-            # the Act I beam comes back over the last look, narrowing onto the
-            # flower, so the break inherits the room it started in
-            back = ease_in_out(seg(tt, 9 * BEAT, 12 * BEAT))
-            self.beam.hide_render = back < 0.02
-            self.key.data.energy = 620 * back
-            self.key.data.spot_size = math.radians(7.0)
-            aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
-            self.haze.inputs["Density"].default_value = 9.0 * back
-            # CAMERA ONLY DURING THE FINAL (editorial) SPAN. This used to run
-            # every frame of the collapse, unconditionally overwriting every
-            # look's own camera position with this one fixed frame — painted,
-            # ink, collage and grid each design their OWN framing (and place
-            # their word for it), and all four were rendering from this
-            # generic position instead, off wherever their word assumed the
-            # lens would be. Blending from wherever editorial's own camera
-            # already put it keeps the join smooth.
-            # ...AND THE LENS TIGHTENS BACK TO ACT I's. Over the last four
-            # beats the 30mm becomes the 65mm again while the camera retreats
-            # to where the break stands: the frame closes onto the flower as
-            # the lights go, and the room arrives at the dark in the same
-            # glass it left it in. The grid span keeps its own aim, blended.
-            zz = ease_in_out(seg(tt, 8 * BEAT, 12 * BEAT))
-            self.cam.data.lens = self.lens_wide + (self.lens - self.lens_wide) * zz
-            if li <= 1:
+        if t < LOOKSPAN[1]:
+            # FIVE LOOKS, TWO BARS EACH, and the change between them is a DIP
+            # of the lights — down over the last eighth of one look, up over
+            # the first eighth of the next — rather than a cut. The set swaps
+            # in the dip. The orbit never stops, so a look change reads as the
+            # stage being re-lit while the room keeps turning, which is a
+            # calmer event than a cut and belongs to the piano.
+            span = LOOK_BEATS * BEAT
+            i = min(4, int((t - LOOKSPAN[0]) / span))
+            a = LOOKSPAN[0] + i * span
+            u = seg(t, a, a + span)
+            tt = t - a
+            DIP = 0.30                                       # not to black
+            up = 1.0 if i == 0 else DIP + (1.0 - DIP) * ease_out(seg(tt, 0.0, BEAT / 2))
+            down = 1.0 if i == 4 else 1.0 - (1.0 - DIP) * ease_in(seg(tt, span - BEAT / 2, span))
+            strength = up * down
+            if t >= COLLAPSE[0]:
+                # THE COLLAPSE, inside the last look: the rig goes, the Act I
+                # beam comes back narrowing onto the flower, and the lens
+                # tightens from the 24mm to Act I's 65mm while the camera
+                # retreats to where the break stands — the room arriving at
+                # the dark in the glass it left it in.
+                strength = 1.0 - 0.92 * ease_in_out(seg(t, *COLLAPSE))
+            self._look(LOOKS[i], u, t, strength=strength, az=az)
+            gl, gr = self.gesture_at(u, az)
+            self.faller.location = gl
+            self.faller.rotation_euler = gr
+            if t >= COLLAPSE[0]:
+                back = ease_in_out(seg(t, COLLAPSE[0] + BEAT, COLLAPSE[1]))
+                self.beam.hide_render = back < 0.02
+                self.key.data.energy = 620 * back
+                self.key.data.spot_size = math.radians(7.0)
+                aim_at(self.key, self.key_home); aim_at(self.beam, self.key_home)
+                self.haze.inputs["Density"].default_value = 9.0 * back
+                zz = ease_in_out(seg(t, *COLLAPSE))
+                self.cam.data.lens = self.lens_wide + (self.lens - self.lens_wide) * zz
                 cur = Vector(self.cam.location)
                 target = R @ Vector((0.15, -1.60, 0.50))
                 self.cam.location = cur + (target - cur) * zz
-                own = H - Vector((0, 0, 0.23)) if li == 1 else H
-                aim_at(self.cam, own + (H - own) * zz)
+                aim_at(self.cam, H)
             return
 
         # THE BREAK. One beam, and then not even that. az is 0 here — home —
@@ -2121,6 +2213,35 @@ class Scene:
         rz = math.radians(30) + 1.2 * uu
         land = ease_in_out(seg(t, FALL[1] - BEAT / 2, FALL[1]))
         return (rx + (math.pi - rx) * land, ry * (1.0 - land), rz)
+
+    def gesture_at(self, u, az=0.0):
+        """
+        THE ONE GESTURE. The petal that fell lifts off the floor, turns over,
+        and settles back — the same curve over the same eight beats, in every
+        look.
+
+        It is the only thing that moves in the back half, and that is the
+        point: the viewer is not comparing five subjects, they are watching
+        ONE EVENT said five ways. Blocks lift mechanically, paper lifts
+        lightly, a drawn line lifts as a drawing redrawing itself, paint
+        lifts as a mark. The flower stays still and is the constant; the
+        language is what changes. Five costumes on a still object proves
+        nothing — five translations of one sentence is the whole claim.
+
+        Every term vanishes at u=0 and u=1, so the petal is on the floor at
+        both ends: the dip between looks never catches it in the air, and the
+        break inherits a room with a petal at rest, exactly as it found it.
+        """
+        lift = math.sin(math.pi * u) ** 1.25
+        turn = math.sin(math.tau * u)
+        rest = self.faller_rot(FALL[1])
+        # up in world (it is falling in a real room), but the sideways drift
+        # is in the CAMERA's frame so it always lifts toward the lens rather
+        # than behind the jar at two of the five angles
+        loc = (self.landed + Vector((0.0, 0.0, 0.30 * lift))
+               + Rz(az) @ Vector((-0.05 * lift, -0.09 * lift, 0.0)))
+        rot = (rest[0] - 0.62 * lift, rest[1] + 0.34 * turn, rest[2] + 1.35 * lift)
+        return loc, rot
 
     def _fall_camera(self, t):
         """
@@ -2380,11 +2501,14 @@ class Scene:
             step = int(t / (BEAT / 8))               # a thirty-second
             r = (step * 1103515245 + 12345) % 2147483648
             density = (1.0 - gl) ** 1.6              # dies away as it climbs
-            if (r / 2147483648.0) < density * 0.62:
+            # half as dense and half as deep as the first cut: the stem
+            # still carries the five accents up with it, but as a shimmer
+            # the piano can live with rather than a fault
+            if (r / 2147483648.0) < density * 0.30:
                 acc = ACCENTS[(r >> 11) % len(ACCENTS)]
                 # blended, not replaced: a stem that turns fully blue is a
                 # different object, one that flashes toward blue is a fault
-                k = 0.55 + 0.45 * density
+                k = 0.30 + 0.30 * density
                 stem_col = tuple(stem_col[i] + (acc[i] - stem_col[i]) * k
                                  for i in range(4))
 

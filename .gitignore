@@ -8,5 +8,12 @@ projects/001-why-motion-editors/sound_*.wav
 # the room's guide track regenerates from sound_room.py in a second
 projects/004-the-room/room.wav
 
-# the Anvil guide track regenerates from sound.py in a second
-projects/005-anvil/anvil.wav
+# Anvil: the slide PNGs regenerate from screens.html in seconds
+projects/005-anvil/outputs/slides/
+
+# the Anvil film's guide track regenerates from sound.py in a second
+projects/006-anvil-film/anvil.wav
+
+# a humanise pass is an edit of an uploaded clip, not project work; the tool
+# is the thing worth keeping, the render regenerates in twenty seconds
+tools/outputs/
