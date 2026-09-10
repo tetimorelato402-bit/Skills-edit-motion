@@ -13,6 +13,9 @@ projects/005-anvil/outputs/slides/
 
 # the Anvil film's guide track regenerates from sound.py in a second
 projects/006-anvil-film/anvil.wav
+# 840 PNGs at 1080x1920 — 67 MB that render.py rebuilds in 53 seconds
+projects/006-anvil-film/source/frames/
+projects/006-anvil-film/source/pv/
 
 # a humanise pass is an edit of an uploaded clip, not project work; the tool
 # is the thing worth keeping, the render regenerates in twenty seconds
