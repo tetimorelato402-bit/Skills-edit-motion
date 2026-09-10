@@ -20,3 +20,6 @@ projects/006-anvil-film/source/pv/
 # a humanise pass is an edit of an uploaded clip, not project work; the tool
 # is the thing worth keeping, the render regenerates in twenty seconds
 tools/outputs/
+
+# graded plate cache: 121 full-res frames, rebuilt from the source in ~35 min
+tools/cache/
