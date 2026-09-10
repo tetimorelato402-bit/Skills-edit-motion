@@ -381,10 +381,17 @@ def main():
                        "-profile:v", "high"])
     wr.send(None)
 
-    def grain_for(tag):
-        # C is the contoured plate; grain is what film has always used on a
-        # banded gradient, and it is the only thing that touched these.
-        return 1.9 if tag == "C" else 1.25
+    # GRAIN RAMPS ACROSS A CUT, it does not switch. C needs more of it than the
+    # other two (it is the contoured plate, and grain is the only thing that
+    # touched those contours), but changing the amount on the cut frame reads
+    # as a change of film stock — the one thing that would give away that these
+    # are three different sources rather than three angles of one night.
+    gseq = np.full(N, 1.15)
+    for i, (a_, b_) in enumerate(bounds):
+        gseq[a_:b_] = 1.75 if MOVES[i][0] == "C" else 1.15
+    k = np.hanning(25); k /= k.sum()
+    gseq = np.convolve(np.r_[np.full(12, gseq[0]), gseq, np.full(12, gseq[-1])],
+                       k, mode="same")[12:12 + N]
 
     # A film cuts. What it is allowed on top of a cut is LIGHT: the halation
     # swells for a few frames as the new shot arrives, so the join is carried
@@ -414,7 +421,7 @@ def main():
         lin *= flick[f] * fade[f]
 
         out = film_finish(np.clip(to_srgb(lin), 0, 1).astype(np.float32),
-                          seed=3000 + f, grain=grain_for(tag))
+                          seed=3000 + f, grain=float(gseq[f]))
         wr.send(np.ascontiguousarray(np.asarray(out)))
         if f % 40 == 0:
             print(f"    {f}/{N}  {tag}  src {move_state(mi, f)[1]:6.2f}", flush=True)

@@ -179,12 +179,23 @@ def grade(plate, exposure=0.45, white=4.5, halation=0.70, vig=0.40,
     return np.clip(img, 0, 1)
 
 
-def film_finish(img, seed=11, grain=1.0, sharpen=62):
+def film_finish(img, seed=11, grain=1.0, sharpen=62, chroma=0.0):
     """
     Steps 9-10, the PRINT rather than the picture — so this runs per output
     frame. Grain weighted to the midtones, because that is where silver halide
     actually clumps; uniform noise reads as sensor noise, which is the opposite
     of the thing being aimed at. Blurred slightly, because a grain has a size.
+
+    CHROMA GRAIN IS OFF BY DEFAULT, and that is a delivery decision as much as
+    an aesthetic one. Grain in a print is essentially luminance; independent
+    per-channel noise is the one part of this that reads as digital sensor
+    noise rather than film. It is also the single most expensive thing in the
+    frame to compress — chroma planes are subsampled, so noise in them is
+    fought by the encoder at the direct cost of bits that the dark two thirds
+    of this picture badly need. Measured on the 30s cut, the delivered file
+    differs from the master by 3.46/255 overall and 2.60 in the shadows; the
+    plate cache, by comparison, costs 0.68. The encode is the bottleneck, so
+    anything that buys bitrate back is worth more than it looks.
     """
     H, W = img.shape[:2]
     rng = np.random.default_rng(seed)
@@ -192,7 +203,8 @@ def film_finish(img, seed=11, grain=1.0, sharpen=62):
     gr = (gr - gr.mean()) / (gr.std() + 1e-9)
     Ld = lum(img)
     img = img + (gr * (4.0 * Ld * (1.0 - Ld)) * 0.030 * grain)[..., None]
-    img = img + rng.standard_normal((H, W, 3)).astype(np.float32) * 0.006 * grain
+    if chroma > 0:
+        img = img + rng.standard_normal((H, W, 3)).astype(np.float32) * 0.006 * chroma
     out = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
     if sharpen:
         out = out.filter(ImageFilter.UnsharpMask(radius=1.6, percent=sharpen, threshold=3))
