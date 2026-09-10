@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<title>Anvil — Sit still. Keep up.</title>
+<style>
+  /* self-hosted: this container has come back from restarts with an empty
+     /usr/local/share/fonts, and a silent DejaVu fallback would not be caught
+     until the film was assembled */
+  @font-face{font-family:'Grotesk';src:url('fonts/inter.woff2') format('woff2');
+             font-weight:100 900;font-display:block}
+  @font-face{font-family:'Mono';src:url('fonts/plexmono.woff2') format('woff2');
+             font-weight:100 700;font-display:block}
+  @font-face{font-family:'Serif';src:url('fonts/playfair.woff2') format('woff2');
+             font-weight:400 900;font-display:block}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#E3DACD}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:#E3DACD}
+</style>
+<div id="stage"></div>
+<script>
+// ============================================================================
+// ANVIL — "Sit still. Keep up."   14.0 s, 7 bars at 120 BPM.
+//
+// The ad is a reading test that the viewer passes or fails. Text types out and
+// ACCELERATES until it cannot be read; everything trying to pull the eye away is
+// the Anvil app itself. Being distracted by the product is the joke and the sell
+// at once, and it means the ad carries real product footage without a demo beat.
+//
+// FOUR RULES, all of them load-bearing:
+//
+//  1. The distractions are EDITS, not objects. Jump cuts, flash frames, zoom
+//     punches, stutters, ghost doubles. A drifting shape is decoration; a cut is
+//     something a motion editor did on purpose, and it reads as craft.
+//  2. Nothing obscures the text for longer than a blink. The distraction layer is
+//     built BEFORE the type so it cannot paint over a word, and every full-frame
+//     event is capped at two frames.
+//  3. Every event lands on the 120 BPM grid. Off-grid motion reads as an accident
+//     rather than as pressure, and this film has to feel deliberate.
+//  4. The film STOPS. One bar of nothing, total silence, before the payoff.
+//     Everything before it exists to buy that bar.
+// ============================================================================
+
+// Anvil's palette, sampled off the app (projects/005-anvil/BRIEF.md). RUST is
+// what the app marks a MISS with, so every distraction here is rust: the
+// antagonist wears the product's own failure state.
+const RUST='#9A3B21', INK='#231C15', GOLD='#9E7C52', CARD='#EEE9DE', BONE='#E3DACD';
+
+const W=1080, H=1920;
+const BPM=120, BEAT=60/BPM, BAR=4*BEAT;        // 0.5, 2.0
+const BARS=7, DUR=BARS*BAR;                    // 14.0 s
+const bt=n=>n*BEAT;
+const F=1/30;                                  // one delivered frame
+
+const stage=document.getElementById('stage');
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,u)=>a+(b-a)*u;
+function bez(x1,y1,x2,y2){
+  const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx, cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
+  const fx=t=>((ax*t+bx)*t+cx)*t, fy=t=>((ay*t+by)*t+cy)*t, dfx=t=>(3*ax*t+2*bx)*t+cx;
+  return x=>{ if(x<=0)return 0; if(x>=1)return 1; let t=x;
+    for(let i=0;i<8;i++){const e=fx(t)-x; if(Math.abs(e)<1e-6)break;
+      const d=dfx(t); if(Math.abs(d)<1e-6)break; t-=e/d;} return fy(t); };
+}
+const easeOut=bez(0.16,1,0.3,1);
+const hash=i=>{const s=Math.sin(i*91.7)*43758.5453; return s-Math.floor(s);};
+
+function el(tag,parent,css,txt){
+  const n=document.createElement(tag);
+  if(css)Object.assign(n.style,css);
+  if(txt!==undefined)n.textContent=txt;
+  (parent||stage).appendChild(n); return n;
+}
+const px=v=>v+'px';
+
+// nothing decorative may enter this rectangle
+const SAFE={x:80, y:700, w:920, h:620};
+
+// ---------------------------------------------------------------- the script
+// Direct, not narrated. Every page is a shorter read than the one before it and
+// a faster one — the ramp from 16 to 62 cps is the test, and the last page is
+// meant to be past the edge of readable.
+const GO=3.0;                                   // the test begins
+const PAGES=[
+  {t:GO,      cps:16, face:'Grotesk', w:'600', lines:["You chose who stayed."]},
+  {t:GO+1.5,  cps:24, face:'Mono',    w:'500', lines:["You chose who really","knows you."]},
+  {t:GO+3.0,  cps:34, face:'Serif',   w:'600', lines:["Anvil is a deal you make","in front of them."]},
+  {t:GO+4.5,  cps:46, face:'Grotesk', w:'800', lines:["One task. One place.","They see if you showed up."]},
+  {t:GO+6.0,  cps:62, face:'Mono',    w:'600', lines:["Don't let them meet","the version of you that quits."]},
+];
+const PAUSE  = 10.5;                            // one bar of nothing
+const PAYOFF = 11.5;
+const CUT    = 13.0;                            // to the mark
+
+// ---------------------------------------------------------------- distractions
+// Built FIRST: everything decorative sits behind the type in the stacking order,
+// so rule 2 holds by construction rather than by remembering to tune an opacity.
+const dLayer=el('div','',{position:'absolute',inset:'0',pointerEvents:'none'});
+
+// THE APP, as the distraction. A device sits half out of frame on alternating
+// sides and CUTS between screens on the beat — no slides, no fades. It is
+// always outside SAFE, so the sentence is never covered.
+const SCREENS=['s05-home','s06-commit','s07-place','s17-board','s12-streak',
+               's09-watching','s11-miss','s13-week','s10-captured'];
+const phone=el('div',dLayer,{position:'absolute',width:'590px',height:'1279px',
+  borderRadius:'62px',overflow:'hidden',opacity:'0',
+  boxShadow:'0 40px 90px rgba(35,28,21,0.22)',border:'10px solid '+INK,
+  backgroundColor:CARD});
+const phoneImg=el('img',phone,{width:'100%',height:'100%',objectFit:'cover',display:'block'});
+// preloaded so a cut never lands on a half-decoded image
+const PRE=SCREENS.map(s=>{const i=new Image(); i.src='screens/'+s+'.png'; return i;});
+
+// flash frames — one or two frames of flat colour, the bluntest edit there is
+const flash=el('div',dLayer,{position:'absolute',inset:'0',opacity:'0'});
+// the ghost double: the sentence repeated in rust, offset, for two frames
+const ghost=el('div','',{position:'absolute',left:px(SAFE.x),top:px(H*0.47),
+  width:px(SAFE.w),transform:'translateY(-50%)',color:RUST,opacity:'0',
+  whiteSpace:'pre'});
+
+// ---------------------------------------------------------------- the type
+const body=el('div','',{position:'absolute',left:px(SAFE.x),top:px(H*0.47),
+  width:px(SAFE.w),transform:'translateY(-50%)',
+  fontFamily:"'Grotesk',sans-serif",fontWeight:'600',
+  fontSize:'92px',lineHeight:'1.2',letterSpacing:'-0.03em',color:INK,opacity:'0'});
+const bodyLines=[el('div',body,{whiteSpace:'pre',minHeight:'1px'},''),
+                 el('div',body,{whiteSpace:'pre',minHeight:'1px'},'')];
+const caret=el('div','',{position:'absolute',width:'8px',background:RUST,opacity:'0'});
+
+// ---------------------------------------------------------------- get ready
+const ready=el('div','',{position:'absolute',left:px(80),top:px(H*0.47),width:px(920),
+  transform:'translateY(-50%)',fontFamily:"'Grotesk',sans-serif",fontWeight:'800',
+  fontSize:'128px',lineHeight:'0.96',letterSpacing:'-0.045em',color:INK});
+const ready1=el('div',ready,{},'SIT STILL.');
+const ready2=el('div',ready,{},'KEEP UP.');
+const count=el('div','',{position:'absolute',left:'0',top:px(H*0.47),width:px(W),
+  transform:'translateY(-50%)',textAlign:'center',fontFamily:"'Grotesk',sans-serif",
+  fontWeight:'800',fontSize:'300px',letterSpacing:'-0.05em',color:INK,opacity:'0'});
+
+// ---------------------------------------------------------------- the mark
+const endCard=el('div','',{position:'absolute',inset:'0',background:INK,opacity:'0',
+  display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'46px'});
+const endMark=el('div',endCard,{fontFamily:"'Grotesk',sans-serif",fontWeight:'800',
+  fontSize:'168px',letterSpacing:'-0.05em',color:BONE},'ANVIL');
+const endSub=el('div',endCard,{fontFamily:"'Grotesk',sans-serif",fontWeight:'500',
+  fontSize:'40px',letterSpacing:'0.16em',color:GOLD},'PICK A TASK. CHOOSE YOUR FRIENDS.');
+
+// ---------------------------------------------------------------- fitting
+// One size across every page. Sizing each page to its own longest line makes the
+// type jump between pages, which reads as sloppy rather than as emphasis.
+const FITC=new Map();
+function fitSize(lines, base, weight, family){
+  const key=base+'|'+weight+'|'+family+'|'+lines.join('');
+  if(FITC.has(key)) return FITC.get(key);
+  const probe=document.createElement('div');
+  Object.assign(probe.style,{position:'absolute',visibility:'hidden',whiteSpace:'pre',
+    left:'-9999px',fontFamily:"'"+family+"',sans-serif",fontWeight:weight,
+    fontSize:base+'px',letterSpacing:'-0.03em'});
+  document.body.appendChild(probe);
+  let widest=0;
+  for(const l of lines){ probe.textContent=l; widest=Math.max(widest,probe.getBoundingClientRect().width); }
+  probe.remove();
+  const size=widest>0?Math.min(base,Math.floor(base*(SAFE.w/widest))):base;
+  FITC.set(key,size); return size;
+}
+
+// ---------------------------------------------------------------- the edits
+// Every distraction is an EDIT and every one lands on the grid. Density climbs
+// with the type speed, so the film gets harder in both senses at once.
+function beats(from,to,step){ const a=[]; for(let x=from;x<to-1e-6;x+=step) a.push(x); return a; }
+const EDITS=[];
+// the app cuts in on the half-beat, more often as it goes
+beats(GO+0.5, GO+3.0, 1.0).forEach((t,i)=>EDITS.push({t,k:'phone',i}));
+beats(GO+3.0, GO+6.0, 0.5).forEach((t,i)=>EDITS.push({t,k:'phone',i:i+3}));
+beats(GO+6.0, PAUSE,  0.25).forEach((t,i)=>EDITS.push({t,k:'phone',i:i+9}));
+// flash frames
+[GO+2.0,GO+3.5,GO+4.0,GO+5.0,GO+5.5,GO+6.0,GO+6.5,GO+6.75,GO+7.0,GO+7.25]
+  .forEach((t,i)=>EDITS.push({t,k:'flash',i}));
+// zoom punches and jump cuts, from the halfway point
+[GO+3.0,GO+4.5,GO+5.25,GO+6.25,GO+6.75,GO+7.25].forEach((t,i)=>EDITS.push({t,k:'punch',i}));
+[GO+4.75,GO+5.75,GO+6.5,GO+7.0,GO+7.4].forEach((t,i)=>EDITS.push({t,k:'jump',i}));
+// the ghost double, only once the speed is already past comfortable
+[GO+5.5,GO+6.5,GO+7.1].forEach((t,i)=>EDITS.push({t,k:'ghost',i}));
+// the type itself stutters — it stops for two frames and then catches up
+const STUTTERS=[GO+4.25,GO+5.5,GO+6.4,GO+7.05,GO+7.35];
+
+function activeEdit(kind,t,dur){
+  for(const e of EDITS) if(e.k===kind && t>=e.t && t<e.t+dur) return e;
+  return null;
+}
+
+// ============================================================================
+window.renderFrame=function(t){
+  t=Math.max(0,Math.min(DUR-0.0001,t));
+  const live = t<PAUSE;                         // distractions exist only before the stop
+
+  // ---- GET READY --------------------------------------------------------
+  const rOut=t>=1.0?1:0;
+  ready.style.opacity=(easeOut(clamp(t/0.35))*(1-rOut)).toFixed(3);
+  ready2.style.opacity=easeOut(clamp((t-0.4)/0.3)).toFixed(3);
+  // 3 · 2 · 1, one per beat, each a hard cut — no fades in a countdown
+  let cn='';
+  if(t>=1.0 && t<1.5) cn='3'; else if(t>=1.5 && t<2.0) cn='2'; else if(t>=2.0 && t<2.5) cn='1';
+  count.textContent=cn;
+  if(cn){
+    const u=easeOut(clamp((t-(t>=2.0?2.0:t>=1.5?1.5:1.0))/0.28));
+    count.style.opacity='1';
+    count.style.transform=`translateY(-50%) scale(${lerp(1.18,1,u).toFixed(3)})`;
+    count.style.color = t>=2.0 ? RUST : INK;
+  } else count.style.opacity='0';
+
+  // ---- which page, and the stutter warp ---------------------------------
+  let page=null;
+  for(const p of PAGES) if(t>=p.t) page=p;
+  const inPayoff=t>=PAYOFF, inPause=t>=PAUSE&&t<PAYOFF;
+
+  // the type freezes for two frames, then catches up — a dropped edit, not a lag
+  let tw=t;
+  for(const s of STUTTERS) if(t>=s && t<s+2*F) tw=s;
+
+  let lines=null, start=0, cps=18, face='Grotesk', wt='600';
+  if(inPayoff){ lines=["Don't sit still."]; start=PAYOFF; cps=13; face='Grotesk'; wt='800'; }
+  else if(inPause){ lines=null; }
+  else if(page){ lines=page.lines; start=page.t; cps=page.cps; face=page.face; wt=page.w; }
+
+  if(lines){
+    body.style.opacity='1';
+    body.style.fontFamily="'"+face+"',sans-serif";
+    body.style.fontWeight=wt;
+    const base=inPayoff?128:92;
+    body.style.fontSize=fitSize(lines,base,wt,face)+'px';
+    const n=Math.max(0,Math.floor((tw-start)*cps));
+    let left=n, li=0, lastNode=bodyLines[0];
+    for(let i=0;i<bodyLines.length;i++){
+      const src=lines[i]||'';
+      const take=Math.max(0,Math.min(src.length,left));
+      bodyLines[i].textContent=src.slice(0,take);
+      if(take>0) lastNode=bodyLines[i];
+      left=Math.max(0,left-src.length);
+    }
+    const total=lines.reduce((a,l)=>a+l.length,0);
+    const r=lastNode.getBoundingClientRect();
+    caret.style.left=px(r.right+8); caret.style.top=px(r.top+r.height*0.14);
+    caret.style.height=px(r.height*0.74);
+    caret.style.opacity = n<total ? '1' : (Math.floor(t/BEAT)%2?'0':'0.9');
+  } else {
+    body.style.opacity='0'; caret.style.opacity='0';
+    bodyLines.forEach(n=>n.textContent='');
+  }
+
+  // ---- THE APP, cutting on the beat -------------------------------------
+  const pe=live?activeEdit('phone',t,0.42):null;
+  if(pe){
+    const s=SCREENS[pe.i%SCREENS.length];
+    if(phoneImg.getAttribute('src')!=='screens/'+s+'.png') phoneImg.src='screens/'+s+'.png';
+    // FOUR designed slots, not a modulo of the frame. The device is 1279 tall, so
+    // any top edge between SAFE.y-1279 and SAFE.y+SAFE.h crosses the sentence —
+    // the first pass put it at y=120 and it sat straight over the words. It now
+    // either hangs from the top with its bottom edge above SAFE, or rises from
+    // the bottom with its top edge below it, alternating sides as well.
+    const SLOT=[{x:W-300, y:SAFE.y-1279-40, r:-4},
+                {x:-290,  y:SAFE.y+SAFE.h+40, r: 4},
+                {x:-290,  y:SAFE.y-1279-40, r: 4},
+                {x:W-300, y:SAFE.y+SAFE.h+40, r:-4}][pe.i%4];
+    phone.style.left=px(SLOT.x); phone.style.top=px(SLOT.y);
+    phone.style.transform=`rotate(${SLOT.r}deg)`;
+    phone.style.opacity='1';
+  } else phone.style.opacity='0';
+
+  // ---- flash frames: two frames of flat colour, never longer -------------
+  const fe=live?activeEdit('flash',t,2*F):null;
+  if(fe){ flash.style.background = fe.i%3===0?INK:RUST;
+          flash.style.opacity = fe.i%3===0?'0.16':'0.24'; }
+  else flash.style.opacity='0';
+
+  // ---- the ghost double --------------------------------------------------
+  const ge=live?activeEdit('ghost',t,2*F):null;
+  if(ge && lines){
+    ghost.style.fontFamily=body.style.fontFamily; ghost.style.fontWeight=body.style.fontWeight;
+    ghost.style.fontSize=body.style.fontSize; ghost.style.lineHeight=body.style.lineHeight;
+    ghost.style.letterSpacing=body.style.letterSpacing;
+    ghost.innerHTML=bodyLines.map(n=>'<div>'+(n.textContent||'&nbsp;')+'</div>').join('');
+    ghost.style.transform=`translateY(-50%) translate(${ge.i%2?-14:14}px,${ge.i%2?6:-6}px)`;
+    ghost.style.opacity='0.5';
+  } else ghost.style.opacity='0';
+
+  // ---- zoom punch and jump cut, on the frame itself ----------------------
+  let sc=1, jx=0, jy=0;
+  const ze=live?activeEdit('punch',t,3*F):null;  if(ze) sc=1.045;
+  const je=live?activeEdit('jump',t,2*F):null;
+  if(je){ jx=(hash(je.i)*2-1)*26; jy=(hash(je.i+5)*2-1)*18; }
+  stage.style.transform = (sc!==1||jx||jy)
+    ? `translate(${jx.toFixed(0)}px,${jy.toFixed(0)}px) scale(${sc})` : 'none';
+
+  // ---- the mark: it cuts ------------------------------------------------
+  endCard.style.opacity = t>=CUT ? '1' : '0';
+  if(t>=CUT){
+    const u=easeOut(clamp((t-CUT)/0.4));
+    endMark.style.transform=`scale(${lerp(0.96,1,u).toFixed(3)})`;
+    endSub.style.opacity=easeOut(clamp((t-CUT-0.22)/0.45)).toFixed(3);
+  }
+  return true;
+};
+window.DUR=DUR; window.BPM=BPM;
+window.renderFrame(0);
+</script>

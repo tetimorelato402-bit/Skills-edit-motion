@@ -391,6 +391,45 @@ Read its `BRIEF.md`. Two facts govern it:
 - **The camera shakes on the KICK; the lens breathes on the SUB.** Two channels. Driving
   both from one envelope reads as noise rather than as impact.
 
+## Anvil — the app (005) and the film (006)
+
+Two separate projects for the same client, built by two sessions in parallel:
+
+- **`projects/005-anvil/`** is the **UI design pass** — 23 screens at real device metrics,
+  a measured palette, and a slideshow. Its `BRIEF.md` is the source of truth for what Anvil
+  *is*: a deal you make in front of a circle, one task, one place, and a streak they can
+  see. **bone `#E3DACD` · card `#EEE9DE` · ink `#231C15` · gold `#9E7C52` · rust `#9A3B21`.**
+  No green and no iOS red — a kept day is ink, a broken one is rust.
+- **`projects/006-anvil-film/`** is the **brand film**. Read its `BRIEF.md`.
+
+The film is a **reading test**: 14 s, type accelerating 16 → 62 characters per second until
+it cannot be read, and **the Anvil app itself is what distracts you** — which is the joke
+and the sell at once, and puts real product footage in the ad without a demo beat.
+
+- **The distractions are EDITS, not objects** — jump cuts, flash frames, zoom punches,
+  type stutters, ghost doubles, the app cutting in on the beat. A drifting shape is
+  decoration; a cut is something a motion editor did on purpose. This replaced a first
+  pass of floating dots and is the single biggest improvement in the piece.
+- **RUST is the app's Miss colour, so every distraction is rust.** The antagonist wears
+  the product's failure state.
+- **Nothing obscures the text for longer than a blink**, enforced by construction: the
+  distraction layer is built *before* the type, full-frame events cap at two frames, and
+  the device sits in four slots all outside `SAFE`. The device is 1279 px tall, so any top
+  edge between `SAFE.y-1279` and `SAFE.y+SAFE.h` crosses the sentence.
+- **The sound's design is in its SYNC, in three stages.** Locked (a key on the frame each
+  letter appears, so the viewer learns the clock), unlocked (keys running to ~165 ms late
+  on a smooth curve, doubling and dropping), then dead. **Breaking a sync the viewer has
+  already learned beats adding noise** — they can hear that it is wrong. The pause measures
+  −72 dB against a −15.7 dB build, a 56 dB cliff.
+- **Declare shared consts at the TOP of the file.** The type is built before the distraction
+  layer, so a palette `const` declared down there is in the temporal dead zone when the
+  first line asks for it — and the file then never defines `renderFrame`, which looks
+  exactly like a render hang rather than like an error.
+- **`render.py` decodes the app screens before the first screenshot**, or a cut lands on a
+  half-decoded `<img>` and paints nothing, silently.
+- **Type auto-fits to one size per register**, so new copy cannot run off the frame — but
+  fit across the whole group, not per page, or the size jumps between pages.
+
 ## Blender in this container
 
 `pip install bpy==4.5.13` gives Blender as a Python module and **Cycles on CPU works**
