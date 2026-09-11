@@ -1,0 +1,163 @@
+# Handoff — what happened, and what to build next
+
+Written at the end of the cloud session that produced Study 001, for whichever Claude picks
+this up on teti's desktop. `CLAUDE.md` has the operational detail (how to rebuild the film,
+the load-bearing rules, the bugs already paid for). This file is the story and the roadmap.
+
+## What happened, briefly
+
+teti is becoming a motion editor and needed a first client-facing Reel. The reference was
+yuk.aji's *LILIUM — Experimental Motion Study*: a specimen dissected with labels, oversized
+type interleaved with imagery, one texture per beat, editorial numbering.
+
+The idea went through four honest revisions:
+
+1. **"Why do we need motion editors?"** — kept, but recast. Not an argument; the *title of a
+   study*, answered by demonstration and signed. teti explicitly rejected making it an ad
+   aimed at a client's pain point: this is a debut of craft, "show my work, what I do is here."
+2. **Palette from teti's own oil portrait**, extracted by k-means rather than picked by eye.
+3. **The design language followed the palette** — the film was rebuilt as a painted object,
+   with a stroke-stamping paint engine, canvas weave, and brush-edged type.
+4. **The film stopped naming the craft and started performing it.** This was the biggest
+   change and the one that mattered most — see below.
+
+## The critique that drove the last pass
+
+Tested at real phone size (~390 px wide), the beats built from **big type** read perfectly and
+the beats built from **small UI** failed completely — the five specimen cells were ~58 px on a
+real phone. That was 42% of the runtime spent on content nobody could perceive.
+
+More fundamentally: the film **named** the principles (timing, spacing, easing, weight, rhythm)
+without demonstrating any of them. That is why it read as designed rather than animated.
+
+The fix, now in place:
+- **Beat 3** performs three principles full-frame, one at a time: a real spacing chart (marks
+  dropped at even slices of *time*, so they crowd where it is slow), a weight study with
+  stretch-into-fall, squash on contact and a bounce far lower than the drop, and a stagger
+  where the delay between elements is the content.
+- **Beat 4** is the showcase: dragging the ease curve makes the dead post **come apart into its
+  layers in 3D** and rebuild itself with staggered timing and overshoot. "IT IS MADE OF LAYERS"
+  → "THIS IS THE JOB".
+- **Beat 5** is per-character kinetic type — every letter its own masked layer, MOVE. overshooting.
+- **The Reel loops seamlessly** — the canvas turns back to the dark ground so the last frame
+  matches the first.
+- **The end card jokes**: the cursor returns, handles snap around MOVE., and it slides out of
+  the sentence and springs home.
+
+Three later passes, all at teti's request:
+- **The signature resolves into the mark.** "teti." cycles through eleven typefaces — serif,
+  grotesk, mono, script, slab — each hold a little longer than the last, settles on Inter, then
+  shrinks into the circular portrait that is live as the profile picture. Film and profile now
+  share one mark.
+- **Two transitions that belong to a painting, not a slideshow.** STILL. breaks up through the
+  tooth of the canvas into the study title (a grain dissolve — thresholded noise, not a fade),
+  and the ochre band is revealed by a loaded brush dragged across the frame (a paint wipe —
+  a clip-path polygon with a bristled front; see `CLAUDE.md` for why not a mask or a filter).
+  Every other cut is still a match cut or a hard cut.
+- **The soundtrack is the film's own.** teti retired the licensed track — "I don't like any
+  music" — so `sound.py` now synthesises the whole score: a beat and a sound for every motion.
+  Counted at 75 BPM from frame 0 the film turned out to be exactly six bars, with every cut a
+  pushed sixteenth after the quarter, so the beat was found rather than imposed. The guitar bend
+  became a synth glide that rides the drag's exact easeInOut. Cue times are derived from the
+  same constants as `video.html`, so a re-timed beat re-scores itself. Then, at teti's request
+  after hearing it, a jazz bed went under everything, very low — upright bass, Rhodes voicings,
+  a swung ride — with the V chord resolving to the i on 9.6 so the bend lands on a chord change.
+  Two more sound passes were rejected outright, and the fourth changed the film itself.
+- **The film is cut to a house beat.** teti's reference was Kungs' *I Feel So Bad* feat.
+  Ephemerals, and the ask was to match the motion to it — so this was a re-time, not a
+  re-score. `video.html` now carries the grid (125 BPM, 0.48 s a beat, eleven bars, 21.12 s)
+  and every section boundary and motion is written in beats: the studies get a bar each, the
+  spacing chart ticks sixteenths, the stagger marches the eighths, the ease is dragged onto
+  the downbeat of bar 7 and the post's five layers snap home on the eighths after it, MOVE. is
+  home on a downbeat. `sound.py` mirrors the same grid. Two lessons are in `CLAUDE.md`: keep
+  every timing a multiple of a sixteenth, and re-run `sound.py` after any picture change.
+
+## Still open
+
+- ~~The profile picture~~ — **decided and live: the full-colour circular portrait**
+  (`brand/pfp/opt1_portrait.png`). teti chose it over the recommended duotone; the end card
+  was then rebuilt to resolve into it. The other seven options stay as a record.
+- **Beat 4 is simulated UI.** A real screen recording of teti dragging a real curve in Resolve's
+  Spline editor would be more honest and more impressive. Highest-value upgrade available and
+  only teti can shoot it — help set up the exact comp worth recording.
+- **Hours and deadline** were never pinned down.
+
+---
+
+# What to make better
+
+Ranked by value per hour.
+
+**1. Swap in a real Resolve capture for beat 4.** Build the comp for teti to record (a simple
+solid with two position keyframes and a visible Spline editor), then cut the capture in place
+of the simulated panel. The rest of the film needs no changes.
+
+**2. Multi-format exports.** The film is 9:16 only. A 4:5 feed crop and a 1:1 need safe-zone
+adjustments, not a re-render from scratch — `video.html` is parametric, so add a size mode
+rather than hand-cropping. Worth doing once and reusing for every study.
+
+**3. Cheaper iteration.** At ~0.8 s/frame a full pass is ~30 minutes, almost all of it the
+brush-edge displacement filter. Bake the type-edge treatment into pre-rendered PNGs for static
+strings and the render drops by roughly half. Worth it before Study 002, not before shipping 001.
+
+**4. Re-voice the soundtrack in Fairlight.** `sound.py` is the whole score — beat, bass, a sound
+for every motion, a house kit and riff — built from sines and noise, frame-exact, −14.3 LUFS. It works and it is
+teti's. With Resolve connected it could be re-voiced with sampled drums and real foley while
+keeping every cue time (the file is the cue sheet, with the reason for each hit in the comments).
+
+# The pitch film — where it stands
+
+`projects/003-it-isnt-moving-yet/` is the master and it is now **one Blender film**: a
+dead poppy grows and blooms in one beam, a petal lets go on the frame the music stops,
+falls through six beats of silence glitching twice into what is coming, and on the
+downbeat the room turns out to have been a studio — the same flower in five languages
+(editorial, grid, collage, ink, painted), the question reassembled one word per look, all
+five strobing on the eighths with `alive?` — then it comes apart, the beam returns, one
+more petal falls into the jar and the beam dies the way it arrived. 27 bars at the
+measured 129 BPM of Luifer's *Gracias a Ti* from 46.555 s; the two silences are the
+track's own. The 2D half is in `source/attic/` and nothing calls it.
+
+`bash build.sh` produces the whole thing, resumably, at 540/24 samples — four to five
+hours on four CPU cores. **On the desktop run `RES=1080 SAMPLES=64 bash build.sh`**; the
+GPU does the same 1206 frames in well under an hour and nothing else changes. Its
+`BRIEF.md` is the spec, its `BUILD.md` the commands and every bug already paid for.
+
+What it still wants, ranked: a grade (one LUT over both halves so the studio and the
+dark room read as one stock); the studio's five looks pushed further now that the
+structure is proven (real paper edges on the collage, a wobblier ink line, a heavier
+impasto); and a 4:5 crop, which is a camera sensor-fit change in `render_plant.py`, not
+a re-layout.
+
+# What to create
+
+**ARC, in Blender.** The strongest next move in 3D. (Written here as "Study 002"; the
+002 slot went to the STILL. positioning film, which got briefed first — see
+`projects/002-the-idea-was-never-the-problem/BRIEF.md`. Nothing else about this changes.) Arcs are the one principle that is
+genuinely hard to prove in flat 2D and trivial to prove with a camera in space, so using 3D
+becomes a real flex instead of decoration. Render with a toon/NPR shader and composite the same
+canvas weave over it, so it stays inside the visual system. `bpy` is fully scriptable and headless.
+
+Later studies with the same test — *does this principle need dimension?* — are FOLLOW-THROUGH
+and OVERLAP (a cloth or hair sim), and WEIGHT redone as an actual physics simulation.
+
+**A series template.** Study 001 took a full session. `video.html` should be refactored so a new
+study is a data file — beats, labels, copy — against a shared engine. Study 002 should take an
+hour. This is the difference between one good post and a body of work.
+
+**The profile grid.** Covers are currently an afterthought. Design them as a system so the grid
+reads as one intentional shelf of studies as it fills.
+
+**A portfolio page.** The paint engine already renders to a browser; the same system could
+generate a site that looks like nothing else in the field, and gives teti somewhere to send
+clients that is not Instagram.
+
+**Case-study carousels.** Each study has a genuine "here is how this was made" post inside it —
+the spacing chart alone is a carousel. Cheap to produce from work already done, and it is what
+makes other designers follow.
+
+## One judgement to carry forward
+
+The strongest thing about this film is that it *performs* its argument instead of stating it, and
+its second strongest is restraint — one signal colour, one idea, one joke. When adding to it, the
+question is not "what else could go in" but "what would this earn." Study 001 got better every
+time something was made bigger and fewer, and worse every time something was added.

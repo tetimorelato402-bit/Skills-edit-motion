@@ -53,6 +53,10 @@ This is your shortcut to great interfaces. A shortcut to stand out in a sea of s
 - **[prototype](./.claude/skills/prototype/SKILL.md)** — Build multiple different versions of a UI piece you describe and go through them using a switcher.
 - **[ask-sonner](./.claude/skills/ask-sonner/SKILL.md)** — Your guide to working with [Sonner](https://sonner.emilkowal.ski), my toast library. Contains setup, styling, recipes, and fixes for the most common issues.
 
+## Personal skills
+
+- **[big-video-project](./.claude/skills/big-video-project/SKILL.md)** — Say "Big video Project" and Claude runs a 30–50 question creative-intake interview, then writes a creative brief, beat sheet, and issues list into `projects/`. Project briefs live in [`projects/`](./projects/); `projects/001` is the first study.
+
 ## Layout in this repo
 
 The skills live in `.claude/skills/`, which is where Claude Code discovers project skills — clone or open this repo and all twelve load automatically, invocable by name (`/animate`, `/review-animations`, …). Three of them — `pick-ui-library`, `prototype`, and `review-animations` — set `disable-model-invocation`, so they run only when you invoke them explicitly; the other nine can also trigger on their own from their descriptions.

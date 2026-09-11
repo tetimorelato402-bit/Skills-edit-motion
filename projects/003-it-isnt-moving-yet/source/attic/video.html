@@ -1,0 +1,1145 @@
+<meta charset="utf-8">
+<title>It isn't moving yet — gate: frame 0 + the bloom</title>
+<style>
+  /* Self-hosted, not resolved through fontconfig. 001 references Inter by
+     family name, which silently falls back to sans-serif on any machine that
+     doesn't have it installed system-wide — and then every measured line width
+     is wrong. The woff2 files are committed next to this file. */
+  @font-face{font-family:'Inter';src:url('fonts/inter.woff2') format('woff2');
+             font-weight:100 900;font-style:normal;font-display:block}
+  @font-face{font-family:'PlexMono';src:url('fonts/plexmono.woff2') format('woff2');
+             font-weight:500;font-style:normal;font-display:block}
+  :root{
+    --cream:#EFE3CC;    /* parchment — the ground */
+    --ink:#2B100A;      /* warm near-black — the type */
+    --signal:#A8341A;   /* the send button, and the second "alive" */
+    --grey:#8B8475;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:var(--cream)}
+  body{font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  #stage{position:absolute;inset:0;overflow:hidden}
+  .fill{position:absolute;inset:0}
+</style>
+
+<div id="stage"></div>
+
+<script>
+// ===========================================================================
+//  "It isn't moving yet" — the master.
+//
+//  GATE BUILD. Only two things exist in this file: frame 0 (the cover, the
+//  cold open and the loop point) and THE BLOOM (the hero). Nothing else is
+//  written until both are approved — the bloom is the one moment the whole
+//  film is judged on, and building five techniques on top of a bloom that
+//  doesn't detonate would be five techniques wasted.
+//
+//  The question, and it is the only sustained type in the finished film:
+//      how do you make ideas that aren't alive, alive?
+//  It is never answered on screen. By the time it comes back at the end the
+//  viewer has answered it themselves, which is the entire point.
+// ===========================================================================
+
+// ---- the grid -------------------------------------------------------------
+// 129 BPM: the measured tempo of the track the film is cut to. See audio/README.md —
+// every boundary below is a multiple of a beat, so this one number re-times the file
+// with no conversion. A beat is 0.48s, a bar 1.92s. Every event below is
+// written in bt(), never in seconds.
+const BPM=129, BEAT=60/BPM, BAR=4*BEAT;     // 0.46512, 1.86047
+const bt=n=>n*BEAT;
+const EIGHTH=BEAT/2, SIXTEENTH=BEAT/4;                      // 0.12 — the smallest legal unit
+
+// LOCAL TIME 0 IS FILM TIME bt(32) — the frame the shutter opens on. Act I
+// runs 0 to bt(32) in Blender and ends on a sixteenth of black; this file
+// picks up the instant the image comes back, so the two clips butt together
+// with nothing to trim and nothing to overlap.
+const IGNITE  = 0;
+const BLOOM   = [0, bt(5)];     // five beats exactly: 2.4s of detonation
+
+// THE FIVE. One bar each, on the bar line, in the order the brief fixed:
+// engineered, systematic, angry, intimate, human. Every one of them shows the
+// SAME POPPY. That is the whole demonstration — identical content, five
+// languages — and it is why the film can claim range without ever becoming a
+// showreel of five unrelated clips. It also keeps the flower running all the
+// way through the back half, which is the continuity the front half spent
+// fifteen seconds establishing.
+// ===========================================================================
+//  THE STUDIO — eleven bars, and it is a BARRAGE, not a sequence.
+//
+//  The old back half gave each technique a bar of its own, one after another,
+//  which demonstrated five things politely. This is the loudest stretch of the
+//  track (its bars 36-46) arriving out of six beats of total silence, and a
+//  polite demonstration under it would be a wasted drop.
+//
+//  So the five are stated fast and then STACKED. The shape is:
+//
+//    bars 1      DETONATION   the paint erupts out of the petal
+//    bars 2-3    THE FIVE     each language, two beats each, no repeats
+//    bars 4-5    PAIRS        two at once, cutting on the eighths
+//    bars 6-7    THREES       three at once, cutting on the sixteenths
+//    bars 8-9    ALL FIVE     the peak — this is where the track peaks too
+//    bars 10-11  COLLAPSE     it strips back, one language at a time, to one
+//
+//  Density is the argument. Nothing new is introduced after bar 3 — every
+//  frame from there on is made of things the viewer has already been shown,
+//  which is what makes it read as range rather than as noise. And it is still
+//  the SAME POPPY in all of them.
+// ===========================================================================
+const STUDIO = [bt(0),  bt(44)];
+const DETON  = [bt(0),  bt(4)];
+const STATE  = [bt(4),  bt(12)];   // the five, two beats each
+const PAIRS  = [bt(12), bt(20)];
+const TRIPS  = [bt(20), bt(28)];
+const ALL5   = [bt(28), bt(36)];   // the peak
+const COLL   = [bt(36), bt(44)];   // the collapse
+
+// THE BREAK. The track drops out here — its beats 188-192, a bar of near
+// silence — and the picture goes with it. Everything drains to black over one
+// bar, and the last four bars of the film are Blender again: one more petal,
+// falling back into the jar. Both sides of that join are black, so there is
+// nothing to match and nothing to get wrong.
+const BREAK  = [bt(44), bt(48)];
+const DUR    = bt(48);          // 22.33s — twelve bars of the film's twenty-seven
+window.DUR = DUR;
+
+// ---- easing ---------------------------------------------------------------
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+const easeOut =u=>1-Math.pow(1-u,3);
+const easeOutQ=u=>1-Math.pow(1-u,5);      // the bloom: enormous initial speed
+const easeInOut=u=>u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+
+// ---- deterministic noise --------------------------------------------------
+// The bloom must be identical on every render. Math.random() is not.
+let _s=20260902;
+const rnd=()=>{_s=(_s*1664525+1013904223)%4294967296; return _s/4294967296;};
+const rng=(a,b)=>a+(b-a)*rnd();
+
+const px=v=>v+'px';
+function el(tag,parent,style,text){
+  const d=document.createElement(tag);
+  if(style) Object.assign(d.style,style);
+  if(text!==undefined) d.textContent=text;
+  parent.appendChild(d); return d;
+}
+
+const stage=document.getElementById('stage');
+
+// The accents. The GROUND never leaves the warm family — every technique sits
+// on the same parchment and the same weave — and only the accent moves. That
+// single rule is what stops five palettes reading as five different films.
+const CREAM='#EFE3CC', INK='#2B100A';
+const AC = {
+  t5:'#A8341A',   // rust
+  t6:'#2C5FA8',   // signal blue
+  t3:'#D8452A',   // hot red
+  t9:'#B8843A',   // mustard
+  t7:'#7A2E52',   // the paint's own plum, barely used
+};
+
+// ===========================================================================
+//  GROUND — canvas weave over parchment. The surface never changes anywhere
+//  in this film; it is the thing that holds five different palettes together.
+// ===========================================================================
+// weave.png is a 360px TILE. Stretching it to 1080x1920 turns a canvas weave
+// into gingham and, multiplied hard, drags the cream ground from 239 down to
+// about 190 — the parchment stops being parchment. Native size, repeated, at
+// 001's recipe: multiply for the shadow side, overlay for the tooth.
+const ground=el('div',stage,{position:'absolute',inset:'0',background:'var(--cream)'});
+el('div',ground,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+  backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.30'});
+el('div',ground,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+  backgroundRepeat:'repeat',mixBlendMode:'overlay',opacity:'0.14'});
+
+// ===========================================================================
+//  THE HANDOFF.
+//
+//  Act I is Blender: seven bars of a dead poppy in a mason jar, growing in the
+//  dark. It ends with the flower open, and THAT rendered frame is the ground
+//  this file starts on — the paint does not cut to a new scene, it erupts out
+//  of the poppy and covers it. The two worlds share exactly one frame.
+//
+//  The chat box that used to open the film is gone entirely; there is no
+//  interface anywhere now, which is what removed the "I asked AI to..." risk.
+//  The question is pure type over the dark in Act I and again at the end.
+// ===========================================================================
+const act1 = el('div',stage,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/act1_last.png')",backgroundSize:'1080px 1920px'});
+
+// The flower's centre, projected through Act I's actual camera by
+// scripts/handoff.py — never measured off a screenshot. Since Act I now ends
+// looking straight down the flower's throat, it lands dead centre of frame,
+// and the black boss the petals radiate from is literally the hole the paint
+// comes out of. Move the Blender
+// camera and this number is silently wrong, and the paint starts somewhere
+// that is not the flower.
+const HEAD_X = 944.6, HEAD_Y = 810.8;
+
+// The screen-space directions of the flower's six real petals, projected
+// through Act I's camera by scripts/handoff.py. The paint's first six petals
+// are launched along these exact axes, so for the first frames after the cut
+// the paint is not merely starting where the flower was — it is continuing the
+// flower's own geometry outward before it diverges into sixty-six and becomes
+// paint. This is what makes a viewer read ONE OBJECT across two media rather
+// than a flower and then some colour.
+const PETAL_AXES = [2.5, 111.0, 179.0, 238.9, 277.0, 302.4];
+
+// ===========================================================================
+//  THE BLOOM.
+//
+//  Everything about this is built to answer one objection: a bloom is a
+//  transition, and a transition is not a message. So it is not a wipe, not a
+//  gradient and not a filter — it is PAINT, detonating out of the button.
+//
+//  Each petal is a disc with a bristled radial edge: a fixed 96-point profile,
+//  generated once, scaled by the petal's radius. That is the same trick as
+//  001's paint wipe (a clip-path polygon, never a filter) for the same reason
+//  — the edge breaks up without the contents bending, and it costs nothing per
+//  frame. Over the petals sit the oil plates, so the colour reads as thick
+//  paint rather than as flat vector fill.
+//
+//  This is the one moment the film leaves the warm family. Nine petals, nine
+//  colours, staggered a sixteenth apart so the bloom arrives in waves rather
+//  than as one expanding circle.
+// ===========================================================================
+const NPROF=96;
+
+// This is the one moment in the film that leaves the warm family — and it still
+// has to look like teti's paint box, not a colour wheel. An even spread of
+// twelve hues read as pride bunting; the cools have to be the ACCENT inside a
+// warm detonation, so the list is weighted eight warm to four cool and the
+// magenta that dominated the first pass is down to one entry.
+// Split explicitly rather than sliced. Parchment sat in the warm half, drew a
+// 500px petal in the middle of the frame and read as a HOLE punched in the
+// paint rather than as paint — the light tones have to be small or they stop
+// being highlights and start being gaps.
+// EXTRACTED, NOT CHOSEN. scripts/handoff.py k-means clusters the rendered
+// poppy and lifts the result in value only — the same method that produced
+// 001's palette from teti's oil portrait, and the same rule: colour may move
+// in value, it must not leave the warm family. The paint is the flower's
+// colour because it came from the flower, not because two swatches were
+// matched by eye. Re-run handoff.py after any change to the Blender lighting.
+const WARM=['#F5221A','#E77B0A','#CE3609','#B67308',
+            '#9E2107','#863706','#733B05','#641C04'];
+// The cools are the five techniques' own accents, seeded into the bloom so
+// that the detonation contains the colours of everything that follows it.
+const COOL=['#1F5F6B','#2C5FA8','#3F7A3A','#7A2E52','#E8B25C','#D9C08A'];
+
+// A bristled radial profile. Four octaves: the low ones carry the silhouette,
+// the high ones break the edge the way a loaded brush does. Three octaves read
+// as torn paper at this scale — the fourth is what makes it paint.
+// Frequencies are high on purpose. Amplitude is relative to radius, so a 0.15
+// lobe at f=3 on a 400px petal is a 60px scallop — at frame scale that reads as
+// torn paper, which is exactly what the first pass looked like. Pushing the
+// octaves up (5/11/23/41) keeps the same total deviation but spends it on
+// bristle-scale detail instead of on big geometric lobes.
+function profile(){
+  const lobes=[[rng(0.08,0.14),rng(0,6.28),5],[rng(0.055,0.10),rng(0,6.28),11],
+               [rng(0.03,0.06),rng(0,6.28),23],[rng(0.016,0.034),rng(0,6.28),41]];
+  const p=[];
+  for(let i=0;i<NPROF;i++){
+    const a=i/NPROF*Math.PI*2;
+    let v=1;
+    for(const [amp,ph,f] of lobes) v+=amp*Math.sin(a*f+ph);
+    p.push(v*rng(0.97,1.03));
+  }
+  return p;
+}
+
+// The bloom has to reach the far corner of the frame from the button.
+const CX=HEAD_X, CY=HEAD_Y;
+const REACH=Math.hypot(Math.max(CX,1080-CX), Math.max(CY,1920-CY))*1.15;
+
+// How far the frame extends from the button in a given direction. The button
+// sits low and right, so there is almost no room down-right and a great deal
+// up-left — and throwing every petal the same capped distance regardless meant
+// nothing ever travelled into the top third, which stayed a flat field of wash
+// for the entire second half of the bloom. Distance is now a fraction of the
+// room actually available along each petal's own heading.
+function roomAlong(ang){
+  const dx=Math.cos(ang), dy=Math.sin(ang);
+  const tx = dx>0 ? (1080-CX)/dx : (dx<0 ? -CX/dx : Infinity);
+  const ty = dy>0 ? (1920-CY)/dy : (dy<0 ? -CY/dy : Infinity);
+  return Math.min(tx,ty);
+}
+
+// THE SPRAY.
+//
+// The first build of this was nine concentric discs, each big enough to fill
+// the frame. By the halfway point they had all engulfed it and the result was
+// four flat colour fields stacked like torn paper — no origin, no radiation,
+// no bloom. What makes it read as paint thrown out of a button is that no
+// single petal covers the frame: thirty of them LAUNCH along their own
+// direction, each one small, each one elongated along its travel, so the eye
+// sees a cluster radiating outward and a dozen colours at once.
+// More petals, each SMALLER. A petal big enough to span the frame contributes a
+// straight edge (the frame clips it), and with a halo behind it that straight
+// edge arrives twice, a few percent apart — which is what the horizontal bands
+// in the previous pass were. Fifty-two small ones cover the same area with no
+// single shape large enough to show the frame's own border.
+const NP=66;
+const petals=[];
+for(let i=0;i<NP;i++){
+  // Angles are biased into the frame — the button sits low and right, so most
+  // of the paint has to travel up and left, but not all of it, or the burst
+  // reads as a fan instead of a detonation.
+  // the first six inherit the real flower's headings; the rest spread evenly
+  const ang = i < PETAL_AXES.length
+    ? PETAL_AXES[i] * Math.PI / 180
+    : (i/NP)*Math.PI*2 + rng(-0.10,0.10);
+  // The bloom used to own the frame by 1.50s and then had nine tenths of a
+  // second with nothing left to do. Spreading the launches out, and shrinking
+  // every late petal, keeps paint arriving ON TOP of paint right to the end —
+  // successive waves instead of a plateau.
+  // and they go FIRST, so the continuation is the thing the eye sees before
+  // the detonation has spread far enough to be abstract
+  const lag = i < PETAL_AXES.length ? rng(0, 0.05) : rng(0.06, 0.72);
+  petals.push({
+    ang,
+    // dist must stay well under rad's reach. Thrown 0.88 of the way to the far
+    // corner while only growing to 0.42, a petal ends the bloom OUTSIDE the
+    // frame — so the paint peaked halfway through and then visibly receded,
+    // and the ones still crossing the border drew straight edges along it.
+    dist:  rng(0.10,0.78)*roomAlong(ang),   // how far it is thrown
+    rad:   rng(0.12,0.30)*REACH*(1-0.55*lag),  // late arrivals are small
+    lag,
+    elong: rng(1.0,2.3),           // stretched along its own travel — a tendril
+    op:    rng(0.86,1.0),
+    // EVERY PETAL HAS ITS OWN DURATION, and this is what keeps a 2.4s bloom
+    // from turning into a slow swell. Ending every petal's window at the
+    // bloom's end means the earliest petals take the LONGEST to grow, so
+    // stretching the bloom makes the initial impact softer rather than bigger.
+    // A fixed ~half-second throw per petal keeps each one snapping out at the
+    // same speed however long the bloom runs; length then buys more waves
+    // instead of slower ones.
+    dur:   rng(0.45,0.90),
+    prof:  profile(),
+  });
+}
+// Biggest first, so the small bright ones stay on top and the colour count the
+// viewer actually perceives stays high.
+petals.sort((a,b)=>b.rad-a.rad);
+
+// Colour by SIZE, not at random: the big petals take the warm end of the list
+// and the cools land only on small ones. Left to chance, a plum or a magenta
+// draws a 500px petal and the detonation stops looking like teti's paint box.
+// The accent colours are accents — that has to be true here too.
+// Each petal takes its listed colour and then moves in VALUE only — never in
+// hue, per the palette rule. Without it, two overlapping petals drawn from the
+// same eight-entry list are the identical flat fill and their shared edge
+// disappears; paint never does that.
+const shade=(hex,f)=>{
+  const n=parseInt(hex.slice(1),16);
+  const cl=v=>Math.max(0,Math.min(255,Math.round(v*f)));
+  return 'rgb('+cl(n>>16)+','+cl((n>>8)&255)+','+cl(n&255)+')';
+};
+petals.forEach((p,i)=>{
+  const base = i < NP*0.55 ? WARM[i%WARM.length]
+             : (i%3===0 ? COOL[i%COOL.length] : WARM[i%WARM.length]);
+  p.c = shade(base, rng(0.80, 1.16));
+});
+
+// The wash: one large, slow, bristled shape under the entire spray. It is what
+// guarantees the frame is covered by the end without any small petal having to
+// be big enough to show a straight edge. Drawn first, so it is the GROUND of
+// the bloom rather than a disc competing with it.
+const wash={c:'#641204', ang:Math.atan2(960-CY,540-CX), dist:REACH*0.42,
+            rad:REACH*1.15, elong:1.15, op:1, lag:0.10, dur:1.05, prof:profile()};
+
+// Every petal is drawn twice: a translucent HALO a few percent larger, then the
+// petal itself. Real paint does not have a hard edge, and a blur cannot be used
+// here — 001 already paid for that lesson, a full-frame filter costs ~0.4s per
+// frame and there are fifty-two of these. Two clipped layers cost nothing and
+// give the edge somewhere to fall off.
+//
+// THE PAINT SKIN IS GLOBAL, NOT PER PETAL, and that is not a stylistic choice.
+// The first build gave every petal its own copy of the oil plate and the weave
+// and marked each one will-change:clip-path. That is 212 full-frame layers, a
+// 1080x1920 plate decoded into each of them, and roughly 900MB of compositor
+// memory — well past what Chromium will hold. It does not error: it silently
+// stops applying updates, and screenshots come back showing an ARBITRARY
+// EARLIER STATE. The bloom appeared to grow, recede, and at 2.40s render as
+// frame 0 with no paint at all. Nothing in the page reported a problem.
+//
+// The plate is identical in every petal anyway, so one skin over the whole
+// bloom is visually the same thing for a hundredth of the cost. Its opacity
+// rides the bloom's own progress, so it is absent while the frame is still
+// clean parchment and full once the paint owns the frame.
+const bloomLayer=el('div',stage,{position:'absolute',inset:'0'});
+for(const p of [wash,...petals]){
+  p.halo=el('div',bloomLayer,{position:'absolute',inset:'0',background:p.c,opacity:'0'});
+  p.node=el('div',bloomLayer,{position:'absolute',inset:'0',background:p.c,opacity:'0'});
+}
+// TWO plates, at different scales and mirrored. One full-frame oil plate over
+// the whole bloom gives every petal the same brush direction in the same place,
+// and fifty overlapping petals sharing one grain read as WOOD — long vertical
+// striations running the height of the frame. A second plate at 1.6x and
+// flipped breaks that up into something that reads as loaded paint.
+const skinPlate=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/plate_paper.png')",backgroundSize:'1080px 1920px',
+  mixBlendMode:'overlay',opacity:'0'});
+// The brush plate is the one that actually does the work. It is neutral grey
+// carrying only value, so in `overlay` it carves strokes into any hue without
+// shifting it — the palette rule as a texture. scripts/brushplate.py.
+const skinBrush=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/brush.png')",backgroundSize:'1080px 1920px',
+  mixBlendMode:'overlay',opacity:'0'});
+const skinBrush2=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/brush.png')",backgroundSize:'1730px 3070px',
+  backgroundPosition:'-410px -700px',transform:'scaleX(-1)',
+  mixBlendMode:'soft-light',opacity:'0'});
+const skinWeave=el('div',bloomLayer,{position:'absolute',inset:'0',
+  backgroundImage:"url('tex/weave.png')",backgroundRepeat:'repeat',
+  mixBlendMode:'multiply',opacity:'0'});
+
+// The ignition core: a bright parchment flash at the button for one sixteenth.
+// A detonation without a hot centre reads as a wipe.
+const core=el('div',stage,{position:'absolute',borderRadius:'50%',
+  background:'#FFF6E4',opacity:'0'});
+
+// A petal's polygon at progress u. Computed in the petal's own frame, where +x
+// is its direction of travel, then rotated into place — that is what lets a
+// petal stretch along its path instead of just getting rounder.
+// `grow` is easeOut (cubic), not easeOutQ. The first pass used a quintic, which
+// puts a petal 67% of the way out by the time it is a fifth through its window
+// — so the paint was everywhere before the eye could see where it came from,
+// and the button stopped being the origin of anything.
+function petalPath(p, u, scale){
+  const e=easeOut(u);
+  const cx=CX+Math.cos(p.ang)*p.dist*e, cy=CY+Math.sin(p.ang)*p.dist*e;
+  const R=p.rad*e*(scale||1), ca=Math.cos(p.ang), sa=Math.sin(p.ang);
+  const pts=[];
+  for(let i=0;i<NPROF;i++){
+    const a=i/NPROF*Math.PI*2, r=R*p.prof[i];
+    const lx=Math.cos(a)*r*p.elong, ly=Math.sin(a)*r;
+    pts.push(px(Math.round(cx+lx*ca-ly*sa))+' '+px(Math.round(cy+lx*sa+ly*ca)));
+  }
+  return 'polygon('+pts.join(',')+')';
+}
+
+// ===========================================================================
+//  THE FIVE.
+//
+//  One scene per bar, each a container that is simply hidden when its bar is
+//  not running. Every scene shows the same poppy — the Blender frame the film
+//  has been looking at since bar 7 — so what changes between bars is the
+//  LANGUAGE, never the subject.
+//
+//  Each scene's entry transition is the technique announcing itself: the grid
+//  arrives as tiles snapping, the collage as a torn wipe, the ink as a flood.
+//  A generic crossfade between them would be five clips with dissolves; a
+//  transition made of the technique's own grammar is one film changing voice.
+// ===========================================================================
+
+// THE SUBJECT, not the join. act1_last.png is Act I's true final frame — one
+// petal alone in a beam, 95% black — and it is the ground the paint erupts out
+// of, which is exactly what it should be. It is NOT what the five techniques
+// should be made of: pointed at it they cropped into darkness and the back half
+// rendered as five arrangements of grey. poppy.png is the open flower filling
+// the frame, same scene, same lamps, camera moved. See scripts/handoff.py.
+const POPPY = "url('tex/poppy.png')";
+
+// THE PETALS TAKE EACH STYLE'S COLOUR.
+//
+// Every technique shows the same poppy, and every technique shows it in its
+// own accent — so the flower is recoloured five times rather than repeated
+// five times. `color` is the blend mode that does this and nothing else does:
+// it takes hue and saturation from the tint and keeps LUMINANCE from the
+// photograph, so every crease, every stamen and every highlight the Blender
+// render worked for survives intact. `multiply` would crush them into the
+// tint and `hue` would leave the vermilion saturation fighting the new colour.
+//
+// These are the same five hues the stem glitches through in Act I, so by the
+// time a technique arrives the viewer has already seen its colour run up
+// that stem.
+function tint(node, colour, strength){
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'color',opacity:String(strength),pointerEvents:'none'});
+  // a whisper of the accent in multiply as well, to keep the darks from going
+  // grey — `color` alone leaves shadows neutral and the tint reads as a filter
+  el('div',node,{position:'absolute',inset:'0',background:colour,
+    mixBlendMode:'multiply',opacity:String(strength*0.22),pointerEvents:'none'});
+}
+
+function scene(){
+  const d = el('div',stage,{position:'absolute',inset:'0',overflow:'hidden',
+    display:'none'});
+  // the constant ground: parchment and the same weave under every technique
+  el('div',d,{position:'absolute',inset:'0',background:CREAM});
+  el('div',d,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+    backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.30'});
+  return d;
+}
+const show = (d,on) => { d.style.display = on ? 'block' : 'none'; };
+
+// A bristled edge profile, reused for every torn and brushed edge in the film.
+// Straight-edged wipes read as software; this is the same trick as 001's paint
+// wipe and it is what makes a hard edge look like it was made by a hand.
+function edgeProfile(n, amp){
+  const lobes=[[rng(0.4,1.0)*amp,rng(0,6.28),2],[rng(0.3,0.7)*amp,rng(0,6.28),5],
+               [rng(0.15,0.4)*amp,rng(0,6.28),11],[rng(0.06,0.2)*amp,rng(0,6.28),23]];
+  const out=[];
+  for(let i=0;i<n;i++){
+    const u=i/(n-1); let v=0;
+    for(const [a,ph,f] of lobes) v += a*Math.sin(u*Math.PI*2*f+ph);
+    out.push(v);
+  }
+  return out;
+}
+
+// A vertical wipe with a bristled front, as a clip-path. `p` is 0..1 across the
+// frame; `dir` +1 sweeps right, -1 sweeps left.
+const WIPE = edgeProfile(64, 34);
+function wipePath(p, dir){
+  const pts=[];
+  const x = dir>0 ? p*1180-60 : 1140-p*1180;
+  for(let i=0;i<WIPE.length;i++){
+    const y = i/(WIPE.length-1)*1920;
+    pts.push(px(Math.round(x+WIPE[i]))+' '+px(Math.round(y)));
+  }
+  if(dir>0) pts.push('0px 1920px','0px 0px'); else pts.push('1080px 1920px','1080px 0px');
+  return 'polygon('+pts.join(',')+')';
+}
+
+// ---------------------------------------------------------------- T5
+// WHITE SPACE EDITORIAL. Extreme scale on near-empty ground: one petal, twice
+// the height of the frame, crossing it. The technique is the imbalance — most
+// of the frame is nothing, and then one object is far too big for it.
+const s5 = scene();
+const s5petal = el('div',s5,{position:'absolute',width:'760px',height:'2600px',
+  left:'160px',top:'-340px',background:AC.t5,
+  backgroundImage:POPPY,backgroundSize:'1500px 2666px',
+  backgroundPosition:'-370px -33px',backgroundBlendMode:'color'});
+const S5EDGE = edgeProfile(72, 26);
+(function(){
+  const pts=[];
+  for(let i=0;i<S5EDGE.length;i++){
+    const u=i/(S5EDGE.length-1);
+    const w = Math.pow(Math.sin(Math.PI*u), 0.42);
+    pts.push((50 - w*50 + S5EDGE[i]*0.06).toFixed(1)+'% '+(u*100).toFixed(1)+'%');
+  }
+  for(let i=S5EDGE.length-1;i>=0;i--){
+    const u=i/(S5EDGE.length-1);
+    const w = Math.pow(Math.sin(Math.PI*u), 0.42);
+    pts.push((50 + w*50 - S5EDGE[i]*0.06).toFixed(1)+'% '+(u*100).toFixed(1)+'%');
+  }
+  s5petal.style.clipPath='polygon('+pts.join(',')+')';
+})();
+const s5micro = el('div',s5,{position:'absolute',left:'84px',top:'1780px',
+  color:'#8B8475',fontFamily:"'PlexMono',monospace",fontSize:'22px',
+  fontWeight:'500',letterSpacing:'0.22em',textTransform:'uppercase'},'one');
+
+// ---------------------------------------------------------------- T6
+// MODULAR GRID. The frame becomes cells and the flower is dealt out across
+// them. Everything snaps on sixteenths — nothing in this bar is allowed to
+// move freely, which is the whole character of the technique.
+const s6 = scene();
+const GC = 3, GR = 5, GW = 1080/GC, GH = 1920/GR;
+const s6tiles = [];
+for(let r=0;r<GR;r++) for(let c=0;c<GC;c++){
+  const t = el('div',s6,{position:'absolute',left:px(c*GW),top:px(r*GH),
+    width:px(GW),height:px(GH),backgroundImage:POPPY,
+    // The plate is scaled up and offset so every cell samples the LIT flower.
+    // At 1:1 the top row lands on the black surround and those tiles read as
+    // holes punched in the grid rather than as cells of a picture.
+    backgroundSize:'1900px 3378px',
+    backgroundPosition:px(-c*GW*1.35-330)+' '+px(-r*GH*1.35-660),opacity:'0'});
+  tint(t, AC.t6, 0.86);
+  s6tiles.push({node:t, r, c, order:(r*GC+c*7)%(GC*GR)});
+}
+// the block that travels across and occludes — the move worth stealing outright
+const s6block = el('div',s6,{position:'absolute',top:px(2*GH),left:'0',
+  width:px(GW),height:px(GH),background:AC.t6});
+
+// ---------------------------------------------------------------- T3
+// TORN COLLAGE. Nothing is aligned and that is the point: every fragment
+// arrives between 6 and 14 degrees off axis, and a colour block wipes the whole
+// frame between beats. The loudest bar in the film.
+const s3 = scene();
+const s3frag = [];
+for(let i=0;i<7;i++){
+  const w = 300+rng(0,420), h = 240+rng(0,460);
+  const f = el('div',s3,{position:'absolute',width:px(w),height:px(h),
+    left:px(rng(-40,1080-w+40)),top:px(rng(60,1920-h-60)),
+    backgroundImage:POPPY,backgroundSize:'1620px 2880px',
+    backgroundPosition:px(-rng(0,1620-w))+' '+px(-rng(0,2880-h)),
+    boxShadow:'0 18px 40px rgba(43,16,10,0.34)'});
+  const e = edgeProfile(30, 22), pts=[];
+  for(let k=0;k<30;k++) pts.push((0+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
+  for(let k=29;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/29*100).toFixed(1)+'%');
+  f.style.clipPath='polygon('+pts.join(',')+')';
+  tint(f, AC.t3, 0.80);
+  s3frag.push({node:f, rot:(rng(0,1)<0.5?-1:1)*(6+rng(0,8)), lag:i/7*0.62});
+}
+const s3tape = [];
+for(let i=0;i<4;i++){
+  s3tape.push(el('div',s3,{position:'absolute',width:px(150+rng(0,120)),height:'46px',
+    left:px(rng(60,820)),top:px(rng(180,1640)),background:'rgba(239,227,204,0.80)',
+    transform:`rotate(${(rng(0,1)<0.5?-1:1)*(8+rng(0,14))}deg)`,opacity:'0'}));
+}
+const s3block = el('div',s3,{position:'absolute',inset:'0',background:AC.t3});
+
+// ---------------------------------------------------------------- T9
+// INK ON ONE COLOUR. Two colours in the entire bar: black line on flat mustard.
+// The poppy is DRAWN rather than photographed — the outline is generated from
+// the same petal profile the flower itself uses, and the strokes draw on with
+// stroke-dashoffset. This is the technique the brief flagged as the one that
+// would blow the schedule because it needs hand-drawn line work; generating the
+// line from the model's own geometry is what makes it buildable in code.
+const s9 = scene();
+const s9field = el('div',s9,{position:'absolute',inset:'0',background:AC.t9});
+const NS='http://www.w3.org/2000/svg';
+const s9svg = document.createElementNS(NS,'svg');
+s9svg.setAttribute('viewBox','0 0 1080 1920');
+Object.assign(s9svg.style,{position:'absolute',inset:'0',width:'1080px',height:'1920px'});
+s9.appendChild(s9svg);
+const s9paths = [];
+(function(){
+  const cx=540, cy=920;
+  // six petals, drawn as closed outlines on the flower's own axes
+  for(let i=0;i<6;i++){
+    const a = PETAL_AXES[i]*Math.PI/180;
+    const e = edgeProfile(26, 10), d=[];
+    for(let k=0;k<26;k++){
+      const u=k/25;
+      // Narrower and more sharply tapered. At 250 wide against a 430 length
+      // the outlines were near-circles and the drawing read as overlapping
+      // rings rather than as a flower; a petal is long and comes to a point.
+      const w = Math.pow(Math.sin(Math.PI*u),0.72)*165 + e[k];
+      const L = u*430;
+      const x = cx + Math.cos(a)*L - Math.sin(a)*w;
+      const y = cy + Math.sin(a)*L + Math.cos(a)*w;
+      d.push((k?'L':'M')+x.toFixed(0)+' '+y.toFixed(0));
+    }
+    for(let k=25;k>=0;k--){
+      const u=k/25;
+      // Narrower and more sharply tapered. At 250 wide against a 430 length
+      // the outlines were near-circles and the drawing read as overlapping
+      // rings rather than as a flower; a petal is long and comes to a point.
+      const w = Math.pow(Math.sin(Math.PI*u),0.72)*165 + e[k];
+      const L = u*430;
+      d.push('L'+(cx + Math.cos(a)*L + Math.sin(a)*w).toFixed(0)+' '+
+                 (cy + Math.sin(a)*L - Math.cos(a)*w).toFixed(0));
+    }
+    s9paths.push(d.join(' ')+' Z');
+  }
+  // the dark centre, and a stem falling out of frame
+  s9paths.push('M'+(cx-92)+' '+cy+' a92,78 0 1,0 184,0 a92,78 0 1,0 -184,0 Z');
+  s9paths.push('M'+cx+' '+(cy+80)+' C '+(cx+70)+' '+(cy+430)+', '+(cx-70)+' '+(cy+700)+', '+(cx+26)+' 1920');
+})();
+const s9els = s9paths.map(d=>{
+  const el2 = document.createElementNS(NS,'path');
+  el2.setAttribute('d',d);
+  el2.setAttribute('fill','none');
+  el2.setAttribute('stroke',INK);
+  el2.setAttribute('stroke-width','9');
+  el2.setAttribute('stroke-linecap','round');
+  s9svg.appendChild(el2);
+  const L = el2.getTotalLength();
+  el2.style.strokeDasharray = L;
+  return {node:el2, len:L};
+});
+
+// ---------------------------------------------------------------- T7
+// PAINTED FRAME. The one technique that is unmistakably teti's, because the
+// engine for it already exists. The poppy is revealed by a bristled brush wipe
+// and carries the oil plates and the brush plate at full strength, so it reads
+// as painted rather than as a photograph with a texture on it.
+const s7 = scene();
+const s7img = el('div',s7,{position:'absolute',inset:'0',backgroundImage:POPPY,
+  backgroundSize:'1180px 2098px',backgroundPosition:'-50px -89px'});
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+  backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.20'});
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+  backgroundSize:'1730px 3070px',backgroundPosition:'-410px -700px',
+  transform:'scaleX(-1)',mixBlendMode:'soft-light',opacity:'0.16'});
+tint(s7img, AC.t7, 0.62);
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/plate_paper.png')",
+  backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.18'});
+// the weave under it all, so the painting sits on canvas rather than on glass
+el('div',s7img,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+  backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.34'});
+
+// ---------------------------------------------------------------- ALL FIVE
+// SHOWING EVERYWHERE. Five horizontal bands, one technique each, running at
+// once and sliding in alternating directions — the range stated in a single
+// image instead of over nine seconds.
+//
+// The bands are rebuilt rather than reusing the scenes above, because a scene
+// scaled down to a fifth of the frame stops being the technique: T5's whole
+// character is a shape too big for its frame, and shrunk into a band it is
+// just a small picture. Each band is its technique's SIGNATURE at band scale.
+const sA = scene();
+const BANDS = 5, BH = 1920/BANDS;
+const band = (i) => el('div',sA,{position:'absolute',left:'0',top:px(i*BH),
+  width:'1080px',height:px(BH),overflow:'hidden'});
+
+const bA = [];
+(function(){
+  // 0 — white space editorial: one oversized petal on near-empty ground
+  const b0 = band(0);
+  el('div',b0,{position:'absolute',inset:'0',background:CREAM});
+  const p0 = el('div',b0,{position:'absolute',left:'0',top:'-90px',
+    width:'2600px',height:px(BH+180),backgroundImage:POPPY,
+    backgroundSize:'900px 1600px',backgroundRepeat:'repeat-x',
+    backgroundPosition:'-240px -300px',mixBlendMode:'multiply',opacity:'0.92'});
+  bA.push({node:p0, dir:+1, span:900});
+
+  // 1 — modular grid: cells, hard edges, nothing free
+  const b1 = band(1);
+  el('div',b1,{position:'absolute',inset:'0',background:CREAM});
+  const g1 = el('div',b1,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH),display:'flex'});
+  for(let i=0;i<12;i++){
+    const c = el('div',g1,{width:'200px',height:px(BH),flex:'0 0 200px',
+      backgroundImage: i%3===2 ? 'none' : POPPY,
+      background: i%3===2 ? AC.t6 : undefined,
+      backgroundSize:'1500px 2666px',
+      backgroundPosition:px(-i*150-300)+' -840px'});
+    if(i%4===1) c.style.opacity='0';
+  }
+  tint(g1, AC.t6, 0.86);
+  bA.push({node:g1, dir:-1, span:1200});
+
+  // 2 — torn collage: crooked fragments, tape, nothing aligned
+  const b2 = band(2);
+  el('div',b2,{position:'absolute',inset:'0',background:AC.t3});
+  const c2 = el('div',b2,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH)});
+  for(let i=0;i<10;i++){
+    const w=210+rng(0,180), h=BH*rng(0.42,0.86);
+    const f = el('div',c2,{position:'absolute',width:px(w),height:px(h),
+      left:px(i*230+rng(-30,30)),top:px(rng(10,BH-h-10)),
+      backgroundImage:POPPY,backgroundSize:'1500px 2666px',
+      backgroundPosition:px(-rng(200,1100))+' '+px(-rng(700,1500)),
+      transform:`rotate(${(rng(0,1)<0.5?-1:1)*(6+rng(0,8))}deg)`});
+    const e=edgeProfile(18,20), pts=[];
+    for(let k=0;k<18;k++) pts.push((e[k]*0.5).toFixed(1)+'% '+(k/17*100).toFixed(1)+'%');
+    for(let k=17;k>=0;k--) pts.push((100+e[k]*0.5).toFixed(1)+'% '+(k/17*100).toFixed(1)+'%');
+    f.style.clipPath='polygon('+pts.join(',')+')';
+  }
+  tint(c2, AC.t3, 0.80);
+  bA.push({node:c2, dir:+1, span:1200});
+
+  // 3 — ink on one colour: two colours, line only
+  const b3 = band(3);
+  el('div',b3,{position:'absolute',inset:'0',background:AC.t9});
+  const i3 = el('div',b3,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH)});
+  const sv = document.createElementNS(NS,'svg');
+  sv.setAttribute('viewBox','0 0 2400 '+Math.round(BH));
+  Object.assign(sv.style,{position:'absolute',inset:'0',width:'2400px',height:px(BH)});
+  for(let n=0;n<6;n++){
+    const cx=180+n*400, cy=BH/2;
+    for(let i=0;i<6;i++){
+      const a=(i/6)*Math.PI*2, e=edgeProfile(14,6), d=[];
+      for(let k=0;k<14;k++){
+        const u=k/13, w=Math.pow(Math.sin(Math.PI*u),0.72)*44+e[k], L=u*118;
+        d.push((k?'L':'M')+(cx+Math.cos(a)*L-Math.sin(a)*w).toFixed(0)+' '+
+                            (cy+Math.sin(a)*L+Math.cos(a)*w).toFixed(0));
+      }
+      for(let k=13;k>=0;k--){
+        const u=k/13, w=Math.pow(Math.sin(Math.PI*u),0.72)*44+e[k], L=u*118;
+        d.push('L'+(cx+Math.cos(a)*L+Math.sin(a)*w).toFixed(0)+' '+
+                   (cy+Math.sin(a)*L-Math.cos(a)*w).toFixed(0));
+      }
+      const pth=document.createElementNS(NS,'path');
+      pth.setAttribute('d',d.join(' ')+' Z');
+      pth.setAttribute('fill','none'); pth.setAttribute('stroke',INK);
+      pth.setAttribute('stroke-width','5'); pth.setAttribute('stroke-linecap','round');
+      sv.appendChild(pth);
+    }
+  }
+  i3.appendChild(sv);
+  bA.push({node:i3, dir:-1, span:1200});
+
+  // 4 — painted frame: the engine, at band scale
+  const b4 = band(4);
+  const p4 = el('div',b4,{position:'absolute',left:'0',top:'0',
+    width:'2400px',height:px(BH),backgroundImage:POPPY,
+    backgroundSize:'1300px 2311px',backgroundRepeat:'repeat-x',
+    backgroundPosition:'-120px -900px'});
+  el('div',p4,{position:'absolute',inset:'0',backgroundImage:"url('tex/brush.png')",
+    backgroundSize:'1080px 1920px',mixBlendMode:'overlay',opacity:'0.24'});
+  el('div',p4,{position:'absolute',inset:'0',backgroundImage:"url('tex/weave.png')",
+    backgroundRepeat:'repeat',mixBlendMode:'multiply',opacity:'0.32'});
+  tint(p4, AC.t7, 0.62);
+  bA.push({node:p4, dir:+1, span:1300});
+})();
+
+// The question's scene tree and the end card's are gone with them; `act1_first`
+// is gone too, because the loop is now a Blender shot rather than a still.
+
+// Every technique is a full-frame scene that the barrage PLACES. A scene is
+// authored at 1080x1920 and mapped into whatever rectangle it is given, so the
+// same renderer serves a full frame, a half, a third or a band without any of
+// them needing to know which they are.
+const TECH = {t5:s5, t6:s6, t3:s3, t9:s9, t7:s7, all:sA};
+
+// CROP INTO THE TECHNIQUE, DO NOT SHRINK IT.
+//
+// The first version scaled each scene down into its rectangle, and the studio
+// came out EMPTIER the more techniques were on screen at once — which is the
+// exact opposite of what eleven bars of barrage needs. The reason is that these
+// techniques are individually sparse by design: white-space editorial is one
+// object crossing a bare page, ink-on-colour is a line drawing on a flat field.
+// Shrink one into half a frame and you get a small object with twice as much
+// empty ground around it; put two side by side and you have doubled the empty
+// ground rather than the content.
+//
+// So the scene stays at 1:1 and the panel is a WINDOW onto it, centred on the
+// scene's middle where the poppy is. A half-frame panel now shows half of a
+// full-size composition — dense, cropped, and reading like a spread rather than
+// like a thumbnail. Density comes from cropping in, which is what a designer
+// does with a real image, not from scaling out.
+// The window lives on a WRAPPER, not on the scene itself. Each technique
+// already writes its own clip-path for its entry wipe — that wipe IS the
+// technique announcing itself and has to survive — so putting the panel's crop
+// on the same element makes the two overwrite each other: the wipe wins, spills
+// outside its panel while it runs, and clears the crop entirely when it lands.
+const PANEL = {};
+for(const k in TECH){
+  const wrap = el('div', stage, {position:'absolute', inset:'0',
+                                 overflow:'hidden', display:'none'});
+  wrap.appendChild(TECH[k]);
+  TECH[k].style.display = 'block';
+  PANEL[k] = wrap;
+}
+// A FULL-FRAME PANEL STILL GETS CROPPED INTO — it just has to be zoomed to do
+// it. Cropping fixed the stacked sections, where a panel is a window onto part
+// of a scene, and did nothing at all for the five STATED full-frame, because a
+// full panel has nothing to crop: it shows the technique exactly as authored.
+// And as authored these are sparse — T5 is one object crossing a bare page, T6
+// deals its tiles in and out. That was fine when each had a whole bar to
+// breathe in the old sequence; two beats each, straight out of the drop, it
+// read as eight beats of empty parchment at the loudest point in the film.
+//
+// So a full-frame appearance is shown at 1.28x from its centre, which throws
+// away 22% at each edge and lets the composition fill the frame. It is the same
+// move as the sub-panels — crop in, do not scale out — applied to the one case
+// that had no room to make it.
+function place(k, x, y, w, h){
+  const zoom = (w === 1080 && h === 1920) ? 1.28 : 1.0;
+  PANEL[k].style.clipPath =
+    `inset(${y}px ${1080-(x+w)}px ${1920-(y+h)}px ${x}px)`;
+  TECH[k].style.transformOrigin = '540px 960px';
+  TECH[k].style.transform =
+    `translate(${(x + w/2 - 540).toFixed(1)}px,${(y + h/2 - 960).toFixed(1)}px)`
+    + (zoom !== 1 ? ` scale(${zoom})` : '');
+}
+
+// ===========================================================================
+//  renderFrame — one deterministic function of t. No CSS animation anywhere:
+//  CSS animations are wall-clock based and would not render reproducibly.
+// ===========================================================================
+// Local progress within a bar, and the two eighths that top and tail it. Every
+// technique enters and leaves inside its own bar — there are no cross-fades
+// between scenes, because a dissolve is the one transition that belongs to no
+// technique and would make the five read as clips rather than as one film
+// changing voice.
+const uIn  = (t,at) => seg(t, at[0], at[0]+EIGHTH);
+const uOut = (t,at) => seg(t, at[1]-EIGHTH, at[1]);
+const uAll = (t,at) => seg(t, at[0], at[1]);
+
+// The five technique renderers. Each is a pure function of its own 0..1
+// progress plus its entry-wipe progress, which is what lets the barrage below
+// invoke any of them at any size, at any speed, as often as it likes.
+
+
+  // ---- T5 · white space editorial ---------------------------------------
+  // One petal, twice the height of the frame, crossing left to right. It never
+  // stops in the middle: the technique is the imbalance, and a shape that
+  // settles centred is a composition rather than an imbalance.
+  function drawT5(u, ein){
+    // -520 to +430, and eased OUT rather than in-out. An ease-in-out across a
+    // 1900px travel spends the bar lingering at both ends, which are both off
+    // frame — the technique is one enormous object crossing an empty frame,
+    // not an empty frame with something briefly passing behind it.
+    const x = -520 + 950*easeOut(u);
+    s5petal.style.transform = `translateX(${x.toFixed(1)}px) rotate(${(-9+14*u).toFixed(2)}deg)`;
+    // it arrives THROUGH a rust wipe — the accent enters before the object does
+    s5.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
+    s5micro.style.opacity = String(seg(u, 0.125, 0.25));
+  }
+
+  // ---- T6 · modular grid -------------------------------------------------
+  // The cells deal themselves in on sixteenths, out of order, and the block
+  // crosses the frame occluding whatever is behind it. Nothing here moves
+  // freely; every value below is quantised to a sixteenth before it is used.
+  function drawT6(u, ein){
+    const q = Math.floor(u*16);                         // which sixteenth we are on
+    for(const tl of s6tiles){
+      const on = q >= tl.order && q < 15 - Math.floor(tl.order/4);
+      tl.node.style.opacity = on ? '1' : '0';
+      // tiles slide in from their own row's edge, snapped, never eased
+      const off = on ? 0 : (tl.c%2 ? 70 : -70);
+      tl.node.style.transform = `translateX(${off}px)`;
+    }
+    const bq = Math.max(0, Math.min(12, q-1)) / 12;
+    s6block.style.transform = `translateX(${(bq*1080-GW/2).toFixed(0)}px)`;
+    s6block.style.opacity = q>0 && q<14 ? '1' : '0';
+    s6.style.clipPath = ein < 1 ? wipePath(ein, -1) : 'none';
+  }
+
+  // ---- T3 · torn collage -------------------------------------------------
+  // Fragments slam in crooked, one per eighth, and the red block wipes the
+  // whole frame twice inside the bar. Deliberate roughness: nothing lines up
+  // with anything, and nothing eases.
+  function drawT3(u, ein){
+    for(const f of s3frag){
+      const fu = seg(u, f.lag*0.5, f.lag*0.5+0.1);
+      f.node.style.opacity = fu>0 ? '1' : '0';
+      const s2 = 0.86 + 0.14*easeOut(fu);
+      f.node.style.transform = `rotate(${f.rot}deg) scale(${s2.toFixed(3)})`;
+    }
+    s3tape.forEach((tp,i)=>{
+      tp.style.opacity = seg(u, 0.25+i*0.1, 0.30+i*0.1) > 0 ? '1':'0';
+    });
+    // two hard colour wipes, on beats 2 and 4 — the block owns the frame for
+    // an eighth each time and the collage is rebuilt behind it
+    const w1 = seg(u, 0.25, 0.375);
+    const w2 = seg(u, 0.75, 0.875);
+    const w = w1>0 && w1<1 ? w1 : (w2>0 && w2<1 ? w2 : -1);
+    s3block.style.display = w<0 ? 'none' : 'block';
+    if(w>=0) s3block.style.clipPath = wipePath(w<0.5 ? w*2 : (1-(w-0.5)*2), 1);
+    s3.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
+  }
+
+  // ---- T9 · ink on one colour --------------------------------------------
+  // The line draws itself on, petal by petal, then the whole drawing lifts off
+  // the mustard. Two colours in the bar and nothing else — the restraint is
+  // the technique.
+  function drawT9(u, ein){
+    s9els.forEach((e,i)=>{
+      const eu = easeOut(seg(u, 0.125+i*0.0219, 0.125+i*0.0219+0.275));
+      e.node.style.strokeDashoffset = (e.len*(1-eu)).toFixed(1);
+      e.node.style.opacity = String(1 - seg(u, 0.875, 1));
+    });
+    s9.style.clipPath = ein < 1 ? wipePath(ein, -1) : 'none';
+  }
+
+  // ---- ALL FIVE · showing everywhere -------------------------------------
+  // The bands arrive one per sixteenth, top to bottom, then all slide together
+  // in alternating directions. Alternating is the point: five bands drifting
+  // the same way is a texture scrolling, five bands opposing each other is
+  // five things happening at once.
+  function drawA(u, ein){
+    bA.forEach((b,i)=>{
+      const arrive = easeOut(seg(u, i*0.03125, i*0.03125+0.0875));
+      const drift = -b.span*0.5*u*b.dir;
+      const enter = (1-arrive)*b.dir*1080;
+      b.node.style.transform = `translateX(${(drift+enter).toFixed(1)}px)`;
+      b.node.parentNode.style.opacity = String(arrive);
+    });
+    sA.style.clipPath = ein < 1 ? wipePath(ein, 1) : 'none';
+  }
+
+  // THE QUESTION AND THE END CARD USED TO BE HERE, AND THEY ARE GONE.
+  //
+  // teti chose a pure loop: no returning question, no signature, no card. So
+  // the film asks its question ONCE, in bar 1 over the dark, and never speaks
+  // again — every loop restates it, which is more times than a closing card
+  // would have managed anyway. The mark going with it is a real cost, and it
+  // is recorded in BRIEF.md rather than quietly forgotten.
+
+  // ---- T7 · painted frame -------------------------------------------------
+  // A bristled brush wipe reveals the painting, and the paint keeps breathing
+  // after it lands — a painted frame that holds perfectly still is a scan.
+  function drawT7(u, ein){
+    s7img.style.clipPath = wipePath(Math.min(1, seg(u, 0, 0.35)), 1);
+    const k = 1.0 + 0.045*u;
+    s7img.style.transform = `scale(${k.toFixed(4)}) rotate(${(u*0.6).toFixed(2)}deg)`;
+  }
+
+
+// ===========================================================================
+//  THE BARRAGE
+//
+//  Eleven bars, written as a CUT LIST rather than as a sequence of scenes. Each
+//  entry says: from this beat, show these techniques in these rectangles. A
+//  technique's own animation runs off its own 0..1 progress, so the same
+//  renderer can be a full frame in bar 2, half a frame in bar 5, and one of
+//  five bands in bar 9 — and it is the same poppy in every one of them, which
+//  is the only reason eleven bars of this reads as range instead of as noise.
+//
+//  The entry wipe is per APPEARANCE, not per technique: every time a language
+//  arrives anywhere it arrives through its own bristled edge, because a cut
+//  that belongs to no technique is the one cut this film cannot make.
+// ===========================================================================
+// The blackout sits above every scene and below nothing. It is the last thing
+// the 2D half does.
+const blackout = el('div',stage,{position:'absolute',inset:'0',
+  background:'#000',opacity:'0',pointerEvents:'none'});
+
+const DRAW = {t5:drawT5, t6:drawT6, t3:drawT3, t9:drawT9, t7:drawT7, all:drawA};
+
+const F = (x,y,w,h)=>({x,y,w,h});
+const FULL = F(0,0,1080,1920);
+const LEFT = F(0,0,540,1920),   RIGHT = F(540,0,540,1920);
+const TOPH = F(0,0,1080,960),   BOTH  = F(0,960,1080,960);
+const T3RD = [F(0,0,1080,640), F(0,640,1080,640), F(0,1280,1080,640)];
+
+// beat -> what is on screen. Held until the next entry.
+const CUTS = [
+  // --- bars 2-3: THE FIVE, two beats each, stated and gone ---------------
+  [ 4, [['t5',FULL]]],
+  [ 6, [['t6',FULL]]],
+  [ 8, [['t3',FULL]]],
+  [10, [['t9',FULL]]],
+  // T7 is the paint engine and it is teti's own hand, so it gets the beat
+  // that lands on bar 3's downbeat rather than being dealt like the others.
+  [11, [['t7',FULL]]],
+  // --- bars 4-5: PAIRS, cutting on the eighths ---------------------------
+  [12, [['t5',LEFT],  ['t6',RIGHT]]],
+  [14, [['t3',TOPH],  ['t9',BOTH]]],
+  [16, [['t7',LEFT],  ['t3',RIGHT]]],
+  [18, [['t6',TOPH],  ['t5',BOTH]]],
+  // --- bars 6-7: THREES, cutting on the sixteenths -----------------------
+  [20, [['t9',T3RD[0]], ['t5',T3RD[1]], ['t6',T3RD[2]]]],
+  [22, [['t3',T3RD[0]], ['t7',T3RD[1]], ['t9',T3RD[2]]]],
+  [24, [['t6',T3RD[0]], ['t3',T3RD[1]], ['t5',T3RD[2]]]],
+  [26, [['t7',T3RD[0]], ['t9',T3RD[1]], ['t3',T3RD[2]]]],
+  // --- bars 8-9: ALL FIVE. The peak, and the track peaks here too --------
+  [28, [['all',FULL]]],
+  // --- bars 10-11: THE COLLAPSE -----------------------------------------
+  // It comes apart the way it was built, in reverse: five, then three, then
+  // two, then one, then the last language alone holding the frame. The film
+  // has to arrive at the break already quiet or the break is just a gap.
+  [36, [['t3',T3RD[0]], ['t6',T3RD[1]], ['t7',T3RD[2]]]],
+  [38, [['t5',LEFT],  ['t9',RIGHT]]],
+  [40, [['t7',FULL]]],
+  [44, []],
+];
+
+function drawBarrage(t){
+  const b = t / BEAT;
+  let cur = null, curAt = 0, nextAt = 1e9, prev = null, prevAt = 0;
+  for(let i=0;i<CUTS.length;i++){
+    if(b >= CUTS[i][0]){ prev = cur; prevAt = curAt;
+                         cur = CUTS[i][1]; curAt = CUTS[i][0];
+                         nextAt = i+1<CUTS.length ? CUTS[i+1][0] : 48; }
+  }
+  // AND THE OUTGOING TECHNIQUE OUTLIVES THE CUT BY AN EIGHTH.
+  //
+  // This is the rule CLAUDE.md already records from the first build of the back
+  // half, and rewriting the scheduler as a cut list quietly broke it again: an
+  // entry wipe REVEALS the incoming picture over the outgoing one, so hiding
+  // the outgoing on the frame the cut lands means the wipe uncovers bare
+  // parchment. Measured at 100% empty on the first frame of T3 and T7.
+  //
+  // The previous cut is held underneath for the length of the wipe, with the
+  // incoming panels lifted above it — DOM order alone cannot be trusted here,
+  // because which technique is on top depends on which two happen to be cutting.
+  const live = new Set();
+  if(prev && (t - curAt*BEAT) < EIGHTH){
+    const pspan = (curAt - prevAt) * BEAT;
+    const pu = 0.15 + 0.70 * clamp((t - prevAt*BEAT) / pspan, 0, 1);
+    for(const [k, r] of prev){
+      live.add(k);
+      place(k, r.x, r.y, r.w, r.h);
+      PANEL[k].style.zIndex = '1';
+      show(PANEL[k], true);
+      DRAW[k](pu, 1);
+    }
+  }
+  if(cur){
+    // An appearance's progress runs across the whole hold, so a two-beat
+    // appearance plays its technique at twice the speed of a four-beat one.
+    // That is the barrage: the same motion, compressed, is what "faster" means
+    // here — not a different animation with fewer frames in it.
+    const span = (nextAt - curAt) * BEAT;
+    // EVERY APPEARANCE STARTS 15% IN, and that is not a fudge.
+    //
+    // Each technique's own animation begins from nothing: T3's fragments slam
+    // in on a stagger, T7's brush wipe reveals from zero width. Over a whole
+    // bar that opening emptiness is the technique arriving. Over two beats it
+    // is a dead frame — measured at 100% bare ground on the first frame of both
+    // T3 and T7, at the loudest point in the film.
+    //
+    // Starting the internal clock at 0.15 means a language ARRIVES ALREADY
+    // HAPPENING, which is also what a cut should do: the entry wipe uncovers
+    // something in motion rather than an empty page about to have something
+    // put on it.
+    // ...and it stops 15% SHORT, too. The techniques empty out at BOTH ends:
+    // T6's tiles deal themselves in and then back out, so at u=1 there are none
+    // left on screen. Over a bar that tail is the technique leaving. Over two
+    // beats it is another dead frame. The internal clock runs 0.15 -> 0.85, so
+    // a language is only ever seen while it is doing something.
+    const u = 0.15 + 0.70 * clamp((t - curAt*BEAT) / span, 0, 1);
+    const ein = clamp((t - curAt*BEAT) / EIGHTH, 0, 1);
+    for(const [k, r] of cur){
+      live.add(k);
+      place(k, r.x, r.y, r.w, r.h);
+      PANEL[k].style.zIndex = '2';
+      show(PANEL[k], true);
+      DRAW[k](u, ein);
+    }
+  }
+  for(const k in TECH) if(!live.has(k)) show(PANEL[k], false);
+
+  // THE BREAK. One bar, and the picture leaves with the music. It drains to
+  // black rather than cutting, because the four bars after it are Blender
+  // coming up out of black — a cut to black and then a fade up out of it reads
+  // as two events where the film wants one long exhale.
+  const bl = seg(t, BREAK[0], BREAK[1]-SIXTEENTH);
+  blackout.style.opacity = String(bl);
+}
+
+window.renderFrame = function(t){
+
+  // Act I is a rendered frame, not an element tree — nothing to position. The
+  // flower opened in Blender; from here the only thing that moves is paint.
+
+  // --- the bloom -----------------------------------------------------------
+  const span = BLOOM[1]-BLOOM[0];
+  for(const p of [wash,...petals]){
+    const from = BLOOM[0] + p.lag*span;
+    const u = seg(t, from, Math.min(from + p.dur, BLOOM[1]));
+    if(u<=0){ p.node.style.opacity='0'; p.halo.style.opacity='0'; continue; }
+    p.halo.style.clipPath = petalPath(p, u, 1.04);
+    p.halo.style.opacity  = String(p.op*0.28);
+    p.node.style.clipPath = petalPath(p, u, 1);
+    p.node.style.opacity  = String(p.op);
+  }
+
+  // --- the five ----------------------------------------------------------
+  // Everything past the bloom lives here. The bloom's own layers are hidden the
+  // moment the first technique starts, so nothing from bar 10 is still being
+  // composited underneath bar 11.
+  // EVERY SCENE OUTLIVES ITS OWN BAR BY AN EIGHTH.
+  //
+  // Each technique enters through a bristled wipe of its own colour, and a wipe
+  // has to reveal the incoming picture OVER the outgoing one. Cutting the
+  // previous scene at its last frame leaves the wipe uncovering the bare page
+  // instead — so between every pair of techniques the film flashed a frame of
+  // empty parchment, which looked like a missing scene rather than a bug.
+  // Scenes are in DOM order, so the incoming one is already on top.
+  const inFive = t >= STATE[0];
+  act1.style.display = inFive ? 'none' : 'block';
+  bloomLayer.style.display = inFive ? 'none' : 'block';
+  drawBarrage(t);
+
+  // the paint skin rides the bloom's own progress
+  const bp = seg(t, BLOOM[0], BLOOM[0]+span*0.40);
+  skinPlate.style.opacity  = String(0.30*bp);
+  skinBrush.style.opacity  = String(0.62*bp);
+  skinBrush2.style.opacity = String(0.45*bp);
+  skinWeave.style.opacity  = String(0.26*bp);
+
+  // the hot centre — one sixteenth, then gone under the paint
+  const ig = seg(t, IGNITE, IGNITE+SIXTEENTH*0.7);
+  const cr = 34 + 130*easeOut(ig);
+  core.style.left=px(CX-cr); core.style.top=px(CY-cr);
+  core.style.width=px(cr*2); core.style.height=px(cr*2);
+  core.style.opacity = String(ig>0 ? (1-ig)*0.9 : 0);
+
+  // The type and the button are UNDER the paint, and that is the whole
+  // mechanism: the bloom SWALLOWS the question, it does not cross-fade with it.
+  // The first pass faded the type out over half a beat and the result was a
+  // frame of empty cream with a small paint cluster in the corner — the
+  // question had already gone before the paint arrived to take it. Ordering is
+  // by DOM position, so occlusion needs no z-index and no opacity at all.
+};
+
+renderFrame(0);
+</script>

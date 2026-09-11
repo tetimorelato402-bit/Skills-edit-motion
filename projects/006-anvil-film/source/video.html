@@ -1,0 +1,668 @@
+<meta charset="utf-8">
+<title>Anvil — Sit still. Keep up.</title>
+<style>
+  /* Self-hosted, all of it. This container has come back from restarts with an
+     empty /usr/local/share/fonts, and a silent DejaVu fallback would not be
+     caught until the film was assembled. fc-list is a check somebody has to
+     remember to run; an @font-face is not. */
+  @font-face{font-family:'Archivo';src:url('fonts/Archivo.ttf') format('truetype');
+             font-weight:100 900;font-stretch:62% 125%;font-display:block}
+  @font-face{font-family:'Shoulders';src:url('fonts/BigShoulders.ttf') format('truetype');
+             font-weight:100 900;font-display:block}
+  @font-face{font-family:'Bebas';src:url('fonts/BebasNeue.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'Serif';src:url('fonts/InstrumentSerif.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'Redacted';src:url('fonts/Redacted.ttf') format('truetype');font-display:block}
+  @font-face{font-family:'Grotesk';src:url('fonts/inter.woff2') format('woff2');
+             font-weight:100 900;font-display:block}
+  @font-face{font-family:'Mono';src:url('fonts/plexmono.woff2') format('woff2');
+             font-weight:100 700;font-display:block}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:1080px;height:1920px;overflow:hidden;background:#E3DACD}
+  #stage{position:relative;width:1080px;height:1920px;overflow:hidden;
+         background:#E3DACD;isolation:isolate}
+  /* every family forced to load before the first frame — a face used only at
+     second 9 would otherwise still be swapping in when it is screenshotted */
+  #warm{position:absolute;left:-9999px;top:0;opacity:0.01;pointer-events:none}
+</style>
+<div id="stage"></div>
+<div id="warm">
+  <span style="font-family:Archivo;font-weight:900">Aa1</span>
+  <span style="font-family:Shoulders;font-weight:800">Aa1</span>
+  <span style="font-family:Bebas">Aa1</span>
+  <span style="font-family:Serif">Aa1</span>
+  <span style="font-family:Redacted">Aa1</span>
+  <span style="font-family:Grotesk;font-weight:800">Aa1</span>
+  <span style="font-family:Mono;font-weight:500">Aa1</span>
+</div>
+<script>
+// ============================================================================
+// ANVIL — "Sit still. Keep up."   14.0 s, 7 bars at 120 BPM.
+//
+// The ad is a reading test the viewer passes or fails. Text types out and
+// ACCELERATES past readable; everything pulling the eye away is the Anvil app
+// itself. Being distracted by the product is the joke and the sell at once, so
+// the ad carries real product material without ever stopping for a demo.
+//
+// SIX RULES, all load-bearing:
+//
+//  1. The distractions are EDITS, not objects. Jump cuts, flash frames, zoom
+//     punches, stutters, ghosts, a full-frame invert, letterbox snaps. A
+//     drifting shape is decoration; a cut is something a motion editor did on
+//     purpose, and craft is the thing being sold.
+//  2. Nothing obscures the text for longer than a blink. The distraction layer
+//     is built BEFORE the type so it cannot paint over a word, every full-frame
+//     event is capped at two or three frames, and no card may enter SAFE.
+//  3. Every event lands on the 120 BPM grid — nothing off a sixteenth (0.125 s).
+//     Off-grid motion reads as an accident rather than as pressure.
+//  4. The UI is SIMPLIFIED AND ENLARGED, never a screenshot of a whole phone.
+//     A 590 px screen dropped into a 1080 frame is a picture of an app; one row
+//     of it at 3x is the app speaking. Every word on these cards is real app
+//     copy, and the photos are the app's real proof photos — other people, who
+//     actually did the thing. That is what the product is.
+//  5. THE TYPE BREATHES. Size swings page to page (a 92 px ceiling against a
+//     200 px one) and word to word inside a line, so reading it is never a
+//     steady state. At the top of the ramp the letters stop being letters:
+//     the last page turns to REDACTED blocks mid-word. The test failing, shown.
+//  6. The film STOPS. One bar of nothing, total silence, before the payoff, and
+//     it closes on the mark alone with nothing said over it.
+// ============================================================================
+
+// Anvil's palette, sampled off the app (projects/005-anvil/BRIEF.md). RUST is
+// what the app marks a MISS with, so the antagonist here wears the product's
+// own failure state. There is no green and no iOS red anywhere.
+const RUST='#9A3B21', INK='#231C15', GOLD='#9E7C52', CARD='#EEE9DE', BONE='#E3DACD';
+
+const W=1080, H=1920;
+const BPM=120, BEAT=60/BPM, BAR=4*BEAT;        // 0.5, 2.0
+const BARS=7, DUR=BARS*BAR;                    // 14.0 s
+const bt=n=>n*BEAT;
+const F=1/30;                                  // one delivered frame
+
+const stage=document.getElementById('stage');
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,u)=>a+(b-a)*u;
+function bez(x1,y1,x2,y2){
+  const cx=3*x1,bx=3*(x2-x1)-cx,ax=1-cx-bx, cy=3*y1,by=3*(y2-y1)-cy,ay=1-cy-by;
+  const fx=t=>((ax*t+bx)*t+cx)*t, fy=t=>((ay*t+by)*t+cy)*t, dfx=t=>(3*ax*t+2*bx)*t+cx;
+  return x=>{ if(x<=0)return 0; if(x>=1)return 1; let t=x;
+    for(let i=0;i<8;i++){const e=fx(t)-x; if(Math.abs(e)<1e-6)break;
+      const d=dfx(t); if(Math.abs(d)<1e-6)break; t-=e/d;} return fy(t); };
+}
+const easeOut=bez(0.16,1,0.3,1);
+const hash=i=>{const s=Math.sin(i*91.7)*43758.5453; return s-Math.floor(s);};
+
+function el(tag,parent,css,txt){
+  const n=document.createElement(tag);
+  if(css)Object.assign(n.style,css);
+  if(txt!==undefined)n.textContent=txt;
+  (parent||stage).appendChild(n); return n;
+}
+const px=v=>v+'px';
+
+// nothing decorative may enter this rectangle
+const SAFE={x:80, y:700, w:920, h:620};
+
+// ---------------------------------------------------------------- the script
+// Direct, not narrated. Five pages, each a shorter read and a faster one than
+// the last: 16 -> 62 cps is the test. Every page is a list of TOKENS, and a
+// token carries its own scale — the emphasis is set into the sentence rather
+// than applied to it, which is why the size can swing without the line
+// re-flowing or the baseline moving.
+//   k: scale relative to the page size.  s: the characters.
+const GO=3.0;                                   // the test begins
+const T=(s,k)=>({s,k:k===undefined?0.54:k});
+const PAGES=[
+  { t:GO,     cps:16, face:'Archivo', wt:700, wd:112, cap:152, ls:'-0.035em',
+    lines:[[T('You chose ',0.50)],[T('who stayed.',1.00)]] },
+  { t:GO+1.5, cps:24, face:'Mono',    wt:500, wd:100, cap:96,  ls:'-0.02em',
+    lines:[[T('You chose who ',0.62),T('really',1.00)],[T('knows you.',0.86)]] },
+  { t:GO+3.0, cps:34, face:'Serif',   wt:400, wd:100, cap:182, ls:'-0.02em',
+    lines:[[T('Anvil is a ',0.48),T('deal',1.00)],[T('you make in front of them.',0.52)]] },
+  { t:GO+4.5, cps:46, face:'Shoulders',wt:800,wd:100, cap:210, ls:'-0.01em',
+    lines:[[T('One task. ',0.50),T('One place.',0.86)],[T('They see if you ',0.50),T('showed up.',1.00)]] },
+  { t:GO+6.0, cps:62, face:'Archivo', wt:900, wd:78,  cap:150, ls:'-0.045em',
+    lines:[[T("Don't let them meet",0.56)],[T('the version of you that ',0.52),T('quits.',1.00)]] },
+];
+const REDACT = GO+6.75;                         // 9.75 — the words stop being words
+const PAUSE  = 10.5;                            // one bar of nothing
+const PAYOFF = 11.5;
+const CUT    = 13.0;                            // to the mark
+
+// ---------------------------------------------------------------- the readout
+// A reading test with no instruments is just text moving. The HUD makes the
+// film's premise legible in one glance — a speed climbing in characters per
+// second, a page count, a bar filling — and it turns three quarters of the
+// frame from empty into designed. It is also the thing that GIVES UP first:
+// at the redact the readout drops to "-- CPS" and starts dropping frames,
+// which is the film admitting the test broke before the viewer has to.
+const hud=el('div','',{position:'absolute',inset:'0',pointerEvents:'none',opacity:'0'});
+const mono=(sz,col,ls)=>({fontFamily:"'Mono',monospace",fontWeight:'500',
+  fontSize:px(sz),letterSpacing:ls||'0.28em',color:col});
+el('div',hud,Object.assign({position:'absolute',left:'80px',top:'104px'},
+  mono(28,GOLD)),'ANVIL');
+const hudRead=el('div',hud,Object.assign({position:'absolute',right:'80px',top:'104px',
+  textAlign:'right'},mono(28,INK)),'READING TEST');
+el('div',hud,{position:'absolute',left:'80px',top:'160px',width:'920px',height:'2px',
+  background:'rgba(35,28,21,0.16)'});
+el('div',hud,{position:'absolute',left:'80px',top:'1740px',width:'920px',height:'4px',
+  background:'rgba(35,28,21,0.13)'});
+const hudFill=el('div',hud,{position:'absolute',left:'80px',top:'1740px',width:'0px',
+  height:'4px',background:INK});
+const hudPage=el('div',hud,Object.assign({position:'absolute',left:'80px',top:'1784px'},
+  mono(28,'rgba(35,28,21,0.5)')),'00 / 05');
+
+// ---------------------------------------------------------------- distraction
+// Built FIRST: everything decorative sits behind the type in the stacking
+// order, so rule 2 holds by construction rather than by remembering to tune an
+// opacity somewhere.
+const dLayer=el('div','',{position:'absolute',inset:'0',pointerEvents:'none'});
+
+// ---- the app, simplified and enlarged --------------------------------------
+// Nine fragments. Every string is real copy off a real screen, set at three
+// times the size the phone shows it at, so it reads at Reel width instead of
+// being a texture of grey lines. Each is a card that CUTS in — no fades.
+function mkCard(css){
+  return el('div',dLayer,Object.assign({position:'absolute',opacity:'0',
+    borderRadius:'34px',background:CARD,padding:'44px 48px',
+    boxShadow:'0 30px 70px rgba(35,28,21,0.16)',transformOrigin:'50% 50%'},css||{}));
+}
+const eyebrow={fontFamily:"'Mono',monospace",fontWeight:'500',fontSize:'30px',
+  letterSpacing:'0.22em',color:GOLD};
+const headline={fontFamily:"'Serif',serif",fontSize:'86px',lineHeight:'1.02',
+  letterSpacing:'-0.015em',color:INK,marginTop:'18px'};
+
+// 1. A MISS — the app's failure state, and the film's whole colour argument
+const cMiss=mkCard({width:'760px',borderLeft:'12px solid '+RUST,borderRadius:'8px 34px 34px 8px'});
+el('div',cMiss,{fontFamily:"'Mono',monospace",fontWeight:'500',fontSize:'30px',
+  letterSpacing:'0.22em',color:RUST},'A MISS');
+el('div',cMiss,headline,'Joe missed\nthe Dining Hall.').style.whiteSpace='pre';
+const missDots=el('div',cMiss,{display:'flex',gap:'14px',marginTop:'34px'});
+[INK,INK,RUST,RUST,RUST,RUST].forEach(c=>el('div',missDots,
+  {width:'44px',height:'44px',borderRadius:'10px',background:c}));
+
+// 2. a standings row, at 3x — one line of the leaderboard is the whole idea
+const cRow=mkCard({width:'820px',background:INK,padding:'40px 48px',
+  display:'flex',alignItems:'center',gap:'34px'});
+el('div',cRow,{fontFamily:"'Mono',monospace",fontSize:'34px',color:'rgba(227,218,205,0.45)'},'1');
+const rowT=el('div',cRow,{flex:'1'});
+el('div',rowT,{fontFamily:"'Serif',serif",fontSize:'72px',color:BONE,lineHeight:'1'},'Barrios');
+el('div',rowT,{fontFamily:"'Grotesk',sans-serif",fontWeight:'400',fontSize:'34px',
+  color:'rgba(227,218,205,0.55)',marginTop:'10px'},'Gym · no misses');
+const rowN=el('div',cRow,{textAlign:'right'});
+el('div',rowN,{fontFamily:"'Archivo',sans-serif",fontWeight:'800',fontSize:'96px',
+  color:GOLD,lineHeight:'0.9'},'24');
+el('div',rowN,{fontFamily:"'Mono',monospace",fontSize:'28px',letterSpacing:'0.2em',
+  color:'rgba(158,124,82,0.8)',marginTop:'8px'},'WEEKS');
+
+// 3. VERIFIED — the chip, blown up until it is a statement
+const cVer=mkCard({padding:'40px 60px',display:'flex',alignItems:'center',gap:'26px',
+  borderRadius:'999px'});
+el('div',cVer,{width:'34px',height:'34px',background:GOLD,
+  transform:'rotate(45deg)',borderRadius:'4px'});
+el('div',cVer,{fontFamily:"'Mono',monospace",fontWeight:'500',fontSize:'52px',
+  letterSpacing:'0.24em',color:GOLD},'VERIFIED');
+
+// 4. the GPS stamp the app burns into every proof
+const cGps=mkCard({background:'rgba(35,28,21,0.88)',padding:'30px 44px',borderRadius:'14px'});
+el('div',cGps,{fontFamily:"'Mono',monospace",fontWeight:'500',fontSize:'44px',
+  letterSpacing:'0.06em',color:'rgba(238,233,222,0.92)'},'51.5074, 0.1278 · 13:41');
+
+// 5. the button. It says what the app does in four words.
+const cBtn=mkCard({background:INK,padding:'46px 88px',borderRadius:'22px'});
+el('div',cBtn,{fontFamily:"'Mono',monospace",fontWeight:'500',fontSize:'50px',
+  letterSpacing:'0.22em',color:BONE},'POST THE PROOF');
+
+// 6. the sentence the app puts under the photo
+const cRule=mkCard({width:'780px'});
+el('div',cRule,eyebrow,'CHECK-IN');
+el('div',cRule,headline,'Once it is posted\nit cannot be deleted.').style.whiteSpace='pre';
+
+// 7. the week, as dots — the app's own week row at 4x
+const cWeek=mkCard({padding:'46px 52px'});
+el('div',cWeek,eyebrow,'THIS WEEK');
+const wkDots=el('div',cWeek,{display:'flex',gap:'18px',marginTop:'26px'});
+[INK,INK,INK,RUST,INK,GOLD,CARD].forEach(c=>el('div',wkDots,
+  {width:'62px',height:'62px',borderRadius:'14px',background:c,
+   border:c===CARD?'4px solid rgba(35,28,21,0.18)':'none'}));
+
+// 8. the circle, as initials — five people who can see whether you turned up
+const cAva=mkCard({padding:'38px 46px',display:'flex',gap:'-0px',borderRadius:'999px'});
+['B','M','J','S','R'].forEach((L,i)=>{
+  const a=el('div',cAva,{width:'104px',height:'104px',borderRadius:'999px',
+    background:i===2?RUST:(i%2?INK:GOLD),color:BONE,display:'flex',
+    alignItems:'center',justifyContent:'center',fontFamily:"'Serif',serif",
+    fontSize:'54px',marginLeft:i?'-26px':'0',border:'6px solid '+CARD});
+  a.textContent=L;
+});
+
+// 9. the line that is the product's actual thesis
+const cWho=mkCard({width:'800px',background:'transparent',boxShadow:'none',padding:'0'});
+el('div',cWho,{fontFamily:"'Serif',serif",fontSize:'104px',lineHeight:'0.98',
+  letterSpacing:'-0.02em',color:INK},'Who is holding\nyou to it?').style.whiteSpace='pre';
+
+const CARDS=[cMiss,cRow,cVer,cGps,cBtn,cRule,cWeek,cAva,cWho];
+// A pill has no square corner to crop against, so bleeding one off the left
+// edge slices the VERIFIED diamond in half and reads as a mistake rather than
+// as a crop. These two are held to the slots that sit inside the frame.
+const PILL=new Set([cVer,cAva]);
+
+// ---- the proof photos: other people, actually doing the thing ---------------
+// These are the app's own check-in photos. Presented as the app presents them —
+// a plate with a caption bar under it — because a photo with a timestamp and a
+// name under it is a different object from a stock image, and that difference
+// is the product.
+function mkPhoto(src,cap,meta,wd,ht){
+  const p=el('div',dLayer,{position:'absolute',opacity:'0',width:px(wd),
+    borderRadius:'26px',overflow:'hidden',background:CARD,
+    boxShadow:'0 34px 80px rgba(35,28,21,0.24)'});
+  el('img',p,{width:'100%',height:px(ht),objectFit:'cover',display:'block'}).src=src;
+  const bar=el('div',p,{padding:'26px 30px 30px',display:'flex',
+    alignItems:'center',justifyContent:'space-between',gap:'20px'});
+  const lt=el('div',bar,{});
+  el('div',lt,{fontFamily:"'Serif',serif",fontSize:'44px',color:INK,lineHeight:'1'},cap);
+  el('div',lt,{fontFamily:"'Grotesk',sans-serif",fontWeight:'400',fontSize:'26px',
+    color:'rgba(35,28,21,0.55)',marginTop:'10px'},meta);
+  const v=el('div',bar,{display:'flex',alignItems:'center',gap:'12px'});
+  el('div',v,{width:'18px',height:'18px',background:GOLD,transform:'rotate(45deg)',borderRadius:'3px'});
+  el('div',v,{fontFamily:"'Mono',monospace",fontSize:'24px',letterSpacing:'0.2em',
+    color:GOLD},'VERIFIED');
+  return p;
+}
+const PHOTOS=[
+  mkPhoto('ui/proof_a.png','Anvil Gym','7 SEP, 13:41 · WITHIN 40M',560,600),
+  mkPhoto('ui/proof_b.png','Dining Hall','7 SEP, 19:02 · WITHIN 40M',520,560),
+  mkPhoto('ui/proof_c.png','Studio','6 SEP, 07:12 · WITHIN 40M',600,420),
+];
+
+// one photo goes FULL BLEED for three frames at the drop, under an ink scrim so
+// the sentence over it never stops being legible
+const bleed=el('div',dLayer,{position:'absolute',inset:'0',opacity:'0'});
+const bleedImg=el('img',bleed,{width:'100%',height:'100%',objectFit:'cover',display:'block'});
+bleedImg.src='ui/proof_a.png';
+el('div',bleed,{position:'absolute',inset:'0',background:'rgba(233,213,184,0.58)'});
+
+// ---- slots. Eight, all of them clear of SAFE by construction ---------------
+// SAFE runs y 700 to 1320, so a slot lives in the top band or the bottom band
+// and may bleed off the frame edge — bleeding is editorial, drifting is not.
+const SLOTS=[
+  {x:-70,  y: 80,   r:-2},  {x: 470, y: 130,  r: 2},
+  {x:-90,  y:1400,  r: 2},  {x: 400, y:1372,  r:-2},
+  {x: 150, y:  60,  r: 0},  {x: 120, y:1470,  r: 0},
+  {x: 600, y:1420,  r: 3},  {x:-130, y: 210,  r:-3},
+];
+const INSLOTS=SLOTS.filter(s=>s.x>=0);
+
+// ---- full-frame edits -------------------------------------------------------
+const flash=el('div',dLayer,{position:'absolute',inset:'0',opacity:'0'});
+// a hard-edged rust band crossing frame in four frames — a wipe, mid-wipe
+const wipe=el('div',dLayer,{position:'absolute',top:'0',height:px(H),width:'300px',
+  background:RUST,opacity:'0',left:'0'});
+
+// ---- the ghost double, and the split ---------------------------------------
+const ghost=el('div','',{position:'absolute',left:px(SAFE.x),top:px(H*0.47),
+  width:px(SAFE.w),transform:'translateY(-50%)',opacity:'0'});
+const split=el('div','',{position:'absolute',left:px(SAFE.x),top:px(H*0.47),
+  width:px(SAFE.w),transform:'translateY(-50%)',opacity:'0'});
+
+// ---------------------------------------------------------------- the type
+const body=el('div','',{position:'absolute',left:px(SAFE.x),top:px(H*0.47),
+  width:px(SAFE.w),transform:'translateY(-50%)',color:INK,opacity:'0'});
+const LINEN=2, TOKN=3;
+const lineEls=[], tokEls=[];
+for(let i=0;i<LINEN;i++){
+  const ln=el('div',body,{whiteSpace:'pre',minHeight:'1px'});
+  lineEls.push(ln);
+  const ts=[]; for(let j=0;j<TOKN;j++) ts.push(el('span',ln,{whiteSpace:'pre'},''));
+  tokEls.push(ts);
+}
+const caret=el('div','',{position:'absolute',width:'10px',background:RUST,opacity:'0'});
+
+// ---------------------------------------------------------------- get ready
+// The two lines behave differently from each other before a single word of the
+// test has been read: one wide and settled, one squeezed. That is the film's
+// argument stated in one frame of type.
+const ready=el('div','',{position:'absolute',left:px(80),top:px(H*0.47),width:px(920),
+  transform:'translateY(-50%)',fontFamily:"'Archivo',sans-serif",fontWeight:'900',
+  lineHeight:'0.92',letterSpacing:'-0.05em',color:INK});
+const ready1=el('div',ready,{fontSize:'150px',fontVariationSettings:"'wght' 900,'wdth' 118"},'SIT STILL.');
+const ready2=el('div',ready,{fontSize:'196px',fontVariationSettings:"'wght' 900,'wdth' 64",
+  color:RUST},'KEEP UP.');
+const count=el('div','',{position:'absolute',left:'0',top:px(H*0.47),width:px(W),
+  transform:'translateY(-50%)',textAlign:'center',fontFamily:"'Bebas',sans-serif",
+  fontSize:'520px',letterSpacing:'0.02em',lineHeight:'0.8',color:INK,opacity:'0'});
+
+const goCard=el('div','',{position:'absolute',inset:'0',background:INK,display:'none',
+  alignItems:'center',justifyContent:'center'});
+const goWord=el('div',goCard,{fontFamily:"'Archivo',sans-serif",fontWeight:'900',
+  fontSize:'240px',letterSpacing:'-0.05em',color:BONE,lineHeight:'0.88',
+  textAlign:'center',whiteSpace:'pre',fontVariationSettings:"'wght' 900,'wdth' 64"},
+  'KEEP\nUP.');
+
+// ---------------------------------------------------------------- letterbox
+const barT=el('div','',{position:'absolute',left:'0',top:'0',width:px(W),height:'0px',background:INK});
+const barB=el('div','',{position:'absolute',left:'0',bottom:'0',width:px(W),height:'0px',background:INK});
+
+// ---------------------------------------------------------------- the invert
+// A true photographic negative of the whole frame for two frames — the
+// cheapest violent edit there is, and one composite pass rather than a filter,
+// so it is the one full-frame effect this film can afford at the top of the
+// ramp. Differenced against WARM WHITE, not white: bone comes back as a dark
+// warm brown and ink as bone, so the negative is the film's own two colours
+// swapping places. Against pure white the ground inverts to a cold navy, which
+// is a colour that appears nowhere in the product.
+const invert=el('div','',{position:'absolute',inset:'0',background:'#FFE9CF',
+  mixBlendMode:'difference',display:'none'});
+
+// ---------------------------------------------------------------- the mark
+// Logo only. Nothing is said over it — the film has already said it, and a
+// tagline under a wordmark is the sound of not trusting the work. The face is
+// the app's own: Anvil's headers are set in a serif, so the ad closes on the
+// literal mark rather than on an ad's idea of one.
+const endCard=el('div','',{position:'absolute',inset:'0',background:INK,opacity:'0',
+  display:'flex',alignItems:'center',justifyContent:'center'});
+const endMark=el('div',endCard,{fontFamily:"'Serif',serif",fontSize:'250px',
+  letterSpacing:'-0.02em',color:BONE,lineHeight:'1'},'Anvil');
+
+// ---------------------------------------------------------------- fitting
+// Measured once per page, at a nominal 100 px, on a probe that mirrors the real
+// structure exactly — same family, same variation settings, same per-token
+// scales. The page's own ceiling is what produces the swing between pages; the
+// width and height fits are what stop the swing from ever breaking SAFE.
+const FITC=new Map();
+function pageKey(p,red){ return p.t+'|'+red; }
+function measure(p,red){
+  const k=pageKey(p,red);
+  if(FITC.has(k)) return FITC.get(k);
+  const probe=document.createElement('div');
+  Object.assign(probe.style,{position:'absolute',visibility:'hidden',left:'-9999px',
+    top:'0',width:'4000px',fontFamily:"'"+(red?'Redacted':p.face)+"',sans-serif",
+    fontWeight:p.wt,letterSpacing:p.ls,
+    fontVariationSettings:"'wght' "+p.wt+",'wdth' "+p.wd});
+  document.body.appendChild(probe);
+  let widest=0, tall=0;
+  for(const line of p.lines){
+    const ln=document.createElement('div'); ln.style.whiteSpace='pre';
+    let mk=0; const spans=[];
+    for(const tk of line){
+      const sp=document.createElement('span');
+      sp.style.fontSize=(100*tk.k)+'px'; sp.textContent=tk.s;
+      ln.appendChild(sp); spans.push(sp); mk=Math.max(mk,tk.k);
+    }
+    ln.style.lineHeight=(106*mk)+'px';
+    probe.appendChild(ln);
+    // sum the INLINE spans, never the line box. A div is block-level and its
+    // rect is the container's full width, so measuring the line returned 4000
+    // every time and every page fitted to 23 px without erroring.
+    let wl=0; for(const sp of spans) wl+=sp.getBoundingClientRect().width;
+    widest=Math.max(widest, wl);
+    tall+=106*mk;
+  }
+  probe.remove();
+  const size=Math.floor(Math.min(p.cap, 100*SAFE.w/Math.max(1,widest),
+                                        100*SAFE.h/Math.max(1,tall)));
+  const r={size, lh:p.lines.map(line=>Math.max(...line.map(tk=>tk.k))*1.06)};
+  FITC.set(k,r); return r;
+}
+
+// ---------------------------------------------------------------- the edits
+// Every distraction is an EDIT and every one lands on the grid. Density climbs
+// with the type speed, so the film gets harder in both senses at once.
+function beats(from,to,step){ const a=[]; for(let x=from;x<to-1e-6;x+=step) a.push(x); return a; }
+const EDITS=[];
+const push=(t,k,i)=>EDITS.push({t,k,i});
+// the UI cuts in — once a beat, then twice, then on every sixteenth
+beats(GO+0.5, GO+3.0, 1.0 ).forEach((t,i)=>push(t,'card',i));
+beats(GO+3.0, GO+6.0, 0.5 ).forEach((t,i)=>push(t,'card',i+3));
+beats(GO+6.0, PAUSE,  0.25).forEach((t,i)=>push(t,'card',i+9));
+// the proof photos — people, arriving on the bar lines and then faster
+[GO+1.0,GO+2.5,GO+3.5,GO+4.25,GO+5.0,GO+5.75,GO+6.25,GO+6.75,GO+7.25]
+  .forEach((t,i)=>push(t,'photo',i));
+// flash frames
+[GO+2.0,GO+3.5,GO+4.0,GO+5.0,GO+5.25,GO+6.0,GO+6.5,GO+6.75,GO+7.0,GO+7.25]
+  .forEach((t,i)=>push(t,'flash',i));
+// zoom punches and jump cuts, from the halfway point
+[GO+3.0,GO+4.5,GO+5.25,GO+6.25,GO+6.75,GO+7.25].forEach((t,i)=>push(t,'punch',i));
+[GO+4.75,GO+5.75,GO+6.5,GO+7.0,GO+7.375].forEach((t,i)=>push(t,'jump',i));
+// the ghost double and the chromatic split, once past comfortable
+[GO+5.5,GO+6.5,GO+7.125].forEach((t,i)=>push(t,'ghost',i));
+[GO+5.25,GO+6.125,GO+6.875,GO+7.375].forEach((t,i)=>push(t,'split',i));
+// the negative, and the letterbox slam
+[GO+3.75,GO+5.5,GO+7.125].forEach((t,i)=>push(t,'invert',i));
+[GO+5.0,GO+6.0,GO+7.25].forEach((t,i)=>push(t,'bars',i));
+// a wipe crossing frame behind the words
+[GO+3.25,GO+5.375,GO+6.875].forEach((t,i)=>push(t,'wipe',i));
+// the sentence filled with a photograph of somebody keeping their word
+const CLIP=[[GO+4.75,GO+5.0],[GO+6.625,GO+6.75]];
+// the type stutters — it stops for two frames and then catches up
+const STUTTERS=[GO+4.25,GO+5.5,GO+6.375,GO+7.125,GO+7.375];
+// the bleed
+const BLEED=[[GO+6.0,GO+6.0+3*F]];
+
+function activeEdit(kind,t,dur){
+  for(const e of EDITS) if(e.k===kind && t>=e.t && t<e.t+dur) return e;
+  return null;
+}
+const inAny=(t,ranges)=>ranges.some(r=>t>=r[0]&&t<r[1]);
+
+// ============================================================================
+window.renderFrame=function(t){
+  t=Math.max(0,Math.min(DUR-0.0001,t));
+  const live = t<PAUSE;                         // distractions exist only before the stop
+
+  // ---- GET READY --------------------------------------------------------
+  const rOut=t>=1.0?1:0;
+  ready.style.opacity=(easeOut(clamp(t/0.35))*(1-rOut)).toFixed(3);
+  // KEEP UP. arrives squeezed and then squeezes further — the film is already
+  // taking room away from the reader before it has asked them to read anything
+  const sq=easeOut(clamp((t-0.4)/0.5));
+  ready2.style.opacity=sq.toFixed(3);
+  ready2.style.fontVariationSettings="'wght' 900,'wdth' "+lerp(96,64,sq).toFixed(0);
+  // 3 · 2 · 1, one per beat, each a hard cut — no fades in a countdown
+  let cn='';
+  if(t>=1.0 && t<1.5) cn='3'; else if(t>=1.5 && t<2.0) cn='2'; else if(t>=2.0 && t<2.5) cn='1';
+  count.textContent=cn;
+  if(cn){
+    const b0 = t>=2.0?2.0 : t>=1.5?1.5 : 1.0;
+    const u=easeOut(clamp((t-b0)/0.28));
+    count.style.opacity='1';
+    count.style.transform=`translateY(-50%) scale(${lerp(1.22,1,u).toFixed(3)})`;
+    count.style.color = t>=2.0 ? RUST : INK;
+  } else count.style.opacity='0';
+
+  // ---- the last half-second before the test: the instruction, reversed ----
+  if(t>=2.5 && t<GO){
+    goCard.style.display='flex';
+    const u=easeOut(clamp((t-2.5)/(3*F)));
+    goWord.style.transform=`scale(${lerp(1.05,1,u).toFixed(4)})`;
+  } else goCard.style.display='none';
+
+  // ---- the readout -------------------------------------------------------
+  // deterministic flicker: a hashed frame index, never random(), so
+  // re-rendering a range comes back identical to the first pass
+  const fi=Math.round(t/F);
+  if(t<1.0 || t>=PAUSE) hud.style.opacity='0';
+  else if(t>=REDACT)    hud.style.opacity=(hash(fi*3.1)>0.42?'0.9':'0.15');
+  else                  hud.style.opacity='1';
+  {
+    let pi=0, pc=0;
+    for(let i=0;i<PAGES.length;i++) if(t>=PAGES[i].t){ pi=i+1; pc=PAGES[i].cps; }
+    if(t>=REDACT){ hudRead.textContent='-- CPS'; hudRead.style.color=RUST; }
+    else if(t>=GO){ hudRead.textContent=pc+' CPS';
+                    hudRead.style.color = pc>=46 ? RUST : INK; }
+    else { hudRead.textContent='READING TEST'; hudRead.style.color=INK; }
+    hudPage.textContent='0'+Math.max(0,pi)+' / 0'+PAGES.length;
+    const fw=920*clamp((t-GO)/(PAUSE-GO));
+    hudFill.style.width=px(fw.toFixed(1));
+    hudFill.style.background = pc>=46 ? RUST : INK;
+  }
+
+  // ---- which page, and the stutter warp ---------------------------------
+  let page=null;
+  for(const p of PAGES) if(t>=p.t) page=p;
+  const inPayoff=t>=PAYOFF, inPause=t>=PAUSE&&t<PAYOFF;
+
+  // the type freezes for two frames, then catches up — a dropped edit, not lag
+  let tw=t;
+  for(const s of STUTTERS) if(t>=s && t<s+2*F) tw=s;
+
+  // pressure: 0 at GO, 1 at the stop. It narrows the variable faces as the film
+  // runs out of room, which is the same gesture as KEEP UP. and the same as the
+  // reader's own attention closing down.
+  const pr=clamp((t-GO)/(PAUSE-GO));
+
+  let pg=null, start=0, cps=18, red=false;
+  if(inPayoff){
+    pg={t:PAYOFF,cps:13,face:'Archivo',wt:900,wd:96,cap:190,ls:'-0.045em',
+        lines:[[T("Don't ",0.62),T('sit still.',1.00)]]};
+    start=PAYOFF; cps=13;
+  } else if(!inPause && page && t>=GO){
+    pg=page; start=page.t; cps=page.cps;
+    red = t>=REDACT;                            // the words stop being words
+  }
+
+  if(pg){
+    body.style.opacity='1';
+    const fam = red ? 'Redacted' : pg.face;
+    body.style.fontFamily="'"+fam+"',sans-serif";
+    body.style.fontWeight=pg.wt;
+    body.style.letterSpacing=pg.ls;
+    const wd = pg.face==='Archivo' ? lerp(pg.wd, Math.max(62,pg.wd-30), inPayoff?0:pr) : pg.wd;
+    body.style.fontVariationSettings="'wght' "+pg.wt+",'wdth' "+wd.toFixed(0);
+    const m=measure(pg,red), S=m.size;
+    const n=Math.max(0,Math.floor((tw-start)*cps));
+
+    let left=n, lastSpan=null, total=0;
+    for(const line of pg.lines) for(const tk of line) total+=tk.s.length;
+    for(let i=0;i<LINEN;i++){
+      const line=pg.lines[i]||[];
+      lineEls[i].style.lineHeight=px((m.lh[i]||1)*S);
+      for(let j=0;j<TOKN;j++){
+        const tk=line[j], sp=tokEls[i][j];
+        if(!tk){ sp.textContent=''; continue; }
+        sp.style.fontSize=px(Math.round(S*tk.k));
+        const take=Math.max(0,Math.min(tk.s.length,left));
+        sp.textContent=tk.s.slice(0,take);
+        if(take>0) lastSpan=sp;
+        left=Math.max(0,left-tk.s.length);
+      }
+    }
+    const r=(lastSpan||tokEls[0][0]).getBoundingClientRect();
+    caret.style.left=px(r.right+10); caret.style.top=px(r.top+r.height*0.16);
+    caret.style.height=px(Math.max(20,r.height*0.70));
+    caret.style.background = red ? RUST : INK;
+    caret.style.opacity = n<total ? '1' : (Math.floor(t/(BEAT/2))%2?'0':'0.9');
+
+    // the sentence filled with a photograph of somebody who turned up. The
+    // fill is on the block, so it clips across every token at every size.
+    if(live && inAny(t,CLIP)){
+      body.style.backgroundImage='url(ui/fill.png)';
+      body.style.backgroundSize='cover';
+      body.style.backgroundPosition='center 46%';
+      body.style.webkitBackgroundClip='text';
+      body.style.backgroundClip='text';
+      body.style.webkitTextFillColor='transparent';
+    } else {
+      body.style.backgroundImage='none';
+      body.style.webkitBackgroundClip='border-box';
+      body.style.backgroundClip='border-box';
+      body.style.webkitTextFillColor=INK;
+    }
+  } else {
+    body.style.opacity='0';
+    tokEls.forEach(r=>r.forEach(s=>s.textContent=''));
+    // the pause is not an empty frame: the caret stays, blinking, and it is the
+    // only thing in the film that says the turn is still the viewer's
+    if(inPause){
+      caret.style.left=px(W/2-5); caret.style.top=px(H*0.47-60);
+      caret.style.height='120px'; caret.style.background=INK;
+      caret.style.opacity = Math.floor((t-PAUSE)/BEAT)%2 ? '0' : '0.85';
+    } else caret.style.opacity='0';
+  }
+
+  // ---- the app, cutting on the beat -------------------------------------
+  const ce=live?activeEdit('card',t,0.34):null;
+  CARDS.forEach(c=>{ if(c._on){ c.style.opacity='0'; c._on=false; } });
+  if(ce){
+    const c=CARDS[ce.i%CARDS.length];
+    const pool=PILL.has(c)?INSLOTS:SLOTS, s=pool[(ce.i*3+1)%pool.length];
+    c.style.left=px(s.x); c.style.top=px(s.y);
+    // it does not slide in — it lands, with a 3 % settle over two frames
+    const u=easeOut(clamp((t-ce.t)/(3*F)));
+    c.style.transform=`rotate(${s.r}deg) scale(${lerp(1.035,1,u).toFixed(3)})`;
+    c.style.opacity='1'; c._on=true;
+  }
+
+  // ---- the people --------------------------------------------------------
+  const pe=live?activeEdit('photo',t,0.30):null;
+  PHOTOS.forEach(p=>{ if(p._on){ p.style.opacity='0'; p._on=false; } });
+  if(pe){
+    const p=PHOTOS[pe.i%PHOTOS.length], s=SLOTS[(pe.i*5+4)%SLOTS.length];
+    p.style.left=px(s.x); p.style.top=px(s.y);
+    const u=easeOut(clamp((t-pe.t)/(3*F)));
+    p.style.transform=`rotate(${(-s.r).toFixed(1)}deg) scale(${lerp(1.04,1,u).toFixed(3)})`;
+    p.style.opacity='1'; p._on=true;
+  }
+  bleed.style.opacity = (live&&inAny(t,BLEED)) ? '1' : '0';
+
+  // ---- flash frames: two frames of flat colour, never longer -------------
+  const fe=live?activeEdit('flash',t,2*F):null;
+  if(fe){ flash.style.background = fe.i%3===0?INK:RUST;
+          flash.style.opacity = fe.i%3===0?'0.16':'0.24'; }
+  else flash.style.opacity='0';
+
+  // ---- the wipe: a rust band crossing frame in four frames ---------------
+  const we=live?activeEdit('wipe',t,4*F):null;
+  if(we){ const u=clamp((t-we.t)/(4*F));
+          wipe.style.left=px(lerp(-320,W,u)); wipe.style.opacity='1'; }
+  else wipe.style.opacity='0';
+
+  // ---- the ghost double and the chromatic split --------------------------
+  function mirror(node,dx,dy,col,op){
+    node.style.fontFamily=body.style.fontFamily; node.style.fontWeight=body.style.fontWeight;
+    node.style.letterSpacing=body.style.letterSpacing;
+    node.style.fontVariationSettings=body.style.fontVariationSettings;
+    node.style.color=col;
+    node.innerHTML=lineEls.map(ln=>{
+      const h=Array.from(ln.children).map(sp=>
+        '<span style="font-size:'+sp.style.fontSize+'">'+
+        (sp.textContent||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</span>').join('');
+      return '<div style="white-space:pre;line-height:'+ln.style.lineHeight+'">'+(h||'&nbsp;')+'</div>';
+    }).join('');
+    node.style.transform=`translateY(-50%) translate(${dx}px,${dy}px)`;
+    node.style.opacity=op;
+  }
+  const ge=live?activeEdit('ghost',t,2*F):null;
+  if(ge && pg) mirror(ghost, ge.i%2?-16:16, ge.i%2?7:-7, RUST, '0.5');
+  else ghost.style.opacity='0';
+  const se=live?activeEdit('split',t,2*F):null;
+  if(se && pg) mirror(split, se.i%2?9:-9, 0, GOLD, '0.55');
+  else split.style.opacity='0';
+
+  // ---- letterbox: it slams, it does not slide ----------------------------
+  const be=live?activeEdit('bars',t,4*F):null;
+  const bh=be?lerp(150,190,easeOut(clamp((t-be.t)/(4*F)))):0;
+  barT.style.height=px(bh); barB.style.height=px(bh);
+
+  // ---- the negative ------------------------------------------------------
+  const ie=live?activeEdit('invert',t,2*F):null;
+  invert.style.display = ie ? 'block' : 'none';
+
+  // ---- zoom punch and jump cut, on the frame itself ----------------------
+  let sc=1, jx=0, jy=0;
+  const ze=live?activeEdit('punch',t,3*F):null;  if(ze) sc=1.045+0.012*(ze.i%3);
+  const je=live?activeEdit('jump',t,2*F):null;
+  if(je){ jx=(hash(je.i)*2-1)*28; jy=(hash(je.i+5)*2-1)*20; }
+  stage.style.transform = (sc!==1||jx||jy)
+    ? `translate(${jx.toFixed(0)}px,${jy.toFixed(0)}px) scale(${sc.toFixed(3)})` : 'none';
+
+  // ---- the mark: it cuts, and nothing is said over it --------------------
+  endCard.style.opacity = t>=CUT ? '1' : '0';
+  if(t>=CUT){
+    const u=easeOut(clamp((t-CUT)/0.5));
+    endMark.style.transform=`scale(${lerp(0.965,1,u).toFixed(4)})`;
+  }
+  return true;
+};
+window.DUR=DUR; window.BPM=BPM;
+window.renderFrame(0);
+</script>

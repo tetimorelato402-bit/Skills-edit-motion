@@ -1,1 +1,25 @@
 .DS_Store
+__pycache__/
+*.pyc
+
+# the alternate soundtracks regenerate from sound.py in two seconds each
+projects/001-why-motion-editors/sound_*.wav
+
+# the room's guide track regenerates from sound_room.py in a second
+projects/004-the-room/room.wav
+
+# Anvil: the slide PNGs regenerate from screens.html in seconds
+projects/005-anvil/outputs/slides/
+
+# the Anvil film's guide track regenerates from sound.py in a second
+projects/006-anvil-film/anvil.wav
+# 840 PNGs at 1080x1920 — 67 MB that render.py rebuilds in 53 seconds
+projects/006-anvil-film/source/frames/
+projects/006-anvil-film/source/pv/
+
+# a humanise pass is an edit of an uploaded clip, not project work; the tool
+# is the thing worth keeping, the render regenerates in twenty seconds
+tools/outputs/
+
+# graded plate cache: 121 full-res frames, rebuilt from the source in ~35 min
+tools/cache/

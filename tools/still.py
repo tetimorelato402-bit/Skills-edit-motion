@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+"""
+Pull one frame out of a video and finish it as a PHOTOGRAPH.
+
+A frame and a photograph are not the same object. A frame is one sample of a
+moving thing, graded so that the two hundred either side of it also work. A
+photograph only has to work once, so it can be pushed much further — and it has
+to be, because everything a still image has instead of motion (surface, grain,
+the way light spills) is exactly what a codec spends its bitrate throwing away.
+
+The order below is not arbitrary. Anything that models LIGHT — halation,
+bloom, vignette — has to happen in linear, where light actually adds. Anything
+that models PERCEPTION — local contrast, split tone, vibrance, grain — happens
+after the tone curve, where the eye is. Doing halation in sRGB gives you a grey
+smear instead of a glow; doing grain in linear buries it in the shadows.
+
+  grade()        1 linear · 2 halation · 3 bloom · 4 vignette · 5 tone ·
+                 6 structure · 7 split tone · 8 vibrance
+  film_finish()  9 grain · 10 sharpen
+
+The split between the two is not cosmetic. grade() is about the PICTURE and is
+the same for every frame of a sequence; film_finish() is about the PRINT, and
+has to run per output frame or the grain freezes and reads as dirt on the lens.
+flagfilm.py depends on that division.
+
+    python3 tools/still.py IN.mp4 --frame 104 --out photo.png
+"""
+import argparse
+from pathlib import Path
+
+import imageio_ffmpeg
+import numpy as np
+from PIL import Image, ImageFilter
+
+
+# ----------------------------------------------------------------- colour
+def to_linear(x):
+    return np.where(x <= 0.04045, x / 12.92, ((x + 0.055) / 1.055) ** 2.4)
+
+
+def to_srgb(x):
+    x = np.clip(x, 0.0, None)
+    return np.where(x <= 0.0031308, x * 12.92, 1.055 * x ** (1 / 2.4) - 0.055)
+
+
+LUMA = np.array([0.2126, 0.7152, 0.0722], np.float32)
+
+
+def lum(rgb):
+    return rgb @ LUMA
+
+
+def blur(a, radius):
+    """
+    Gaussian blur, done at a reduced size when the radius is large.
+
+    A 140px blur on a 3300px plate is minutes through a straight convolution
+    and visually identical to a 9px blur on a plate an eighth the size — the
+    kernel is far wider than the detail either one can carry.
+    """
+    if radius < 12:
+        return _pil_blur(a, radius)
+    k = int(min(8, max(2, radius / 8)))
+    h, w = a.shape[:2]
+    sm = np.asarray(Image.fromarray(np.clip(a * 255, 0, 255).astype(np.uint8))
+                    .resize((max(1, w // k), max(1, h // k)), Image.BILINEAR)) / 255.0
+    sm = _pil_blur(sm.astype(np.float32), radius / k)
+    return np.asarray(Image.fromarray(np.clip(sm * 255, 0, 255).astype(np.uint8))
+                      .resize((w, h), Image.BILINEAR)).astype(np.float32) / 255.0
+
+
+def _pil_blur(a, radius):
+    mx = max(1e-6, float(a.max()))
+    im = Image.fromarray(np.clip(a / mx * 255, 0, 255).astype(np.uint8))
+    return np.asarray(im.filter(ImageFilter.GaussianBlur(radius))).astype(np.float32) / 255.0 * mx
+
+
+def vignette(lin, strength, cx=0.46, cy=0.44, sx=1.06, sy=1.32, reach=0.86):
+    """Lens falloff, in linear, capped short of black."""
+    H, W = lin.shape[:2]
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+    r = np.sqrt(((xx / W - cx) * sx) ** 2 + ((yy / H - cy) * sy) ** 2)
+    return lin * (1.0 - strength * np.clip(r / reach, 0, 1) ** 2.1)[..., None]
+
+
+# ------------------------------------------------------------------ grade
+def grade(plate, exposure=0.45, white=4.5, halation=0.70, vig=0.40,
+          vibrance=0.26, structure=0.62, dither=0.5, seed=0):
+    """
+    Steps 1-8. Takes uint8 RGB, returns float 0..1, no grain and no sharpen.
+
+    Everything here is a property of the PICTURE, so a sequence can share one
+    call per distinct source frame and move a camera around inside the result.
+
+    DITHER GOES IN FIRST, before anything looks at the values. A very dark
+    plate holds its whole picture in a handful of code values — the aerial
+    shot here lives between 4 and 11 — so lifting it two and a half stops
+    stretches every one of those steps into a visible contour, and the smooth
+    pool of light around the runner comes out as tree rings. Adding sub-LSB
+    noise at the point of quantisation turns the steps back into a gradient.
+    The film grain in film_finish() cannot do this job: by then the banding is
+    already baked into the picture, and grain lies on top of it rather than
+    dissolving it. Dither before the lift, grain after it.
+    """
+    x = plate.astype(np.float32)
+    if dither > 0:
+        r = np.random.default_rng(seed)
+        # TPDF: the sum of two uniforms, which is what actually decorrelates
+        # the error from the signal rather than merely adding noise to it
+        x = x + (r.random(x.shape, np.float32) + r.random(x.shape, np.float32) - 1.0) * dither
+    lin = to_linear(np.clip(x, 0, 255) / 255.0)
+
+    # ----------------------------------------------------------- halation
+    # The single biggest difference between this and a photograph. A bright
+    # source behind fabric does not stop at the fabric: on film it scatters
+    # back off the base and re-exposes the emulsion around it, and it does so
+    # RED, because the anti-halation backing gives up in the long wavelengths
+    # first. That is why every backlit night frame that reads as film has a
+    # warm bleed and every digital one has a hard edge.
+    if halation > 0:
+        L = lum(lin)
+        T = 0.30
+        hot = np.clip((L - T) / (1 - T), 0, None) ** 1.6
+        halo = blur(hot, 10) * 0.55 + blur(hot, 46) * 0.34 + blur(hot, 150) * 0.30
+        lin += halo[..., None] * np.array([1.00, 0.30, 0.13], np.float32) * (0.42 * halation)
+
+    # A separate, neutral, much weaker veil. Halation is the emulsion; this is
+    # the glass. Keeping them apart is what stops the highlight turning into
+    # one orange blob.
+    lin += blur(lin, 90) * 0.055
+
+    # A vignette that reaches 0 is not a lens, it is a hole, and it takes the
+    # wet sand in the bottom corner with it.
+    if vig > 0:
+        lin = vignette(lin, vig)
+
+    # ------------------------------------------------------------- tone
+    lin *= 2.0 ** exposure
+    # extended Reinhard: linear through the midtones, a shoulder at the top,
+    # so the glow gains shape instead of clipping to a white hole
+    lin = lin * (1.0 + lin / (white * white)) / (1.0 + lin)
+    img = np.clip(to_srgb(lin), 0, 1).astype(np.float32)
+
+    # --------------------------------------------------------- structure
+    # Large-radius local contrast. This is what makes the runner's back read
+    # as a body instead of a silhouette, and it leaves the sky alone for free:
+    # a flat area has nothing for a large-radius unsharp to find.
+    Ld = lum(img)
+    detail = Ld - blur(Ld, 130)
+    gain = np.where(Ld > 1e-4, (Ld + detail * structure) / np.maximum(Ld, 1e-4), 1.0)
+    img = np.clip(img * np.clip(gain, 0.55, 1.9)[..., None], 0, 1)
+
+    # -------------------------------------------------------- split tone
+    # Night is already blue, so the shadows only need confirming, not
+    # inventing. The work is in the highlights: pushing them warm is what
+    # separates the flag from the sea instead of letting one blue swamp both.
+    Ld = lum(img)
+    img += ((1.0 - Ld) ** 3.0)[..., None] * np.array([-0.012, 0.004, 0.040], np.float32)
+    img += (Ld ** 1.8)[..., None] * np.array([0.030, 0.008, -0.030], np.float32)
+    img = 0.018 + img * (1.0 - 0.018)        # a film toe: real blacks are never 0
+    img[..., 2] += 0.008 * (1.0 - Ld) ** 2
+    img = np.clip(img, 0, 1)
+
+    # ---------------------------------------------------------- vibrance
+    # Weighted against what is already saturated, so the wet sand and the surf
+    # find colour while the flag's red — which is at the top already — does not
+    # tip over into fluorescent. Kept low: a night sky and a night sea are two
+    # different blues, and pushing the unsaturated end hard merges them into
+    # one, which is the exact opposite of depth.
+    mx = img.max(2); mn = img.min(2)
+    sat = (mx - mn) / np.maximum(mx, 1e-4)
+    grey = lum(img)[..., None]
+    img = np.clip(grey + (img - grey) * (1.0 + vibrance * (1.0 - sat))[..., None], 0, 1)
+    # and separate them again by depth: the darkest blue goes deeper and
+    # slightly greener, which is what open water at night actually looks like
+    d = (1.0 - lum(img)) ** 2.4
+    img[..., 0] -= 0.020 * d
+    img[..., 2] -= 0.014 * d
+    return np.clip(img, 0, 1)
+
+
+def film_finish(img, seed=11, grain=1.0, sharpen=62, chroma=0.0):
+    """
+    Steps 9-10, the PRINT rather than the picture — so this runs per output
+    frame. Grain weighted to the midtones, because that is where silver halide
+    actually clumps; uniform noise reads as sensor noise, which is the opposite
+    of the thing being aimed at. Blurred slightly, because a grain has a size.
+
+    CHROMA GRAIN IS OFF BY DEFAULT, and that is a delivery decision as much as
+    an aesthetic one. Grain in a print is essentially luminance; independent
+    per-channel noise is the one part of this that reads as digital sensor
+    noise rather than film. It is also the single most expensive thing in the
+    frame to compress — chroma planes are subsampled, so noise in them is
+    fought by the encoder at the direct cost of bits that the dark two thirds
+    of this picture badly need. Measured on the 30s cut, the delivered file
+    differs from the master by 3.46/255 overall and 2.60 in the shadows; the
+    plate cache, by comparison, costs 0.68. The encode is the bottleneck, so
+    anything that buys bitrate back is worth more than it looks.
+    """
+    H, W = img.shape[:2]
+    rng = np.random.default_rng(seed)
+    gr = _pil_blur(rng.standard_normal((H, W)).astype(np.float32) + 4.0, 0.8)
+    gr = (gr - gr.mean()) / (gr.std() + 1e-9)
+    Ld = lum(img)
+    img = img + (gr * (4.0 * Ld * (1.0 - Ld)) * 0.030 * grain)[..., None]
+    if chroma > 0:
+        img = img + rng.standard_normal((H, W, 3)).astype(np.float32) * 0.006 * chroma
+    out = Image.fromarray((np.clip(img, 0, 1) * 255).astype(np.uint8))
+    if sharpen:
+        out = out.filter(ImageFilter.UnsharpMask(radius=1.6, percent=sharpen, threshold=3))
+    return out
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("src")
+    ap.add_argument("--frame", type=int, default=0)
+    ap.add_argument("--out", required=True)
+    ap.add_argument("--ratio", default="3:2", help="output aspect, or 'source'")
+    ap.add_argument("--halation", type=float, default=0.70)
+    ap.add_argument("--grain", type=float, default=1.0)
+    ap.add_argument("--exposure", type=float, default=0.45, help="stops")
+    ap.add_argument("--white", type=float, default=4.5,
+                    help="the input level that maps to white; lower clips sooner")
+    ap.add_argument("--seed", type=int, default=11)
+    args = ap.parse_args()
+
+    plate = read_frame(args.src, args.frame)
+    h, w = plate.shape[:2]
+    print(f"  frame {args.frame} of {w}x{h}", flush=True)
+
+    # Trimmed from BOTH edges, not just the top. The flag's top corner and the
+    # runner's trailing foot are the two things closest to leaving the frame,
+    # so taking the whole trim off one side puts one of them against the edge.
+    if args.ratio != "source":
+        rw, rh = (float(v) for v in args.ratio.split(":"))
+        want_h = int(round(w * rh / rw))
+        if want_h < h:
+            top = int((h - want_h) * 0.54)
+            plate = plate[top:top + want_h]
+        else:
+            want_w = int(round(h * rw / rh))
+            cut = (w - int(round(h * rw / rh))) // 2
+            plate = plate[:, cut:cut + want_w]
+    print(f"  crop  {plate.shape[1]}x{plate.shape[0]}"
+          f"  ({plate.shape[1] / plate.shape[0]:.3f}:1)", flush=True)
+
+    img = grade(plate, exposure=args.exposure, white=args.white, halation=args.halation)
+    out = film_finish(img, seed=args.seed, grain=args.grain)
+
+    p = Path(args.out); p.parent.mkdir(parents=True, exist_ok=True)
+    out.save(p, quality=97, subsampling=0)
+    a = np.asarray(out).astype(np.float32)
+    print(f"  levels  black {np.percentile(a, 0.5):.0f}  median {np.median(a):.0f}  "
+          f"white {np.percentile(a, 99.8):.0f}", flush=True)
+    print(f"  -> {p}  {out.size[0]}x{out.size[1]}")
+
+
+def read_frame(src, index):
+    g = imageio_ffmpeg.read_frames(src)
+    info = g.__next__()
+    w, h = info["size"]
+    for i, raw in enumerate(g):
+        if i == index:
+            return np.frombuffer(raw, np.uint8).reshape(h, w, 3).copy()
+    raise SystemExit(f"frame {index} is past the end of {src}")
+
+
+if __name__ == "__main__":
+    main()
