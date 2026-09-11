@@ -52,10 +52,11 @@ This is your shortcut to great interfaces. A shortcut to stand out in a sea of s
 - **[pick-ui-library](./.claude/skills/pick-ui-library/SKILL.md)** — Have your agent pick the right library for the task based on libraries I use and trust, instead of letting AI hand-roll a toast component or install an abandoned package.
 - **[prototype](./.claude/skills/prototype/SKILL.md)** — Build multiple different versions of a UI piece you describe and go through them using a switcher.
 - **[ask-sonner](./.claude/skills/ask-sonner/SKILL.md)** — Your guide to working with [Sonner](https://sonner.emilkowal.ski), my toast library. Contains setup, styling, recipes, and fixes for the most common issues.
+- **[motion-polish-pitch](./.claude/skills/motion-polish-pitch/SKILL.md)** — Turn any live URL into a sellable motion-polish pitch: record the site, inventory and grade its motion against the standards above, inject a drop-in `polish.css`, render a before/after clip of the prospect's own site, and write the DM and offer. Added in this fork; ships with the Playwright scripts it needs.
 
 ## Layout in this repo
 
-The skills live in `.claude/skills/`, which is where Claude Code discovers project skills — clone or open this repo and all twelve load automatically, invocable by name (`/animate`, `/review-animations`, …). Three of them — `pick-ui-library`, `prototype`, and `review-animations` — set `disable-model-invocation`, so they run only when you invoke them explicitly; the other nine can also trigger on their own from their descriptions.
+The skills live in `.claude/skills/`, which is where Claude Code discovers project skills — clone or open this repo and all thirteen load automatically, invocable by name (`/animate`, `/review-animations`, …). Three of them — `pick-ui-library`, `prototype`, and `review-animations` — set `disable-model-invocation`, so they run only when you invoke them explicitly; the other ten can also trigger on their own from their descriptions.
 
 ```
 .claude/skills/
@@ -67,6 +68,7 @@ The skills live in `.claude/skills/`, which is where Claude Code discovers proje
 ├── emil-design-eng/                SKILL.md
 ├── find-animation-opportunities/   SKILL.md
 ├── improve-animations/             SKILL.md, AUDIT.md, PLAN-TEMPLATE.md
+├── motion-polish-pitch/            SKILL.md, PITCH.md, POLISH-LAYER.md, scripts/
 ├── pick-ui-library/                SKILL.md
 ├── prototype/                      SKILL.md, PICKER.md
 ├── review-animations/              SKILL.md, STANDARDS.md
@@ -75,4 +77,4 @@ The skills live in `.claude/skills/`, which is where Claude Code discovers proje
 
 `skills-main.zip` is the original archive these were extracted from, kept as the source asset.
 
-Skills, README, and LICENSE are from [emilkowalski/skills](https://github.com/emilkowalski/skills); see `LICENSE`.
+The twelve original skills, this README's upstream text, and LICENSE are from [emilkowalski/skills](https://github.com/emilkowalski/skills); see `LICENSE`. `motion-polish-pitch` is new in this fork and builds on `review-animations/STANDARDS.md` and `improve-animations/AUDIT.md`; it needs Node 18+ with Playwright and Chromium (`npm i -g playwright && npx playwright install chromium`).
