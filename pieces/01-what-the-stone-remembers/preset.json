@@ -1,27 +1,34 @@
 {
-  "_doc": "Piece 1 overrides. Only what differs from pipeline/presets/default.json. Re-run research before changing the feel; do not hand-tune per render.",
-  "duration": 12.0,
-  "reveal_at": 7.5,
+  "_doc": "Piece 1 overrides. Only what differs from the base. The cue is a band lift in a ballad, not a hit, so it builds on reveal-silence and re-enables a slow crack.",
+  "base": "reveal-silence",
+  "duration": 25.0,
+  "reveal_at": 20.133333,
   "seed": 101,
   "motion": {
-    "_doc": "Strata read as time, so the push is slow and nearly straight down into the deep layer: small horizontal drift, slightly more vertical.",
-    "zoom_end": 1.12,
-    "drift_x": -12,
-    "drift_y": 28,
+    "_doc": "Strata read as time, so the push is slow and nearly straight down into the deep layer: small horizontal drift, slightly more vertical. Slower zoom over 25 s so the stone breathes rather than dives.",
+    "zoom_end": 1.10,
+    "drift_x": -10,
+    "drift_y": 30,
     "parallax": 0.1
   },
   "vfx": {
     "light": {
-      "_doc": "Warm raking light, as if the sun found the imprint through the crack.",
+      "_doc": "Warm raking light, as if the sun found the imprint through the crack. Hard on-frame step at the lift, then a slow rise the length of the phrase.",
       "color": [1.0, 0.84, 0.58],
-      "hit": 0.5,
-      "attack": 0.3,
+      "hit": 0.4,
+      "attack": 0.6,
       "decay": 3.0,
-      "sustain": 0.75
+      "sustain": 0.8
     },
     "crack": {
+      "_doc": "Re-enabled from the silence base, but slow: the fracture takes most of a bar to reach the doorway.",
+      "enabled": true,
       "from_edge": "top",
-      "draw": 0.35
-    }
+      "draw": 0.9,
+      "darkness": 0.7,
+      "glow_strength": 0.5
+    },
+    "grain": {"base": 0.02, "spike": 0.02, "spike_length": 0.6},
+    "tremor": {"lead": 0.8, "amount": 0.02}
   }
 }

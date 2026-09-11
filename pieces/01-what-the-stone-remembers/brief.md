@@ -1,6 +1,6 @@
 # Piece 1: "What the Stone Remembers"
 
-**Status:** song chosen (step 2 in progress). Waiting on the audio file to lock the cue timestamp.
+**Status:** cue locked (step 2 done), motif locked: doorway. Step 3 (base still) in progress.
 
 ## Concept (step 1, locked)
 
@@ -18,8 +18,8 @@ Sedimentary rock is compressed time: every band was once a surface, then got bur
 
 ## Open decisions
 
-- Motif: doorway (a threshold you once passed through) is the current lead because it composes cleanly as a void in a band and generators render it reliably. Hand and face remain options. Decide before step 3.
-- Cue timestamp: needs the audio file, see step 2 record below.
+- Motif: doorway, confirmed by Vanessa.
+- Cue: locked, see step 2 record below.
 
 ## Step 2 record
 
@@ -38,8 +38,19 @@ Sedimentary rock is compressed time: every band was once a surface, then got bur
   python3 pipeline/cue.py pieces/01-what-the-stone-remembers/audio/storms.wav --snap <chosen seconds>
   ```
   The ranked list will surface the lifts (the "step" column shows the level change); the exact frame for a lyric cue still comes from listening, then `--snap`.
-- `cue_time` (snapped): _pending the file_
-- Cue frame at 30 fps: _pending the file_
+- **Window chosen by Vanessa:** 25 seconds of the song starting at 1:08 (68.0 s to 93.0 s). The piece is 25 s long.
+- **Cue analysis** (`cue.py --start 68 --end 93`): the window has no drop, the candidates fall on bar lines. The strongest full-band lift, where bass, mids and highs all step up together (about +9.7 dB over the previous quarter second), is at 88.12 s. It is late enough in the window that the first viewing settles before the reveal, and leaves about 4.9 s of lit imprint before the end.
+- `cue_time` (snapped): **88.133333 s** (song frame 2644 at 30 fps, 9.3 ms from the raw detection)
+- `reveal_at` in the piece: **20.133333 s** = piece frame **604**. Song start offset = 68.0 s exactly.
+- Audio file in use: `audio/storms.mp3` (Storms, 2015 Remaster, 5:30.8, git-ignored).
+
+## Step 3 record
+
+- OpenArt connection confirmed live before generating (Pro plan).
+- Generation: GPT Image 2.5 Sunburst, text2image, 9:16, 2k tier, quality high, 2 images, historyId `g4c4bmpOfmRQdViogb8u`, output 1296x2304 png.
+- Prompt used: the PROMPTS.md scaffold with material "banded sedimentary stone", motif "simple arched doorway" in a wide dark-umber stratum, lower third, slightly right of centre, about one sixth of the frame width, same colour and value as the band, no cracks and no highlights on the imprint yet.
+- The sandbox cannot download from `cdn.openart.ai` (egress policy), so the chosen still is downloaded from the OpenArt result card by Vanessa and uploaded, then saved as `base.png`.
+- Dry run of the full 25 s cut with the real song on the synthetic stone: `verify.py` reports the reveal on frame 604, delta 0. The timing is proven before the real still is in.
 
 ## Files
 

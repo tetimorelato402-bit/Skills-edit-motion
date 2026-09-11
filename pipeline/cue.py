@@ -97,6 +97,8 @@ def main() -> None:
     ap.add_argument("--top", type=int, default=8)
     ap.add_argument("--snap", type=float, default=None, help="snap this timestamp (s) to the nearest frame and exit")
     ap.add_argument("--sr", type=int, default=22050)
+    ap.add_argument("--start", type=float, default=0.0, help="only analyse from this song time (s)")
+    ap.add_argument("--end", type=float, default=None, help="only analyse up to this song time (s)")
     args = ap.parse_args()
 
     if args.snap is not None:
@@ -106,18 +108,22 @@ def main() -> None:
         print(f"put this in the piece preset:  \"cue_time\": {t:.6f}")
         return
 
-    x = decode_audio_mono(args.audio, sr=args.sr)
+    span = None if args.end is None else max(0.0, args.end - args.start)
+    x = decode_audio_mono(args.audio, sr=args.sr, start=args.start, duration=span)
     dur = len(x) / args.sr
-    print(f"{args.audio}: {dur:.2f}s, analysing at {args.sr} Hz, piece fps {args.fps:g}\n")
+    win = f" (window {args.start:.2f}s to {args.start + dur:.2f}s)" if args.start or args.end else ""
+    print(f"{args.audio}: {dur:.2f}s analysed{win} at {args.sr} Hz, piece fps {args.fps:g}\n")
 
     cands = find_candidates(x, args.sr, top=args.top)
+    for c in cands:
+        c["time"] += args.start
     print(f"{'#':>2}  {'time':>9}  {'frame':>6}  {'before':>7}  {'after':>7}  {'step':>6}  kind")
     for k, c in enumerate(cands, 1):
         n = seconds_to_frame(c["time"], args.fps)
         print(f"{k:>2}  {c['time']:>8.3f}s  {n:>6}  {c['before_db']:>6.1f}dB  {c['after_db']:>6.1f}dB  "
               f"{c['after_db']-c['before_db']:>+5.1f}  {c['kind']}")
 
-    sil = find_silences(x, args.sr)
+    sil = [(a + args.start, b + args.start) for a, b in find_silences(x, args.sr)]
     if sil:
         print("\nsilences (>= 0.3s): a reveal can also land on the END of one")
         for a, b in sil[:10]:

@@ -49,7 +49,10 @@ def first_jump(series: np.ndarray, baseline_frames: int, min_delta: float) -> in
     return None
 
 
-def audio_jump_frame(path: str, fps: float, hop_ms: float = 5.0) -> int | None:
+def audio_jump_frame(path: str, fps: float, hop_ms: float = 5.0, skip_s: float = 0.5) -> int | None:
+    """Frame of the strongest energy step in the cut's audio. The first
+    `skip_s` seconds are ignored: a cut that starts mid-song begins with a
+    hard edge that is the trim, not a musical event."""
     x = decode_audio_mono(path, sr=22050)
     if len(x) == 0:
         return None
@@ -62,7 +65,9 @@ def audio_jump_frame(path: str, fps: float, hop_ms: float = 5.0) -> int | None:
     if len(db) <= 2 * w:
         return None
     csum = np.concatenate([[0.0], np.cumsum(db)])
-    idx = np.arange(w, len(db) - w)
+    idx = np.arange(max(w, int(skip_s / (hop / sr))), len(db) - w)
+    if len(idx) == 0:
+        return None
     contrast = (csum[idx + w] - csum[idx]) / w - (csum[idx] - csum[idx - w]) / w
     i = int(idx[int(np.argmax(contrast))])
     lo, hi = max(1, i - w), min(len(db) - 1, i + w)

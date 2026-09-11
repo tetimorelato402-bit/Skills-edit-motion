@@ -44,8 +44,8 @@ This timestamp is the target for every later step.
 1. `openart_account_get` to confirm the connection.
 2. `openart_model_list`, then `openart_model_form_get` for a text2image model suited to photoreal macro texture (avoid anime-leaning models for this project).
 3. Write the prompt with the hidden detail composed in from the start: name the motif, its position in the frame (which stratum), and that it is rendered in nearly the same color as the surrounding rock. Ask for no text, no people, no logos. Use `.claude/skills/stone-memory/PROMPTS.md` as the prompt scaffold.
-4. Generate a small batch, pick the still where the detail is invisible at a glance and clear when pointed at. Save it as `pieces/<piece>/base.png`.
-5. Make `pieces/<piece>/mask.png`: white where the hidden shape is, black elsewhere, same size as the still. Paint it from the still (an image editing pass via `openart_generate_image` image2image with an instruction to output only a white silhouette on black is acceptable, then threshold it), or trace it by hand. For a quick preview `render.py --region cx,cy,rx,ry` works without a mask.
+4. Generate a small batch, pick the still where the detail is invisible at a glance and clear when pointed at. Save it as `pieces/<piece>/base.png`. Note: the OpenArt CDN (`cdn.openart.ai`) is blocked by egress policy in the Claude Code web sandbox, so the bytes cannot be downloaded there. Show the result card with `openart_creation_show`, ask Vanessa to download the chosen still and upload it into the session, then save it.
+5. Make `pieces/<piece>/mask.png` with `python3 pipeline/mask.py --image base.png --shape doorway --cx .. --cy .. --w .. --h .. --out mask.png`. It also writes `mask-overlay.png`; look at it and adjust the numbers until the orange shape sits exactly on the imprint. For a quick preview `render.py --region cx,cy,rx,ry` works without a mask.
 6. Lock the still. Everything downstream references this file and nothing else.
 
 ## Step 4 and 5: motion pass and VFX layer
