@@ -4,6 +4,9 @@
 
 # Skills For Designers and Engineers
 
+> **This repo also hosts the "Stone Memory" motion-art project.** `CLAUDE.md` holds the project brief and standing instructions, `pipeline/` holds the frame-accurate render tooling, `pieces/` holds each piece, and `/stone-memory` (`.claude/skills/stone-memory/`) walks the whole workflow. Run `bash pipeline/install.sh` then `bash pipeline/test.sh` to check the chain. The design skills below still apply to any UI work.
+
+
 [![skills.sh](https://skills.sh/b/emilkowalski/skills)](https://skills.sh/emilkowalski/skills)
 
 For designers and engineers to help them build better user interfaces.

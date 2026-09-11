@@ -1,0 +1,27 @@
+{
+  "_doc": "Piece 1 overrides. Only what differs from pipeline/presets/default.json. Re-run research before changing the feel; do not hand-tune per render.",
+  "duration": 12.0,
+  "reveal_at": 7.5,
+  "seed": 101,
+  "motion": {
+    "_doc": "Strata read as time, so the push is slow and nearly straight down into the deep layer: small horizontal drift, slightly more vertical.",
+    "zoom_end": 1.12,
+    "drift_x": -12,
+    "drift_y": 28,
+    "parallax": 0.1
+  },
+  "vfx": {
+    "light": {
+      "_doc": "Warm raking light, as if the sun found the imprint through the crack.",
+      "color": [1.0, 0.84, 0.58],
+      "hit": 0.5,
+      "attack": 0.3,
+      "decay": 3.0,
+      "sustain": 0.75
+    },
+    "crack": {
+      "from_edge": "top",
+      "draw": 0.35
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "_doc": "Reusable defaults for every piece. Piece presets layer on top of this file; never hand-edit values here for one piece.",
+  "fps": 30,
+  "size": "1080x1920",
+  "duration": 12.0,
+  "reveal_at": 7.0,
+  "seed": 7,
+  "motion": {
+    "_doc": "overscan: how much larger than the frame the source is prepared, so push and drift never expose an edge. zoom eases from zoom_start to zoom_end across the whole piece (slow push). drift_* is total pan in px across the piece. wobble is a barely visible breathing so a still never feels frozen. parallax: 0..1, how much less the buried layer moves than the surface.",
+    "overscan": 1.25,
+    "zoom_start": 1.0,
+    "zoom_end": 1.14,
+    "drift_x": -24,
+    "drift_y": 10,
+    "wobble_px": 1.5,
+    "wobble_hz": 0.08,
+    "parallax": 0.08
+  },
+  "vfx": {
+    "_doc": "All times are seconds relative to the cue frame. Negative = before the cue.",
+    "light": {
+      "_doc": "hit: intensity on the cue frame itself (hard step so the reveal is on-frame). attack: seconds to reach full. decay: seconds to settle to sustain. color: linear RGB 0..1 of the light. strength: how hard the light lifts the shape. halo: soft spill around the shape.",
+      "hit": 0.45,
+      "attack": 0.25,
+      "decay": 2.5,
+      "sustain": 0.7,
+      "strength": 0.85,
+      "color": [1.0, 0.86, 0.62],
+      "feather_px": 6,
+      "halo_px": 60,
+      "halo_strength": 0.22
+    },
+    "crack": {
+      "_doc": "A jagged fracture from from_edge to the centroid of the hidden shape, drawn over `draw` seconds starting on the cue frame.",
+      "enabled": true,
+      "from_edge": "top",
+      "segments": 18,
+      "jitter": 0.04,
+      "draw": 0.3,
+      "width_px": 3,
+      "glow_px": 14,
+      "darkness": 0.85,
+      "glow_strength": 0.6
+    },
+    "chromatic": {
+      "_doc": "RGB channel split in px on the cue frame, easing back to 0 over `length` seconds.",
+      "px": 6,
+      "length": 0.4
+    },
+    "grain": {
+      "_doc": "Film grain as a fraction of full scale. base runs the whole piece; spike is added on the cue and fades over spike_length.",
+      "base": 0.018,
+      "spike": 0.05,
+      "spike_length": 0.5
+    },
+    "tremor": {
+      "_doc": "Anticipation: extra grain flicker growing over `lead` seconds before the cue.",
+      "lead": 0.6,
+      "amount": 0.03
+    },
+    "flash": {
+      "_doc": "Whole-frame lift on the cue, fading over length. Keep tiny: the light on the shape should carry the reveal, not a white flash.",
+      "amount": 0.08,
+      "length": 0.18
+    }
+  }
+}

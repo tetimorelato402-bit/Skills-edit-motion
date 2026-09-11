@@ -1,0 +1,11 @@
+{
+  "_doc": "Variant for a cue that is a moment of SILENCE rather than a drop: no crack, no chromatic hit, light rises slowly out of nothing so the stillness carries it.",
+  "vfx": {
+    "light": {"hit": 0.2, "attack": 0.9, "decay": 3.0, "sustain": 0.8, "halo_strength": 0.3},
+    "crack": {"enabled": false},
+    "chromatic": {"px": 0, "length": 0},
+    "grain": {"base": 0.02, "spike": 0.0, "spike_length": 0},
+    "tremor": {"lead": 0, "amount": 0},
+    "flash": {"amount": 0.0, "length": 0}
+  }
+}
