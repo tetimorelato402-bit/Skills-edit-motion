@@ -2,3 +2,4 @@
 pipeline/test-assets/
 pieces/*/out/
 __pycache__/
+pieces/*/audio/
