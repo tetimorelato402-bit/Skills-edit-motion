@@ -1,6 +1,6 @@
 # Piece 1: "What the Stone Remembers"
 
-**Status:** cue locked (step 2 done), motif locked: doorway. Step 3 (base still) in progress.
+**Status:** still locked (step 3 done). Steps 4 to 6 rendering, step 7 caption pending the final cut.
 
 ## Concept (step 1, locked)
 
@@ -49,7 +49,9 @@ Sedimentary rock is compressed time: every band was once a surface, then got bur
 - OpenArt connection confirmed live before generating (Pro plan).
 - Generation: GPT Image 2.5 Sunburst, text2image, 9:16, 2k tier, quality high, 2 images, historyId `g4c4bmpOfmRQdViogb8u`, output 1296x2304 png.
 - Prompt used: the PROMPTS.md scaffold with material "banded sedimentary stone", motif "simple arched doorway" in a wide dark-umber stratum, lower third, slightly right of centre, about one sixth of the frame width, same colour and value as the band, no cracks and no highlights on the imprint yet.
-- The sandbox cannot download from `cdn.openart.ai` (egress policy), so the chosen still is downloaded from the OpenArt result card by Vanessa and uploaded, then saved as `base.png`.
+- The sandbox cannot download from `cdn.openart.ai` (egress policy), so Vanessa downloaded the chosen still from the result card and uploaded it. Saved as `base.png` (1296x2304). **Locked.**
+- What is in it: travertine-like banded stone, ochre, bone, iron-red and umber strata. The doorway imprint sits in the wide dark-umber band in the lower third, slightly right of centre, as a faint arched frame with a darker inner void. Invisible at a glance, obvious once seen.
+- Mask: `python3 pipeline/mask.py --image base.png --shape doorway --cx 0.654 --cy 0.655 --w 0.177 --h 0.138 --feather 3 --out mask.png`, checked against the still with the outline overlay. Crack enters from the top edge and lands on the doorway centroid.
 - Dry run of the full 25 s cut with the real song on the synthetic stone: `verify.py` reports the reveal on frame 604, delta 0. The timing is proven before the real still is in.
 
 ## Files
