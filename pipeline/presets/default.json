@@ -19,12 +19,14 @@
   "vfx": {
     "_doc": "All times are seconds relative to the cue frame. Negative = before the cue.",
     "light": {
-      "_doc": "hit: intensity on the cue frame itself (hard step so the reveal is on-frame). attack: seconds to reach full. decay: seconds to settle to sustain. color: linear RGB 0..1 of the light. strength: how hard the light lifts the shape. halo: soft spill around the shape.",
+      "_doc": "hit: intensity on the cue frame itself (hard step so the reveal is on-frame). attack: seconds to reach full. decay: seconds to settle to sustain. color: linear RGB 0..1 of the light. strength: overall amount. gain: how much the stone's own texture is multiplied up at full strength (keeps grain). tint: how much of the light colour is added on top. halo: soft spill around the shape.",
       "hit": 0.45,
       "attack": 0.25,
       "decay": 2.5,
       "sustain": 0.7,
-      "strength": 0.85,
+      "strength": 0.7,
+      "gain": 1.6,
+      "tint": 0.22,
       "color": [1.0, 0.86, 0.62],
       "feather_px": 6,
       "halo_px": 60,
@@ -37,7 +39,7 @@
       "segments": 18,
       "jitter": 0.04,
       "draw": 0.3,
-      "width_px": 3,
+      "width_px": 5,
       "glow_px": 14,
       "darkness": 0.85,
       "glow_strength": 0.6

@@ -1,7 +1,13 @@
-# Caption (step 7, written last)
+# Caption (step 7)
 
-Not written yet. The caption is written only after the final cut exists, as one true sentence tied to what is on screen.
+Written after watching the cut. One sentence, tied to what is on screen (the strata, the buried doorway, the crack, the light), resting on a real fact: sedimentary rock is compressed time, each band a buried era.
 
-Fact it must rest on: sedimentary rock is compressed time, each layer a physical record of a different era; memory is buried the same way and is exposed again by a trigger.
+**Shipped line:**
 
-Draft candidates are allowed here before the cut, but the shipped line is chosen while watching `out/final.mp4`.
+> Layered stone is time under pressure, each band an era buried by the next, and what was pressed into a deep layer never leaves: it waits for a crack, and for light to find it.
+
+Alternate (shorter, for platforms with tight limits):
+
+> Sedimentary rock is buried time. What was pressed into it never leaves; it waits for a crack and a little light.
+
+Rules kept: no em dashes, no invented mysticism, no campaign language. If the caption goes on the video itself, composite it in post as a text layer; never regenerate the still with text.

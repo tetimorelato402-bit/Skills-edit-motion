@@ -1,6 +1,6 @@
 # Piece 1: "What the Stone Remembers"
 
-**Status:** still locked (step 3 done). Steps 4 to 6 rendering, step 7 caption pending the final cut.
+**Status:** cut rendered and verified (steps 4 to 6 done), caption written (step 7). Ready for Vanessa's review.
 
 ## Concept (step 1, locked)
 
@@ -53,6 +53,13 @@ Sedimentary rock is compressed time: every band was once a surface, then got bur
 - What is in it: travertine-like banded stone, ochre, bone, iron-red and umber strata. The doorway imprint sits in the wide dark-umber band in the lower third, slightly right of centre, as a faint arched frame with a darker inner void. Invisible at a glance, obvious once seen.
 - Mask: `python3 pipeline/mask.py --image base.png --shape doorway --cx 0.654 --cy 0.655 --w 0.177 --h 0.138 --feather 3 --out mask.png`, checked against the still with the outline overlay. Crack enters from the top edge and lands on the doorway centroid.
 - Dry run of the full 25 s cut with the real song on the synthetic stone: `verify.py` reports the reveal on frame 604, delta 0. The timing is proven before the real still is in.
+
+## Steps 4 to 6 record
+
+- Rendered with `pipeline/render.py` from `preset.json` (base: reveal-silence, slow crack re-enabled): 1080x1920, 30 fps, 25.0 s, song from 68.000 s, reveal at piece frame 604.
+- First full render flooded the doorway into a flat cream shape and ran the crack through it. Two pipeline changes fixed that for every future piece: the light now multiplies the stone's own texture up (`light.gain`) and adds only a little colour (`light.tint`), and the crack ends where it meets the hidden shape instead of at its centroid.
+- `verify.py` on the final cut: hidden shape first lights on frame 604, delta 0. The audio line reports the loudest transient of the 25 s at 6.7 s (song 74.7 s), which is expected: the cue is a band lift, not the loudest hit in the window.
+- Output: `out/final.mp4` with `out/final.sync.json` (git-ignored, deliver by file).
 
 ## Files
 

@@ -36,7 +36,7 @@ The `/stone-memory` skill in `.claude/skills/stone-memory/` walks through this s
 - **The reveal:** on rewatch, a crack opens and light catches the imprint. This is the frame-accurate sync point against the chosen song's key change or drop.
 - **The true meaning (for the caption):** sedimentary rock is literally compressed time, each layer a physical record of a different era. Memory works the same way, it doesn't disappear, it gets buried under newer layers until something (light, a crack, a trigger) exposes it again. This is a real geological fact, not invented symbolism, use it straight.
 
-**Status:** concept locked, song chosen: "Storms" by Fleetwood Mac (Tusk, 1979). Waiting on the audio file to lock the cue timestamp with `pipeline/cue.py` (step 2). Piece files live in `pieces/01-what-the-stone-remembers/`. Song files go in `pieces/<piece>/audio/`, which is git-ignored (copyrighted tracks are never committed).
+**Status:** piece 1 cut rendered and verified against "Storms" by Fleetwood Mac (Tusk, 1979), 25 s from 1:08, reveal on piece frame 604 (song 88.133 s). Caption written. Awaiting Vanessa's review; see `pieces/01-what-the-stone-remembers/brief.md`. Piece files live in `pieces/01-what-the-stone-remembers/`. Song files go in `pieces/<piece>/audio/`, which is git-ignored (copyrighted tracks are never committed).
 
 ## Notes on account context
 

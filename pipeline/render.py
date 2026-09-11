@@ -121,16 +121,24 @@ def build_crack(mask: np.ndarray, cfg: dict, seed: int) -> list[tuple[float, flo
              "bottom": (cx + rng.uniform(-0.15, 0.15), 1.0),
              "left": (0.0, cy + rng.uniform(-0.15, 0.15)),
              "right": (1.0, cy + rng.uniform(-0.15, 0.15))}[edge]
+    # End on the shape's boundary, not its centroid: walk from the edge toward
+    # the centroid and stop at the first pixel inside the mask, so the fracture
+    # reaches the imprint and the light does the rest.
+    ex, ey = cx, cy
+    for t in np.linspace(0.0, 1.0, 2000):
+        px, py = start[0] + (cx - start[0]) * t, start[1] + (cy - start[1]) * t
+        ix, iy = min(w - 1, max(0, int(px * w))), min(h - 1, max(0, int(py * h)))
+        if mask[iy, ix] > 0.5:
+            ex, ey = px, py
+            break
     n = int(cfg.get("segments", 18))
     pts = [start]
-    x, y = start
     for i in range(1, n + 1):
         t = i / n
-        tx, ty = start[0] + (cx - start[0]) * t, start[1] + (cy - start[1]) * t
+        tx, ty = start[0] + (ex - start[0]) * t, start[1] + (ey - start[1]) * t
         jitter = cfg.get("jitter", 0.04) * (1.0 - t)  # calmer as it reaches the shape
-        x, y = tx + rng.normal(0, jitter), ty + rng.normal(0, jitter)
-        pts.append((x, y))
-    pts.append((cx, cy))
+        pts.append((tx + rng.normal(0, jitter), ty + rng.normal(0, jitter)))
+    pts.append((ex, ey))
     return pts
 
 
@@ -287,8 +295,10 @@ def render(args: argparse.Namespace) -> dict:
         # ---- VFX, all keyed to dt --------------------------------------
         L = light_envelope(dt, vcfg["light"])
         if L > 0:
-            glow = m[:, :, None] * L * vcfg["light"]["strength"]
-            frame = frame * (1 - 0.35 * glow) + light_rgb * 255.0 * glow  # screen-ish lift
+            # Raking light: multiply the stone's own texture up (so pores and grain
+            # survive) and add a little of the light's colour. Never a flat fill.
+            g = m[:, :, None] * L * vcfg["light"]["strength"]
+            frame = frame * (1.0 + vcfg["light"].get("gain", 1.6) * g) + light_rgb * 255.0 * vcfg["light"].get("tint", 0.22) * g
             halo_px = vcfg["light"].get("halo_px", 0)
             if halo_px:
                 halo = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(
