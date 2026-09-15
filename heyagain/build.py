@@ -30,17 +30,17 @@ Only the standard library + ffmpeg (with libfreetype and libx264) are required.
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import re
 import shutil
+import ssl
 import subprocess
 import sys
 import textwrap
 import time
-import urllib.error
 import urllib.parse
-import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 POSTS_JSON = os.path.join(HERE, "captions", "posts.json")
@@ -104,32 +104,80 @@ def log(msg: str) -> None:
 # Pexels
 # =====================================================================================
 class Pexels:
+    """Tiny HTTP client with one persistent (keep-alive) connection per host.
+
+    Reusing connections matters: every request otherwise opens a fresh TLS tunnel through the
+    egress proxy, and a few hundred of those in a row is what gets a host throttled.
+    """
+
     def __init__(self, key: str):
         self.key = key
         self.calls = 0
+        self._conns: dict[str, http.client.HTTPSConnection] = {}
+        proxy = os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+        self._proxy = urllib.parse.urlparse(proxy) if proxy else None
+        self._ctx = ssl.create_default_context()      # honours SSL_CERT_FILE / system store
+
+    def _conn(self, host: str) -> http.client.HTTPSConnection:
+        c = self._conns.get(host)
+        if c is None:
+            if self._proxy:
+                c = http.client.HTTPSConnection(self._proxy.hostname, self._proxy.port or 80,
+                                                context=self._ctx, timeout=120)
+                c.set_tunnel(host, 443)
+            else:
+                c = http.client.HTTPSConnection(host, 443, context=self._ctx, timeout=120)
+            self._conns[host] = c
+        return c
+
+    def _drop(self, host: str) -> None:
+        c = self._conns.pop(host, None)
+        if c is not None:
+            try:
+                c.close()
+            except Exception:  # noqa: BLE001
+                pass
 
     def _get(self, url: str, binary: bool = False, dest: str | None = None):
-        req = urllib.request.Request(url, headers={"Authorization": self.key, "User-Agent": UA})
         last = None
-        for attempt in range(3):
+        for attempt in range(4):
+            u = urllib.parse.urlparse(url)
+            host, path = u.hostname, (u.path or "/") + (f"?{u.query}" if u.query else "")
             try:
-                with urllib.request.urlopen(req, timeout=120) as r:
-                    self.calls += 1
-                    if dest:
-                        tmp = dest + ".part"
-                        with open(tmp, "wb") as f:
-                            shutil.copyfileobj(r, f, 1 << 20)
-                        os.replace(tmp, dest)
-                        return dest
-                    data = r.read()
-                    return data if binary else json.loads(data)
-            except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ConnectionError) as e:
-                last = e
-                code = getattr(e, "code", None)
-                if code == 429:
+                c = self._conn(host)
+                c.request("GET", path, headers={"Authorization": self.key, "User-Agent": UA, "Accept": "*/*"})
+                r = c.getresponse()
+                self.calls += 1
+                if r.status in (301, 302, 303, 307, 308):
+                    r.read()
+                    url = urllib.parse.urljoin(url, r.getheader("Location", ""))
+                    continue
+                if r.status == 429:
+                    r.read()
                     time.sleep(15 * (attempt + 1))
-                else:
-                    time.sleep(2 * (attempt + 1))
+                    last = f"HTTP 429"
+                    continue
+                if r.status != 200:
+                    body = r.read()[:200]
+                    raise RuntimeError(f"HTTP {r.status} {body!r}")
+                if dest:
+                    tmp = dest + ".part"
+                    with open(tmp, "wb") as f:
+                        shutil.copyfileobj(r, f, 1 << 20)
+                    os.replace(tmp, dest)
+                    return dest
+                data = r.read()
+                return data if binary else json.loads(data)
+            except (http.client.HTTPException, OSError, ssl.SSLError) as e:
+                # stale keep-alive, proxy hiccup, tunnel refused: reconnect and try again
+                last = e
+                self._drop(host)
+                time.sleep(2 * (attempt + 1))
+            except RuntimeError as e:
+                last = e
+                if str(e).startswith("HTTP 4"):
+                    break
+                time.sleep(2 * (attempt + 1))
         raise RuntimeError(f"pexels request failed: {url} ({last})")
 
     def search_photos(self, query: str):
