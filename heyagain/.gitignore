@@ -1,0 +1,4 @@
+.env
+backgrounds/
+*.part
+__pycache__/
