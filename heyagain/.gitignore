@@ -3,3 +3,5 @@ backgrounds/
 *.part
 __pycache__/
 build.log
+# renders are force-added per post once all five slides exist (see commit_done.sh)
+output/
