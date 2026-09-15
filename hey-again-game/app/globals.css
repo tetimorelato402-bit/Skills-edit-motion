@@ -1,0 +1,23 @@
+:root{--tang:#D8652B;--cream:#F4EEE4;--ink:#2E1C12}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--tang);color:var(--cream);font-family:Inter,-apple-system,"Segoe UI",sans-serif;font-weight:500;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+button{font:inherit;cursor:pointer}
+.wrap{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center}
+.mark{position:fixed;top:22px;left:24px;font-size:15px;text-decoration:none}
+.q{font-size:clamp(28px,6vw,44px);line-height:1.2;max-width:22ch;margin:0 auto 28px;letter-spacing:-.01em}
+.small{font-size:15px;opacity:.85;max-width:40ch;margin:0 auto;line-height:1.5}
+.btn{background:var(--cream);color:var(--tang);border:0;border-radius:999px;padding:16px 28px;font-size:17px;margin-top:28px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.ghost{background:transparent;color:var(--cream);border:2px solid var(--cream)}
+.btn:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--cream);outline-offset:3px}
+textarea,input{width:100%;max-width:440px;background:transparent;border:0;border-bottom:2px solid var(--cream);color:var(--cream);font:inherit;font-size:20px;padding:12px 4px;resize:none;text-align:center}
+textarea::placeholder,input::placeholder{color:rgba(244,238,228,.55)}
+.reveal{display:grid;gap:18px;width:100%;max-width:520px;margin:8px auto}
+.ans{background:var(--cream);color:var(--tang);border-radius:18px;padding:20px 22px;font-size:20px;line-height:1.35;text-align:left}
+.ans small{display:block;font-size:13px;opacity:.7;margin-bottom:6px}
+.pill{display:inline-block;border:2px solid var(--cream);border-radius:999px;padding:8px 16px;margin:6px;font-size:15px;background:transparent;color:var(--cream)}
+.pill.on{background:var(--cream);color:var(--tang)}
+.progress{position:fixed;bottom:22px;left:0;right:0;text-align:center;font-size:13px;opacity:.75}
+.link{word-break:break-all;background:rgba(244,238,228,.12);border-radius:14px;padding:14px;font-size:15px;max-width:520px;margin:20px auto 0}
+@media (prefers-reduced-motion:no-preference){.fade{animation:f .5s ease-out}@keyframes f{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}}

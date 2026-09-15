@@ -1,0 +1,5 @@
+# hey again. the game
+Next.js 14 app router, Supabase realtime, Stripe Checkout. Brand: tangerine #D8652B, cream #F4EEE4, Inter Medium, sentence case, no logos, no other colors.
+Rules: a game is exactly two seats, never more. Answers reveal only when both exist. Keep copy in the brand voice: short, lowercase, honest. Read README.md for deploy steps.
+Architecture: the server is the referee. Game rules live in `lib/game.ts` as pure functions; `lib/server-game.ts` runs a request against a `Store` (`lib/store.ts`). Two stores: `store-supabase.ts` (real, secret key, server only) and `store-memory.ts` (a faithful mirror of `supabase/schema.sql`, used by tests and `DEMO_MEMORY_DB`). `app/api/game/[id]/route.ts` is a thin HTTP shell over that. The browser gets a redacted `View` and pings over realtime; never give the publishable key a policy on `games`. `lib/env.ts` accepts both new and old Supabase key names.
+Testing: `npm test` covers the rules and a whole game end to end with no database. Change a rule in `lib/game.ts` and its test together. If you change `claim_seat` in the SQL, change `MemoryStore.claim` to match or the tests stop meaning anything.
