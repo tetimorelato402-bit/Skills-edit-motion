@@ -18,7 +18,7 @@ create table if not exists games (
 alter table games add column if not exists version int not null default 0;
 
 -- the browser never touches this table. every read and write goes through the
--- next.js server with the service role, which applies the rules in lib/game.ts
+-- next.js server with the secret key, which applies the rules in lib/game.ts
 -- (seat ownership, answers reveal only when both exist, one answer per card).
 alter table games enable row level security;
 drop policy if exists "read by id" on games;
@@ -34,16 +34,29 @@ do $$ begin
 end $$;
 
 -- seat claiming: first token becomes p1, second p2, anyone else is refused.
+-- returns {"seat":"p1|p2|full|none","claimed":bool}; claimed is true only on the
+-- call that took the seat, so the server knows when to wake the other phone.
 -- called by the server only.
-create or replace function claim_seat(gid uuid, token text) returns text language plpgsql security definer as $$
+drop function if exists claim_seat(uuid, text);
+create or replace function claim_seat(gid uuid, token text) returns jsonb language plpgsql security definer as $$
 declare g games;
 begin
   select * into g from games where id = gid for update;
-  if g is null then return 'none'; end if;
-  if g.p1 = token then return 'p1'; end if;
-  if g.p2 = token then return 'p2'; end if;
-  if g.p1 is null then update games set p1 = token, version = version + 1 where id = gid; return 'p1'; end if;
-  if g.p2 is null then update games set p2 = token, status = 'playing', version = version + 1 where id = gid; return 'p2'; end if;
-  return 'full';
+  if g is null then return jsonb_build_object('seat', 'none', 'claimed', false); end if;
+  if g.p1 = token then return jsonb_build_object('seat', 'p1', 'claimed', false); end if;
+  if g.p2 = token then return jsonb_build_object('seat', 'p2', 'claimed', false); end if;
+  if g.p1 is null then
+    update games set p1 = token, version = version + 1 where id = gid;
+    return jsonb_build_object('seat', 'p1', 'claimed', true);
+  end if;
+  if g.p2 is null then
+    update games set p2 = token, status = 'playing', version = version + 1 where id = gid;
+    return jsonb_build_object('seat', 'p2', 'claimed', true);
+  end if;
+  return jsonb_build_object('seat', 'full', 'claimed', false);
 end $$;
 revoke execute on function claim_seat(uuid, text) from public, anon, authenticated;
+
+-- housekeeping: faded games keep nothing worth keeping. run from the dashboard
+-- or a scheduled job if you want the rows gone.
+-- delete from games where ends_at is not null and ends_at < now() - interval '30 days';
