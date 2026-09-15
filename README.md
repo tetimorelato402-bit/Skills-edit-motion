@@ -75,4 +75,15 @@ The skills live in `.claude/skills/`, which is where Claude Code discovers proje
 
 `skills-main.zip` is the original archive these were extracted from, kept as the source asset.
 
+## hey again. the game
+
+`hey-again-game/` is a Next.js 14 app (App Router, Supabase realtime, Stripe Checkout) extracted from `hey_again_game.zip`, which is kept as the source asset. See `hey-again-game/README.md` for deploy steps and `hey-again-game/CLAUDE.md` for the brand rules.
+
+```bash
+cd hey-again-game
+cp .env.example .env   # fill in Supabase and Stripe keys
+npm ci
+npm run dev            # or: npm run build && npm start
+```
+
 Skills, README, and LICENSE are from [emilkowalski/skills](https://github.com/emilkowalski/skills); see `LICENSE`.
