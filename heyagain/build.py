@@ -755,9 +755,13 @@ def main() -> int:
 
     if failed:
         with open(FAILED_TXT, "w") as fh:
+            fh.write("# slide\tbackground_prompt\tlast error (after "
+                     f"{args.retries} retries)\n")
             fh.write("\n".join(failed) + "\n")
-    elif os.path.exists(FAILED_TXT) and not args.posts:
-        os.remove(FAILED_TXT)
+    elif not args.posts:
+        with open(FAILED_TXT, "w") as fh:
+            fh.write(f"# no failures: all {len(results)} slides built and verified "
+                     f"({time.strftime('%Y-%m-%d %H:%M UTC', time.gmtime())})\n")
     if not args.dry_run:
         write_summary(posts, results, failed)
     n_ok = sum(1 for r in results.values() if r["ok"])
