@@ -28,6 +28,18 @@ Open `/start` for a link, then open that link in a normal window and a private
 one to be both players. Everything is lost when the server restarts, so this is
 for seeing the game work, never for a deployment.
 
+## Is the database right?
+After running `supabase/schema.sql`, with `.env` filled in:
+```bash
+npm run check-db
+```
+It proves the table and `claim_seat` behave (first token takes p1, second p2,
+a third is refused, the version bumps, a stale write loses) and, most
+importantly, that the publishable key shipped to browsers **cannot** read the
+games table. It creates one throwaway game and deletes it, so it is safe to run
+against production. A failure tells you to re-run the schema; an unreachable
+project says so instead of blaming the schema.
+
 ## Checks
 ```bash
 npm test              # 52 tests: the rules, and a whole game through the server

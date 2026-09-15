@@ -85,6 +85,7 @@ cp .env.example .env   # fill in Supabase and Stripe keys
 npm ci
 npm test               # 52 tests, no database needed
 npm run demo           # play it locally with no Supabase project at all
+npm run check-db       # after running supabase/schema.sql, proves it's wired right
 npm run dev            # or: npm run build && npm start
 ```
 

@@ -8,7 +8,8 @@
     "start": "next start",
     "test": "node --test lib/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "playthrough": "python3 scripts/playthrough.py"
+    "playthrough": "python3 scripts/playthrough.py",
+    "check-db": "node scripts/check-db.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
