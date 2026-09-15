@@ -57,6 +57,11 @@ TANGERINE = "0xD8652B"
 CREAM = "0xF4EEE4"
 OVERLAY_ALPHA = 0.35
 BLUR_SIGMA = 6            # "slightly blurred"
+TARGET_LUMA = 96          # backgrounds are levelled to this mean before the overlay goes on
+SATURATION = 0.90         # let the tangerine, not the photo, carry the colour
+CAPTION_SHADOW = "0x1A0A04"   # near-black, warmed so it sits inside the tangerine palette
+CAPTION_BORDER_W, CAPTION_BORDER_A = 5, 0.25
+CAPTION_SHADOW_A, CAPTION_SHADOW_Y = 0.35, 4
 VIDEO_SECONDS = 3
 FPS = 30
 CAPTION_SIZE = 120        # px, Inter Medium
@@ -302,19 +307,48 @@ def caption_filter(caption: str, size: int) -> str:
     for i, line in enumerate(lines):
         y = top + i * line_h
         parts.append(f"drawtext=fontfile='{FONT}':text='{ff_escape(line)}':fontcolor={CREAM}"
-                     f":fontsize={size}:x=(w-text_w)/2:y={y}")
+                     f":fontsize={size}:x=(w-text_w)/2:y={y}"
+                     f":borderw={CAPTION_BORDER_W}:bordercolor={CAPTION_SHADOW}@{CAPTION_BORDER_A}"
+                     f":shadowcolor={CAPTION_SHADOW}@{CAPTION_SHADOW_A}:shadowx=0:shadowy={CAPTION_SHADOW_Y}")
     return ",".join(parts)
 
 
-def bg_filter() -> str:
-    """Cover-fit to 2160x2700, slight blur, tangerine 35 % overlay (as a blended drawbox)."""
+def mean_luma(src: str) -> float:
+    """Average luminance (0-255) of the first frame, via signalstats. 128 if it cannot be read."""
+    r = subprocess.run([ffmpeg_bin(), "-v", "error", "-i", src, "-vf",
+                        "scale=320:-1,signalstats,"
+                        "metadata=print:key=lavfi.signalstats.YAVG:file=-",
+                        "-frames:v", "1", "-f", "null", "-"],
+                       stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    m = re.search(r"YAVG=([\d.]+)", r.stdout or "")
+    return float(m.group(1)) if m else 128.0
+
+
+def exposure(src: str) -> float:
+    """Gain that brings this background to TARGET_LUMA before the tangerine goes on.
+
+    A 35 % overlay over a near-white photo reads as pale peach rather than tangerine, so the
+    backgrounds are levelled first: that is what makes all 125 slides read as the same orange.
+    The correction is multiplicative, like a camera exposure, because an additive shift moves
+    the shadows just as much as the highlights and leaves bright photos looking washed out.
+    """
+    y = mean_luma(src)
+    # colorlevels' output white point tops out at 1.0, so this only ever darkens; a background
+    # that is already below the target is left alone (it reads as deep tangerine as it is).
+    return round(max(0.45, min(1.0, TARGET_LUMA / max(y, 1.0))), 3)
+
+
+def bg_filter(gain: float = 1.0) -> str:
+    """Cover-fit to 2160x2700, slight blur, levelled exposure, tangerine 35 % overlay."""
     return (f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},"
-            f"gblur=sigma={BLUR_SIGMA},format=rgba,"
+            f"gblur=sigma={BLUR_SIGMA},"
+            f"colorlevels=romax={gain}:gomax={gain}:bomax={gain},eq=saturation={SATURATION},"
+            f"format=rgba,"
             f"drawbox=x=0:y=0:w=iw:h=ih:color={TANGERINE}@{OVERLAY_ALPHA}:t=fill,format=yuv420p")
 
 
 def render_photo(src: str, caption: str, out: str) -> None:
-    vf = f"{bg_filter()},{caption_filter(caption, CAPTION_SIZE)}"
+    vf = f"{bg_filter(exposure(src))},{caption_filter(caption, CAPTION_SIZE)}"
     run([ffmpeg_bin(), "-v", "error", "-y", "-i", src, "-vf", vf, "-frames:v", "1", "-q:v", "2", out])
 
 
@@ -331,7 +365,7 @@ def _encode_args(out: str) -> list[str]:
 
 def render_video(src: str, caption: str, out: str, start: float = 0.0) -> None:
     """3-second video slide from a Pexels clip + silent stereo track."""
-    fc = f"[0:v]fps={FPS},{bg_filter()},{caption_filter(caption, CAPTION_SIZE)}[v]"
+    fc = f"[0:v]fps={FPS},{bg_filter(exposure(src))},{caption_filter(caption, CAPTION_SIZE)}[v]"
     run([ffmpeg_bin(), "-v", "error", "-y", "-ss", f"{start:.2f}", "-t", str(VIDEO_SECONDS + 0.5), "-i", src,
          "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-filter_complex", fc,
          "-map", "[v]", "-map", "1:a", *_encode_args(out)])
@@ -344,7 +378,9 @@ def render_photo_zoom(src: str, caption: str, out: str) -> None:
     big_w, big_h = W * 2, H * 2       # oversample so zoompan does not jitter
     fc = (f"[0:v]scale={big_w}:{big_h}:force_original_aspect_ratio=increase:flags=lanczos,crop={big_w}:{big_h},"
           f"zoompan=z='{zoom}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={W}x{H}:fps={FPS},"
-          f"gblur=sigma={BLUR_SIGMA},format=rgba,"
+          f"gblur=sigma={BLUR_SIGMA},"
+          f"colorlevels=romax={exposure(src)}:gomax={exposure(src)}:bomax={exposure(src)},"
+          f"eq=saturation={SATURATION},format=rgba,"
           f"drawbox=x=0:y=0:w=iw:h=ih:color={TANGERINE}@{OVERLAY_ALPHA}:t=fill,format=yuv420p,"
           f"{caption_filter(caption, CAPTION_SIZE)}[v]")
     run([ffmpeg_bin(), "-v", "error", "-y", "-loop", "1", "-framerate", str(FPS), "-i", src,
@@ -383,6 +419,15 @@ def pick_photo(px: Pexels, post: int, slide: int, prompt: str, picks: dict) -> t
     queries = [" ".join(kws)] + list(picks.get("queries", {}).get(key, []))
     forced = picks.get("photos", {}).get(key)
     seen: dict[int, dict] = {}
+    if forced:
+        # a reviewed pick needs no search: fetch it straight by id
+        try:
+            p = px.photo(forced)
+            p["_score"], p["_forced"] = judge_photo(p, kws)[0], True
+            report["forced_direct"] = True
+            return p, report
+        except Exception as e:  # noqa: BLE001
+            report["forced_error"] = str(e)
     for q in queries:
         photos = px.search_photos(q)
         report["queries"].append({"query": q, "results": len(photos)})
@@ -428,6 +473,14 @@ def pick_video(px: Pexels, post: int, slide: int, prompt: str, picks: dict) -> t
         report["skipped"] = "picks.json says no video for this slide"
         return None, report
     seen: dict[int, dict] = {}
+    if forced:
+        try:
+            v = px.video(forced)
+            v["_score"], v["_forced"] = judge_video(v, kws)[0], True
+            report["forced_direct"] = True
+            return v, report
+        except Exception as e:  # noqa: BLE001
+            report["forced_error"] = str(e)
     for q in queries:
         vids = px.search_videos(q)
         report["queries"].append({"query": q, "results": len(vids)})
