@@ -363,10 +363,33 @@ def _encode_args(out: str) -> list[str]:
             "-c:a", "aac", "-b:a", "96k", "-shortest", "-movflags", "+faststart", "-t", str(VIDEO_SECONDS), out]
 
 
+def probe_duration(src: str) -> float:
+    """Real duration in seconds, or 0.0 if it cannot be read."""
+    probe = shutil.which("ffprobe") or os.path.join(os.path.dirname(ffmpeg_bin()), "ffprobe")
+    if not os.path.exists(probe):
+        return 0.0
+    r = subprocess.run([probe, "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", src],
+                       stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    try:
+        return float((r.stdout or "").strip())
+    except ValueError:
+        return 0.0
+
+
 def render_video(src: str, caption: str, out: str, start: float = 0.0) -> None:
-    """3-second video slide from a Pexels clip + silent stereo track."""
+    """3-second video slide from a Pexels clip + silent stereo track.
+
+    Pexels reports duration as a whole number, so a clip it calls 3 s can really be 2.84 s.
+    Anything that cannot cover start + 3 s is looped, otherwise the slide would come out short
+    and video slides have to be exactly 3 seconds.
+    """
+    dur = probe_duration(src)
+    loop = ["-stream_loop", "-1"] if dur and dur < start + VIDEO_SECONDS + 0.1 else []
+    if loop:
+        start = 0.0
     fc = f"[0:v]fps={FPS},{bg_filter(exposure(src))},{caption_filter(caption, CAPTION_SIZE)}[v]"
-    run([ffmpeg_bin(), "-v", "error", "-y", "-ss", f"{start:.2f}", "-t", str(VIDEO_SECONDS + 0.5), "-i", src,
+    run([ffmpeg_bin(), "-v", "error", "-y", *loop,
+         "-ss", f"{start:.2f}", "-t", str(VIDEO_SECONDS + 0.5), "-i", src,
          "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-filter_complex", fc,
          "-map", "[v]", "-map", "1:a", *_encode_args(out)])
 
@@ -600,9 +623,9 @@ def verify_output(path: str, slide: int) -> None:
     if slide in VIDEO_SLIDES:
         if not any(s.get("codec_type") == "audio" for s in info):
             raise RuntimeError(f"video slide has no audio track: {path}")
-        d = float(vid[0].get("duration") or 0)
-        if not (VIDEO_SECONDS - 0.2 <= d <= VIDEO_SECONDS + 0.2):
-            raise RuntimeError(f"video slide duration {d:.2f}s != {VIDEO_SECONDS}s: {path}")
+        d = float(vid[0].get("duration") or 0) or probe_duration(path)
+        if not (VIDEO_SECONDS - 0.05 <= d <= VIDEO_SECONDS + 0.05):
+            raise RuntimeError(f"video slide duration {d:.3f}s != {VIDEO_SECONDS}s: {path}")
 
 
 # =====================================================================================
