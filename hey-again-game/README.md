@@ -20,12 +20,25 @@ One link, two seats, 21 cards. Both players answer in secret; answers reveal tog
 - Game ends after 21 cards, link fades seven days later. Each player picks one answer for a shared tangerine card.
 - Missing keys produce a plain message, never a stack trace: the game routes answer 503 and `/start` says the game isn't plugged in. The free-game routes are rate limited to 5 per hour per address and are off unless `DEV_FREE=true`.
 
+## Play it with no database
+```bash
+npm run demo    # DEMO_MEMORY_DB=true: games live in memory, one process
+```
+Open `/start` for a link, then open that link in a normal window and a private
+one to be both players. Everything is lost when the server restarts, so this is
+for seeing the game work, never for a deployment.
+
 ## Checks
 ```bash
-npm test        # rules in lib/game.ts, runs on plain node 22
+npm test              # 52 tests: the rules, and a whole game through the server
 npm run typecheck
 npm run build
+npm run demo          # then, in another terminal:
+npm run playthrough   # plays 21 cards over http as two phones
 ```
+`npm test` needs no database: `lib/store-memory.ts` mirrors the SQL in
+`supabase/schema.sql`, so `lib/server-game.test.ts` exercises seating,
+concurrency and the reveal rules for real.
 
 ## Editing the cards
 `lib/decks.ts`. Three modes, three rounds, seven cards each. Cards starting with `dare:` are typed dares.

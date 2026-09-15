@@ -3,10 +3,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "demo": "DEMO_MEMORY_DB=true DEV_FREE=true next dev",
     "build": "next build",
     "start": "next start",
     "test": "node --test lib/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "playthrough": "python3 scripts/playthrough.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

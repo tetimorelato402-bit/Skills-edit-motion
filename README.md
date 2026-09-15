@@ -83,7 +83,8 @@ The skills live in `.claude/skills/`, which is where Claude Code discovers proje
 cd hey-again-game
 cp .env.example .env   # fill in Supabase and Stripe keys
 npm ci
-npm test               # game rules, no database needed
+npm test               # 52 tests, no database needed
+npm run demo           # play it locally with no Supabase project at all
 npm run dev            # or: npm run build && npm start
 ```
 

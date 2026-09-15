@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { admin, NotConfigured } from "@/lib/supabase-admin";
+import { storeFor } from "@/lib/store-for";
 import { devFree } from "@/lib/env";
 import { hit, callerKey, type Bucket } from "@/lib/ratelimit";
 
@@ -15,12 +15,11 @@ export async function POST(req: Request) {
   if (!limit.ok) {
     return NextResponse.json({ error: "slow down" }, { status: 429, headers: { "retry-after": String(limit.retryAfter) } });
   }
+  const store = storeFor();
+  if (!store) return NextResponse.json({ error: "database not configured" }, { status: 503 });
   try {
-    const { data, error } = await admin().from("games").insert({}).select("id").single();
-    if (error) throw error;
-    return NextResponse.json({ id: data.id });
+    return NextResponse.json({ id: await store.create() });
   } catch (e) {
-    if (e instanceof NotConfigured) return NextResponse.json({ error: "database not configured" }, { status: 503 });
     console.error("dev route", e);
     return NextResponse.json({ error: "could not create a game" }, { status: 500 });
   }

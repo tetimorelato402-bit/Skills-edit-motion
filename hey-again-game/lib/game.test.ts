@@ -5,6 +5,7 @@ import { apply, view, parseAction, isFaded, TOTAL, CARDS_PER_ROUND, ROUND_COUNT,
 const NOW = Date.UTC(2026, 0, 1);
 const base = (over: Partial<Game> = {}): Game => ({
   id: "00000000-0000-0000-0000-000000000000",
+  session_id: null,
   mode: "couples",
   p1: "tok-1",
   p2: "tok-2",

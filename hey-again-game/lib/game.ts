@@ -12,6 +12,7 @@ export type Shared = Partial<Record<Seat, string>>;
 // one row of the games table
 export type Game = {
   id: string;
+  session_id: string | null;
   mode: string | null;
   p1: string | null;
   p2: string | null;

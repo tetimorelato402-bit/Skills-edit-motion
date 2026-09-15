@@ -1,11 +1,15 @@
 // SERVER ONLY. holds the secret key and is the only thing that touches the
 // games table. importing this from a client component would be a bug.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { serverSupabase } from "./env";
-import { channelFor } from "./supabase";
+import { serverSupabase } from "./env.ts";
+import { channelFor } from "./supabase.ts";
 
 export class NotConfigured extends Error {
-  constructor(public missing: string[]) { super(`missing ${missing.join(", ")}`); }
+  readonly missing: string[];
+  constructor(missing: string[]) {
+    super(`missing ${missing.join(", ")}`);
+    this.missing = missing;
+  }
 }
 
 export function admin(): SupabaseClient {

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
-import { admin } from "@/lib/supabase-admin";
+import { storeFor } from "@/lib/store-for";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +17,13 @@ export async function POST(req: Request) {
 
   if (event.type === "checkout.session.completed") {
     const s = event.data.object as Stripe.Checkout.Session;
-    // stripe retries on a non-2xx, so a failed insert is not lost
-    const { error } = await admin().from("games").upsert({ session_id: s.id }, { onConflict: "session_id" });
-    if (error) {
-      console.error("webhook upsert", error);
+    const store = storeFor();
+    if (!store) return NextResponse.json({ error: "database not configured" }, { status: 500 });
+    try {
+      // stripe retries on a non-2xx, so a failed write is not lost
+      await store.ensureForSession(s.id);
+    } catch (e) {
+      console.error("webhook", e);
       return NextResponse.json({ error: "could not record the game" }, { status: 500 });
     }
   }
