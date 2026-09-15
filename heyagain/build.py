@@ -663,6 +663,8 @@ def main() -> int:
     ap.add_argument("--no-fetch", action="store_true", help="do not touch Pexels; render from backgrounds/")
     ap.add_argument("--dry-run", action="store_true", help="search and pick only; print the plan")
     ap.add_argument("--retries", type=int, default=2, help="extra attempts per slide (default 2)")
+    ap.add_argument("--skip-existing", action="store_true",
+                    help="leave slides that are already rendered alone (still writes summary.md)")
     args = ap.parse_args()
 
     posts = json.load(open(POSTS_JSON))
@@ -693,6 +695,12 @@ def main() -> int:
                         else:
                             meta = fetch_background(px, pid, i, prompt, picks, args.dry_run)
                     rec["meta"] = meta
+                    if args.skip_existing:
+                        done = [p for p in (os.path.join(OUT_DIR, f"post{pid:02d}", f"{i}.{e}")
+                                            for e in ("mp4", "jpg")) if os.path.exists(p)]
+                        if done:
+                            rec.update(ok=True, out=done[0])
+                            break
                     if args.dry_run:
                         desc = "flat card" if meta is None else f"{meta['kind']} #{meta['pexels_id']} {meta['pexels_url']}"
                         log(f"{tag}: {desc}")
