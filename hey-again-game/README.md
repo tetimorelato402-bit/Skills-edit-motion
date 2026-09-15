@@ -13,9 +13,18 @@ One link, two seats, 21 cards. Both players answer in secret; answers reveal tog
 - `/` landing, pay button posts to `/api/checkout` (Stripe Checkout).
 - Stripe webhook creates a `games` row keyed by the checkout session.
 - `/start` shows the buyer their single link.
-- `/play/[id]` claims a seat with a per-browser token (`claim_seat` in SQL). First token is p1, second is p2, anyone else is refused.
-- Supabase realtime keeps both phones in sync. Answers only reveal when both exist.
+- `/play/[id]` talks only to `/api/game/[id]`, sending a per-browser token in the `x-hg-token` header. The server claims a seat (`claim_seat` in SQL): first token is p1, second is p2, anyone else is refused.
+- The server is the referee. `lib/game.ts` holds the rules as pure functions: one mode, one answer per card per seat, nothing reveals until both answers exist, next card only after both, share only your own answer. `view()` strips the other seat's unrevealed answer and both tokens before anything reaches a phone.
+- The browser never reads or writes the `games` table (row level security, no policies). After every change the server broadcasts a `ping` on the Supabase realtime channel `game:<id>` and each phone refetches its own view; a four-second poll covers a dropped socket.
+- Writes are optimistic-locked on `version`, so two phones tapping at once can't skip a card.
 - Game ends after 21 cards, link fades seven days later. Each player picks one answer for a shared tangerine card.
+
+## Checks
+```bash
+npm test        # rules in lib/game.ts, runs on plain node 22
+npm run typecheck
+npm run build
+```
 
 ## Editing the cards
 `lib/decks.ts`. Three modes, three rounds, seven cards each. Cards starting with `dare:` are typed dares.
