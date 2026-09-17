@@ -6,10 +6,12 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   const sig = req.headers.get("stripe-signature");
-  if (!sig || !process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+  if (!sig || !process.env.STRIPE_WEBHOOK_SECRET) {
     return NextResponse.json({ error: "not configured" }, { status: 400 });
   }
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+  // constructEvent verifies the signature locally: it uses the signing secret,
+  // never the api key, so a payment link setup needs no secret key at all.
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_unused");
   const body = await req.text();
   let event: Stripe.Event;
   try { event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET); }
