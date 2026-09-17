@@ -40,6 +40,7 @@ export type View = {
   mode: Mode | null;
   ready: boolean; // both seats taken
   faded: boolean;
+  tier: Tier;
   round: number;
   roundName: string;
   idx: number;
@@ -109,6 +110,7 @@ export function view(g: Game, seat: Seat, now = Date.now()): View {
     mode: isMode(g.mode) ? g.mode : null,
     ready: !!(g.p1 && g.p2),
     faded: isFaded(g, now),
+    tier: g.tier === "free" ? "free" : "paid",
     round: g.round,
     roundName: ROUNDS[g.round] ?? ROUNDS[ROUNDS.length - 1],
     idx: g.idx,

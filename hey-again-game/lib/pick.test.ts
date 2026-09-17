@@ -73,6 +73,26 @@ describe("playing again", () => {
     });
   });
 
+  test("three games in a chain share not one card", () => {
+    // 21 per round is exactly three fresh hands of seven. this is the promise
+    // the go again button makes, so it is the one worth asserting hardest.
+    for (const m of modes) {
+      const seen: string[] = [];
+      const hands: string[][] = [];
+      for (let game = 1; game <= 3; game++) {
+        const hand = flat(pickCards(m, "paid", `chain-${m}-${game}`, seen));
+        assert.equal(hand.length, 21);
+        for (const card of hand) {
+          assert.ok(!seen.includes(card), `game ${game} of ${m} repeated: ${card}`);
+        }
+        hands.push(hand);
+        seen.push(...hand);
+      }
+      assert.equal(new Set(seen).size, 63, `${m} should spend its whole pool over three games`);
+      assert.equal(hands.length, 3);
+    }
+  });
+
   test("would rather repeat than end the game early", () => {
     // every card seen: the round cannot be filled fresh, so it refills instead
     const everything = DECKS.couples.flat();

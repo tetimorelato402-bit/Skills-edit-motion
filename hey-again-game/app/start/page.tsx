@@ -12,11 +12,14 @@ const MAX_FREE = 5, WINDOW_MS = 60 * 60 * 1000;
 
 type Outcome = { id: string } | { error: "notfound" | "unconfigured" | "throttled" };
 
-async function gameFor(sessionId?: string): Promise<Outcome> {
+async function gameFor(sessionId?: string, gameId?: string): Promise<Outcome> {
   const store = storeFor();
   if (!store) return { error: "unconfigured" };
 
   try {
+    // a free game we just created: it already exists, just show its link
+    if (gameId) return (await store.load(gameId)) ? { id: gameId } : { error: "notfound" };
+
     if (sessionId) {
       for (let i = 0; i < 10; i++) { // the webhook can land a second after the redirect
         const id = await store.findBySession(sessionId);
@@ -42,8 +45,8 @@ const COPY = {
   throttled: ["that's a lot of free games.", "Testing has a limit. Wait an hour, or turn DEV_FREE off and use a real checkout."],
 } as const;
 
-export default async function Start({ searchParams }: { searchParams: { session_id?: string } }) {
-  const out = await gameFor(searchParams.session_id);
+export default async function Start({ searchParams }: { searchParams: { session_id?: string; game?: string } }) {
+  const out = await gameFor(searchParams.session_id, searchParams.game);
 
   if ("error" in out) {
     const [title, body] = COPY[out.error];
