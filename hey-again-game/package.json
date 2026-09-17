@@ -9,7 +9,8 @@
     "test": "node --test lib/*.test.ts",
     "typecheck": "tsc --noEmit",
     "playthrough": "python3 scripts/playthrough.py",
-    "check-db": "node scripts/check-db.mjs"
+    "check-db": "node scripts/check-db.mjs",
+    "free-playthrough": "python3 scripts/free-playthrough.py"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

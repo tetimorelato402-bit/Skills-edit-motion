@@ -13,9 +13,20 @@ create table if not exists games (
   status text not null default 'waiting',
   created_at timestamptz not null default now(),
   ends_at timestamptz,
-  version int not null default 0
+  version int not null default 0,
+  -- the deck this game was dealt, once the mode is picked. null on rows written
+  -- before decks were shuffled: those keep playing the old fixed deck.
+  cards jsonb,
+  tier text not null default 'paid',
+  -- every card this replay chain has already spent, so a new game skips them
+  seen jsonb not null default '[]'::jsonb,
+  parent uuid
 );
 alter table games add column if not exists version int not null default 0;
+alter table games add column if not exists cards jsonb;
+alter table games add column if not exists tier text not null default 'paid';
+alter table games add column if not exists seen jsonb not null default '[]'::jsonb;
+alter table games add column if not exists parent uuid;
 
 -- the browser never touches this table. every read and write goes through the
 -- next.js server with the secret key, which applies the rules in lib/game.ts

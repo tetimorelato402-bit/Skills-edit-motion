@@ -14,7 +14,7 @@ function token() {
 
 type Reply = { seat?: Seat | "full" | "none"; game?: View; error?: string };
 
-export default function Play({ id }: { id: string }) {
+export default function Play({ id, again, buy }: { id: string; again: string; buy: string }) {
   const [game, setGame] = useState<View | null>(null);
   const [seat, setSeat] = useState<Seat | "full" | "none" | null>(null);
   const [draft, setDraft] = useState("");
@@ -80,6 +80,7 @@ export default function Play({ id }: { id: string }) {
         <p className="small">Pick one of your answers to leave on the shared card. The rest stays between you two.</p>
         <div className="reveal">{mine.map(x => <button key={x.k} className="ans" disabled={busy} style={{ border: game.shared[seat] === x.a ? "3px solid #2E1C12" : "3px solid transparent" }} onClick={() => act({ type: "share", text: x.a })}>{x.a}</button>)}</div>
         {game.shared.p1 && game.shared.p2 ? <ShareCard a={game.shared.p1} b={game.shared.p2} /> : <p className="small" style={{ marginTop: 18 }}>{game.shared[seat] ? "waiting for their pick." : "pick yours."}</p>}
+        <Again tier={game.tier} again={again} buy={buy} />
         <Note text={note} />
         <p className="progress">this link fades in seven days.</p>
       </main>
@@ -120,6 +121,28 @@ export default function Play({ id }: { id: string }) {
 
 function Note({ text }: { text: string | null }) {
   return text ? <p className="small" role="status" style={{ marginTop: 14 }}>{text}</p> : null;
+}
+
+// A free game ends five cards in, on purpose: it exists to teach the mechanic.
+// A paid one ends offering another, and the link carries this game forward so
+// the next 21 are cards neither of them has answered.
+function Again({ tier, again, buy }: { tier: "free" | "paid"; again: string; buy: string }) {
+  if (tier === "free") {
+    return (
+      <div style={{ marginTop: 26 }}>
+        <p className="q" style={{ fontSize: "1.1rem" }}>that was the shallow end.</p>
+        <p className="small">Those five are the same five everyone gets. The full game is 21, it goes somewhere else, and you never get the same ones twice.</p>
+        {buy ? <a className="btn" href={buy}>play the whole thing, $2.99</a> : null}
+      </div>
+    );
+  }
+  if (!again) return null;
+  return (
+    <div style={{ marginTop: 26 }}>
+      <a className="btn ghost" href={again}>hey again — 21 new cards, $2.99</a>
+      <p className="small">Nothing you just answered comes back.</p>
+    </div>
+  );
 }
 
 function ShareCard({ a, b }: { a: string; b: string }) {

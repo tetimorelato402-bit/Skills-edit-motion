@@ -58,8 +58,10 @@ describe("view", () => {
 
 describe("mode", () => {
   test("waits for the second seat", () => err(apply(base({ mode: null, p2: null, status: "waiting" }), "p1", { type: "mode", mode: "exes" }, NOW), 409));
-  test("either seat can pick once", () => {
-    assert.deepEqual(ok(apply(base({ mode: null }), "p2", { type: "mode", mode: "exes" }, NOW)), { mode: "exes" });
+  test("either seat can pick once, and picking deals the deck", () => {
+    const p = ok(apply(base({ mode: null }), "p2", { type: "mode", mode: "exes" }, NOW));
+    assert.equal(p.mode, "exes");
+    assert.deepEqual(p.cards?.map(r => r.length), [CARDS_PER_ROUND, CARDS_PER_ROUND, CARDS_PER_ROUND]);
     err(apply(base(), "p1", { type: "mode", mode: "exes" }, NOW), 409);
   });
   test("rejects unknown modes", () => err(apply(base({ mode: null }), "p1", { type: "mode", mode: "friends" as never }, NOW), 400));

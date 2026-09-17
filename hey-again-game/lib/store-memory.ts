@@ -1,7 +1,8 @@
 // A faithful mirror of supabase/schema.sql, in memory. Used by the tests and by
 // DEMO_MEMORY_DB for a local game with no Supabase project. Single process, and
 // everything is lost on restart, so it is never right for a deployment.
-import { newGame, type Claim, type Store } from "./store.ts";
+import { newGame, type Claim, type NewGame, type Store } from "./store.ts";
+import { usedBy } from "./pick.ts";
 import type { Game } from "./game.ts";
 
 const copy = (g: Game): Game => structuredClone(g);
@@ -15,16 +16,22 @@ export class MemoryStore implements Store {
     this.newId = newId;
   }
 
-  async create(): Promise<string> {
+  // what the parent of a replay has already spent
+  private inherited(parent?: string): string[] {
+    const p = parent ? this.games.get(parent) : undefined;
+    return p ? usedBy(p) : [];
+  }
+
+  async create(opts: NewGame = {}): Promise<string> {
     const id = this.newId();
-    this.games.set(id, newGame(id));
+    this.games.set(id, newGame(id, undefined, { ...opts, seen: this.inherited(opts.parent) }));
     return id;
   }
 
-  async ensureForSession(sessionId: string): Promise<void> {
+  async ensureForSession(sessionId: string, opts: NewGame = {}): Promise<void> {
     for (const g of this.games.values()) if (g.session_id === sessionId) return;
     const id = this.newId();
-    this.games.set(id, newGame(id, sessionId));
+    this.games.set(id, newGame(id, sessionId, { ...opts, seen: this.inherited(opts.parent) }));
   }
 
   async findBySession(sessionId: string): Promise<string | null> {

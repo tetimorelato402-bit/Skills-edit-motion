@@ -18,6 +18,9 @@ One link, two seats, 21 cards. Both players answer in secret; answers reveal tog
 - The browser never reads or writes the `games` table (row level security, no policies). After every change the server broadcasts a `ping` on the Supabase realtime channel `game:<id>` and each phone refetches its own view; a four-second poll covers a dropped socket.
 - Writes are optimistic-locked on `version`, so two phones tapping at once can't skip a card.
 - Game ends after 21 cards, link fades seven days later. Each player picks one answer for a shared tangerine card.
+- **Every game is dealt its own deck.** Picking the mode draws seven cards from each round's pool of 21 and stores them on the row. Rounds are drawn separately on purpose: they escalate (before, between, again), so one flat shuffle would let a round three card land first and lose the build the game runs on.
+- **Playing again is never the game you just played.** The "hey again" link carries the finished game's id to Stripe as `client_reference_id`; the webhook stores it as `parent`, and the new deck skips every card that chain has spent. Three games in a row share nothing. No accounts: the chain rides on the game id.
+- **Free games are five cards**, the same five for everyone, fixed. They come from a reserved pool that no paid game can draw, so buying is never a card you already answered. `/api/free` is always on and rate limited; it is a product, not the `DEV_FREE` testing flag.
 - Missing keys produce a plain message, never a stack trace: the game routes answer 503 and `/start` says the game isn't plugged in. The free-game routes are rate limited to 5 per hour per address and are off unless `DEV_FREE=true`.
 
 ## Play it with no database
@@ -27,6 +30,12 @@ npm run demo    # DEMO_MEMORY_DB=true: games live in memory, one process
 Open `/start` for a link, then open that link in a normal window and a private
 one to be both players. Everything is lost when the server restarts, so this is
 for seeing the game work, never for a deployment.
+
+## Upgrading an existing project
+Re-run `supabase/schema.sql` in the SQL editor. It is written to be safe to
+re-run, and adds `cards`, `tier`, `seen` and `parent` to `games`. Rows written
+before the shuffle have no `cards` and fall back to the old fixed deck, so games
+already in flight keep playing across the migration.
 
 ## Is the database right?
 After running `supabase/schema.sql`, with `.env` filled in:
@@ -42,15 +51,20 @@ project says so instead of blaming the schema.
 
 ## Checks
 ```bash
-npm test              # 52 tests: the rules, and a whole game through the server
+npm test                  # 64 tests: the rules, the deck, and a whole game through the server
 npm run typecheck
 npm run build
-npm run demo          # then, in another terminal:
-npm run playthrough   # plays 21 cards over http as two phones
+npm run demo              # then, in another terminal:
+npm run playthrough       # plays the paid 21 over http as two phones
+npm run free-playthrough  # plays the free 5, and proves they never change
 ```
 `npm test` needs no database: `lib/store-memory.ts` mirrors the SQL in
 `supabase/schema.sql`, so `lib/server-game.test.ts` exercises seating,
 concurrency and the reveal rules for real.
 
 ## Editing the cards
-`lib/decks.ts`. Three modes, three rounds, seven cards each. Cards starting with `dare:` are typed dares.
+`lib/decks.ts`.
+
+- `DECKS`: three modes, three rounds, **21 cards per round** (189 in total). A game is dealt seven from each round, so 21 per round is exactly three fresh games before anything repeats. Add more to a round's pool and replays get deeper; nothing else has to change.
+- `FREE`: five per mode, reserved. Never drawn into a paid game, and a test fails if that ever stops being true.
+- Cards starting with `dare:` are typed dares, never physical. Each round pool holds three, so a dealt round of seven averages one.

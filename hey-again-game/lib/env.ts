@@ -40,3 +40,12 @@ export const devFree = () => process.env.DEV_FREE === "true";
 // /api/checkout is not used, so no api key or price id is needed to sell.
 // server only, so it applies on redeploy without a rebuild.
 export const paymentLink = () => process.env.PAYMENT_LINK || "";
+
+// buying again from a finished game. stripe passes client_reference_id through
+// to the webhook, which is how the next game learns what this one already
+// spent without anyone having an account.
+export function againLink(gameId: string): string {
+  const base = paymentLink();
+  if (!base) return "";
+  return base + (base.includes("?") ? "&" : "?") + "client_reference_id=" + encodeURIComponent(gameId);
+}

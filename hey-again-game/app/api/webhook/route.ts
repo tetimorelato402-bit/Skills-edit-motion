@@ -23,7 +23,10 @@ export async function POST(req: Request) {
     if (!store) return NextResponse.json({ error: "database not configured" }, { status: 500 });
     try {
       // stripe retries on a non-2xx, so a failed write is not lost
-      await store.ensureForSession(s.id);
+      // set when the buyer came from a finished game's "hey again" link, so the
+      // new deck can skip everything that chain has already spent.
+      const parent = typeof s.client_reference_id === "string" ? s.client_reference_id : undefined;
+      await store.ensureForSession(s.id, { tier: "paid", parent });
     } catch (e) {
       console.error("webhook", e);
       return NextResponse.json({ error: "could not record the game" }, { status: 500 });
