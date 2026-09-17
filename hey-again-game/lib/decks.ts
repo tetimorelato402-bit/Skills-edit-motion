@@ -1,10 +1,14 @@
 export type Mode = "couples" | "exes" | "strangers";
+// what a game costs and therefore how long it is. free is the taster.
+export type Tier = "free" | "paid";
 export const MODES: { id: Mode; label: string; line: string }[] = [
   { id: "couples", label: "Couples", line: "warm. the things you assume they already know." },
   { id: "exes", label: "Exes", line: "honest. the things you never said out loud." },
   { id: "strangers", label: "Strangers", line: "playful. the things you'd say before you knew better." },
 ];
 export const ROUNDS = ["before", "between", "again"];
+export const PAID_PER_ROUND = 7;
+export const FREE_COUNT = 5;
 // 3 rounds x 7 cards. Cards starting with "dare:" are typed dares, never physical.
 export const DECKS: Record<Mode, string[][]> = {
   couples: [
@@ -21,5 +25,33 @@ export const DECKS: Record<Mode, string[][]> = {
     ["what did you notice about me first?", "what's a thing you assumed about me?", "what do people get wrong about you?", "what's your most on-purpose habit?", "what would your 16-year-old self say about tonight?", "dare: describe me in three words, no compliments.", "what did you think this would be, back then?"],
     ["what's a thing you stopped telling people?", "when did you last feel like a kid?", "what's the idea you shelved?", "what are you avoiding this week?", "who did you stop texting on purpose?", "dare: send a photo of the room you're in, no cleaning up.", "what do you need more of? one thing."],
     ["if we met again in five years, would you say hey?", "what are you scared you'll become?", "what are you scared you won't?", "what do you want me to remember about you?", "what will you remember about this?", "dare: write the text you'd send me tomorrow morning.", "say the thing. the one you've been holding."],
+  ],
+};
+
+// The free five. Deliberately the shallow end: enough to teach the mechanic
+// (both answer in secret, both reveal at once, nobody can edit after seeing)
+// without giving away the cards people pay for. Fixed, same for everyone, and
+// never drawn into a paid game, so buying is never a card you have already had.
+export const FREE: Record<Mode, string[]> = {
+  couples: [
+    "what did i wear the day we met?",
+    "what song makes you think of me?",
+    "what's my worst habit, honestly?",
+    "where would you take me with no notice?",
+    "what do you think i'd say if someone asked about you?",
+  ],
+  exes: [
+    "what's the first thing you'd say if we met today?",
+    "what song did you skip for a while after?",
+    "what did you tell people about why it ended?",
+    "what's one thing you'd still thank me for?",
+    "what do you think i say about you now?",
+  ],
+  strangers: [
+    "what did you assume about me in the first ten seconds?",
+    "what do you think i do for work?",
+    "what would you order for me?",
+    "what's your most useless talent?",
+    "what's a question you wish people asked you?",
   ],
 };
