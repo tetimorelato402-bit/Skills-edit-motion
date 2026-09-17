@@ -35,3 +35,8 @@ export function missingStripe(): Missing {
 }
 
 export const devFree = () => process.env.DEV_FREE === "true";
+
+// a stripe payment link. when set, the pay button points straight at it and
+// /api/checkout is not used, so no api key or price id is needed to sell.
+// server only, so it applies on redeploy without a rebuild.
+export const paymentLink = () => process.env.PAYMENT_LINK || "";
