@@ -19,8 +19,15 @@ that on camera — it ships as **general questions**.
 | `firstdate` | general | questions for / a first date |
 | `bestfriend` | general | questions for / your best friend |
 
-Five questions per deck, forty in total, all distinct — `decks.py` asserts it, because a
-duplicate would quietly ship as the same slide in two different posts.
+Each topic carries **two separate question sets**, because a reel and a post are two
+pieces of content and must never ask the same thing:
+
+- `reel` — three questions, typed out in the video
+- `post` — five questions, one per carousel slide
+
+Sixty-four questions in total, none repeated anywhere. `decks.py` asserts it: a question
+shared between a reel and its own post is exactly the duplicate nobody notices until it is
+live, and one shared across topics ships as the same slide in two different posts.
 
 ## The reel — `reel.py`
 
@@ -45,7 +52,7 @@ frame directory and audio track are all keyed per deck.
 | slide | content |
 |---|---|
 | 1 | `hey again.` with the topic line under it — *questions for your partner* |
-| 2–6 | the five questions |
+| 2–6 | the five `post` questions — never the reel's |
 | 7 | `hey again.` with *play now with a friend for free.* |
 
 Slides 1 and 7 are deliberately the same lockup: the post opens on the brand and closes

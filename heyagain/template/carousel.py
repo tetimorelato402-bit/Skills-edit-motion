@@ -139,7 +139,7 @@ def build(deck, dot_png):
     p = f"{d}/{key}_1_title.png"; hero(deck["sub"], p, dot_png); made.append(p)
 
     # --- 2..6. the five questions ----------------------------------------
-    for i, q in enumerate(deck["questions"], start=2):
+    for i, q in enumerate(deck["post"], start=2):
         lines = wrap(q, Q_SIZE, Q_MAX_W)
         t = block(lines, Q_SIZE, Q_CY) + [centred("hey again.", MARK_SIZE, MARK_Y, 0.55)]
         p = f"{d}/{key}_{i}_q{i - 1}.png"; render(t, p); made.append(p)

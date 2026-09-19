@@ -26,7 +26,11 @@ for d in DECKS:
             <figcaption><span>{i + 1}</span>{SLIDE_LABEL[i]}</figcaption>
           </button></figure>'''
         for i, u in enumerate(slides))
-    qs = "".join(f"<li>{q}</li>" for q in d["questions"])
+    qs = ('<div class="qcol"><h4>on the post</h4><ol>'
+          + "".join(f"<li>{q}</li>" for q in d["post"])
+          + '</ol></div><div class="qcol"><h4>in the reel</h4><ol>'
+          + "".join(f"<li>{q}</li>" for q in d["reel"])
+          + '</ol></div>')
     cards.append(f'''
     <section class="deck" id="{k}" data-cat="{d['cat']}">
       <header class="dh">
@@ -45,7 +49,7 @@ for d in DECKS:
         </div>
         <div class="slides">{thumbs}</div>
       </div>
-      <details class="qs"><summary>the five questions</summary><ol>{qs}</ol></details>
+      <details class="qs"><summary>the questions — five on the post, three in the reel, none shared</summary><div class="qgrid">{qs}</div></details>
     </section>''')
 
 manifest_js = json.dumps({k: M["slides"][k] for k in M["slides"]})
@@ -154,8 +158,12 @@ body{{background:var(--bg);color:var(--ink);
 
 .qs{{margin-top:20px;border-top:1px solid var(--line);padding-top:14px}}
 .qs summary{{cursor:pointer;font-size:13.5px;color:var(--muted);font-weight:500}}
-.qs ol{{margin:12px 0 0;padding-left:22px;color:var(--ink)}}
+.qgrid{{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:14px}}
+.qcol h4{{margin:0 0 6px;font:600 11px/1 Inter,sans-serif;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted)}}
+.qs ol{{margin:0;padding-left:22px;color:var(--ink)}}
 .qs li{{margin:5px 0;font-size:15px}}
+@media (max-width:620px){{.qgrid{{grid-template-columns:1fr}}}}
 
 .note{{color:var(--muted);font-size:13.5px;margin:34px 0 0;text-align:center}}
 .nodl{{margin:14px 0 0;font-size:13.5px;background:rgba(0,0,0,.18);
@@ -174,13 +182,13 @@ body{{background:var(--bg);color:var(--ink);
 
 <div class="hero"><div class="in">
   <h1>hey again<span class="dot"></span></h1>
-  <p>The social template: eight decks, each as a vertical reel and a seven-slide
-     carousel. Orange field, cream Inter, the dot as the full stop. Every asset below
-     downloads at full resolution.</p>
+  <p>The social template: eight topics, each as a vertical reel and a seven-slide
+     carousel. The post and the reel never ask the same question. Orange field, cream
+     Inter, the dot as the full stop. Every asset below downloads at full resolution.</p>
   <div class="stats">
     <div class="stat">8 reels · 1080×1920 · 30fps</div>
     <div class="stat">56 slides · 2160×2700</div>
-    <div class="stat">40 questions</div>
+    <div class="stat">64 questions · none repeated</div>
     <div class="stat">3 categories</div>
   </div>
   <button class="btn" id="dl-all">Download everything · .zip</button>

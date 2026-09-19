@@ -37,7 +37,7 @@ from decks import BY_KEY
 
 DECK = BY_KEY[os.environ.get("DECK", "ex")]
 SUBJECT = DECK["subject"]
-QUESTIONS = DECK["questions"][:3]          # the reel takes three; the carousel takes five
+QUESTIONS = DECK["reel"]                   # the post asks five different ones
 THEME_LEAD = DECK["lead"]
 CTA = "play now for free."
 
