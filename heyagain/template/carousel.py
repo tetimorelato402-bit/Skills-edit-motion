@@ -14,7 +14,8 @@ from decks import DECKS
 
 HEY = "/home/user/Skills-edit-motion/heyagain"
 SP = os.path.dirname(os.path.abspath(__file__))
-FF = f"{SP}/tools/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg"
+FF = os.environ.get("FFMPEG", f"{SP}/tools/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg")
+CHROME = os.environ.get("CHROME", "/opt/pw-browsers/chromium-1194/chrome-linux/chrome")
 FONT_FILE = f"{HEY}/assets/Inter-Medium.ttf"
 F = Font(FONT_FILE)
 
@@ -22,11 +23,13 @@ W, H = 2160, 2700
 ORANGE, CREAM = "0xD8652B", "0xF4EEE4"
 
 Q_SIZE, Q_MAX_W = 150, 1700          # 230px gutter either side
-LEAD_SIZE = 104
-SUBJ_MAX, SUBJ_MAX_W = 264, 1840
-LOGO_SIZE = 264
-CTA_SIZE = 92
-MARK_SIZE = 62
+LOGO_SIZE = 264                      # the hero wordmark, on slide 1 and slide 7
+SUB_SIZE = 92                        # the line under it — one size fits all eight decks
+MARK_SIZE = 62                       # the quiet wordmark on the question slides
+SUB_GAP = 96                         # from the wordmark's measured ink foot to that line
+
+CTA_LINE = "play now with a friend for free."
+REF_SUB = "questions for your partner"   # the yardstick for centring the hero lockup
 
 Q_CY = H * 0.455                     # optical centre: a touch above true centre
 MARK_Y = H - 340
@@ -36,13 +39,6 @@ OUT = f"{SP}/carousel"
 def esc(s):
     s = s.replace("\\", "\\\\").replace(":", "\\:").replace("'", "’").replace("%", "\\%")
     return s.replace(",", "\\,").replace("[", "\\[").replace("]", "\\]").replace(";", "\\;")
-
-
-def fit(text, start, maxw):
-    size = start
-    while size > 40 and F.width(text, size) > maxw:
-        size -= 4
-    return size
 
 
 def wrap(text, size, maxw):
@@ -72,22 +68,46 @@ def block(lines, size, cy, lead=1.22):
 _dot_cache = None
 
 
-def wordmark_dot():
-    """Where the period of the big 'hey again.' lockup sits, measured not calculated.
+def wordmark():
+    """Geometry of the big 'hey again.' lockup, measured rather than calculated.
 
-    The scan is a pure-Python sweep of a 2160x2700 gray plane, so it is cached: the
-    lockup is identical on all eight call-to-action slides.
+    Returns where to draw the word, where the 3D dot goes as its full stop, and the ink
+    foot of the whole thing so the line underneath can hang off something real. The scan
+    is a pure-Python sweep of a 2160x2700 gray plane, so it is cached: the lockup is
+    identical on all sixteen hero slides.
     """
     global _dot_cache
     if _dot_cache:
         return _dot_cache
     lockup_w = F.width("hey again", LOGO_SIZE) + F.advance(".", LOGO_SIZE)
     x = (W - lockup_w) / 2
-    y = H * 0.40
+    y = H * 0.355
     word = ink_region("hey again", LOGO_SIZE, x, y, W=W, H=H)
     per = ink_region("hey again.", LOGO_SIZE, x, y, x_from=word[2] + 4, W=W, H=H)
-    _dot_cache = (x, y, (per[0] + per[2]) / 2, (per[1] + per[3]) / 2, per[2] - per[0] + 1)
+    # Centre the whole lockup on the same optical line the question slides use, so the
+    # seven slides of a post read as one set rather than the ends floating high. Measured
+    # against one reference subline: every deck's line sits at the same y, so using its
+    # own ink would move the logo from post to post.
+    sub_ink = ink_region(REF_SUB, SUB_SIZE, (W - F.width(REF_SUB, SUB_SIZE)) / 2,
+                         word[3] + SUB_GAP, W=W, H=H)
+    shift = Q_CY - (word[1] + sub_ink[3]) / 2
+    _dot_cache = dict(x=x, y=y + shift,
+                      dot=((per[0] + per[2]) / 2, (per[1] + per[3]) / 2 + shift,
+                           per[2] - per[0] + 1),
+                      foot=word[3] + shift)
     return _dot_cache
+
+
+def hero(subline, out, dot_png):
+    """Slide 1 and slide 7: the wordmark, with one line under it.
+
+    Deliberately the same lockup at both ends — the post opens on the brand and closes on
+    it, and only the line underneath changes.
+    """
+    m = wordmark()
+    texts = [("hey again", LOGO_SIZE, m["x"], m["y"], 1.0),
+             centred(subline, SUB_SIZE, m["foot"] + SUB_GAP)]
+    render(texts, out, dot=m["dot"], dot_png=dot_png)
 
 
 def render(texts, out, dot=None, dot_png=None):
@@ -115,14 +135,8 @@ def build(deck, dot_png):
     os.makedirs(d, exist_ok=True)
     made = []
 
-    # --- 1. the theme card ------------------------------------------------
-    subj_size = fit(deck["subject"], SUBJ_MAX, SUBJ_MAX_W)
-    lead_h = F.line_h(LEAD_SIZE) * 1.05
-    top = Q_CY - (lead_h + subj_size) / 2 - 40
-    t = [centred(deck["lead"], LEAD_SIZE, top, 0.72),
-         centred(deck["subject"], subj_size, top + lead_h),
-         centred("hey again.", MARK_SIZE, MARK_Y, 0.55)]
-    p = f"{d}/{key}_1_theme.png"; render(t, p); made.append(p)
+    # --- 1. the title card ------------------------------------------------
+    p = f"{d}/{key}_1_title.png"; hero(deck["sub"], p, dot_png); made.append(p)
 
     # --- 2..6. the five questions ----------------------------------------
     for i, q in enumerate(deck["questions"], start=2):
@@ -131,20 +145,42 @@ def build(deck, dot_png):
         p = f"{d}/{key}_{i}_q{i - 1}.png"; render(t, p); made.append(p)
 
     # --- 7. the call to action -------------------------------------------
-    lx, ly, pcx, pcy, pd = wordmark_dot()
-    cta_y = ly + F.line_h(LOGO_SIZE) + 70
-    t = [("hey again", LOGO_SIZE, lx, ly, 1.0),
-         centred("play now for free.", CTA_SIZE, cta_y)]
-    p = f"{d}/{key}_7_cta.png"; render(t, p, dot=(pcx, pcy, pd), dot_png=dot_png)
-    made.append(p)
+    p = f"{d}/{key}_7_cta.png"; hero(CTA_LINE, p, dot_png); made.append(p)
     return made
+
+
+def make_dot(path):
+    """The white sphere, same asset the reel uses as its full stop."""
+    # Sizes are pinned in pixels against a relative body: an absolutely positioned
+    # inset:0 resolves against the viewport, whose height in headless Chrome is not the
+    # window height, which silently renders the sphere as an ellipse.
+    html = """<meta charset=utf-8><style>
+      html{margin:0}
+      body{margin:0;position:relative;width:512px;height:512px;background:transparent}
+      .s{position:absolute;left:0;top:0;width:512px;height:512px;border-radius:50%;
+         background:
+           radial-gradient(circle at 36% 30%, #FFFFFF 0%, #FFFFFF 42%, #FBF6EF 62%,
+                           #F3EADD 80%, #EADFCE 93%, #E3D6C2 100%);
+         box-shadow: inset -22px -26px 48px rgba(176,132,88,.22);}
+      .g{position:absolute;left:123px;top:77px;width:154px;height:113px;border-radius:50%;
+         background:radial-gradient(ellipse at center, rgba(255,255,255,1), rgba(255,255,255,0) 72%);
+         filter:blur(4px);}
+    </style><div class=s></div><div class=g></div>"""
+    src = f"{path}.html"
+    open(src, "w").write(html)
+    subprocess.run([CHROME, "--headless", "--disable-gpu", "--no-sandbox", "--hide-scrollbars",
+                    "--default-background-color=00000000", "--force-device-scale-factor=1",
+                    "--window-size=512,760", f"--screenshot={path}.raw.png", f"file://{src}"],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    subprocess.run([FF, "-v", "error", "-y", "-i", f"{path}.raw.png",
+                    "-vf", "crop=512:512:0:0", path], check=True)
+    os.remove(f"{path}.raw.png")
+    return path
 
 
 if __name__ == "__main__":
     os.makedirs(OUT, exist_ok=True)
-    dot_png = f"{SP}/v6/dot_ex.png"          # the sphere the reels already rendered
-    if not os.path.exists(dot_png):
-        sys.exit(f"dot asset missing: {dot_png}")
+    dot_png = make_dot(f"{OUT}/dot.png")
     total = 0
     for deck in DECKS:
         made = build(deck, dot_png)

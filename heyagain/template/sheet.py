@@ -11,7 +11,7 @@ from decks import DECKS
 SP = os.path.dirname(os.path.abspath(__file__))
 M = json.load(open(f"{SP}/manifest.json"))
 CAT = {"couple": "couple", "ex": "ex", "general": "general"}
-SLIDE_LABEL = ["theme", "q1", "q2", "q3", "q4", "q5", "cta"]
+SLIDE_LABEL = ["title", "q1", "q2", "q3", "q4", "q5", "cta"]
 
 cards = []
 for d in DECKS:

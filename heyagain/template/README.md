@@ -40,7 +40,18 @@ frame directory and audio track are all keyed per deck.
 
 ## The carousel — `carousel.py`
 
-2160×2700 (4:5), seven PNGs per deck: theme card, five questions, call to action.
+2160×2700 (4:5), seven PNGs per deck:
+
+| slide | content |
+|---|---|
+| 1 | `hey again.` with the topic line under it — *questions for your partner* |
+| 2–6 | the five questions |
+| 7 | `hey again.` with *play now with a friend for free.* |
+
+Slides 1 and 7 are deliberately the same lockup: the post opens on the brand and closes
+on it, and only the line underneath changes. Both are centred on the same optical line as
+the question slides (45.5% of frame height), measured rather than assumed, so the seven
+slides read as one set instead of the ends floating high.
 
 ```
 python3 carousel.py
@@ -71,3 +82,9 @@ installable in the build sandbox.
 
 A static ffmpeg under `tools/`, headless Chromium for the sphere, and
 `assets/Inter-Medium.ttf`. Nothing from pip.
+
+## Known inconsistency
+
+The carousel closes on *play now with a friend for free.* The reels still close on
+*play now for free.* — they were rendered before that line was settled. Re-rendering the
+eight reels is the fix; it takes about six minutes.

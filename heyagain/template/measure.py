@@ -2,7 +2,7 @@
 import subprocess, sys, os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 SP = os.path.dirname(os.path.abspath(__file__))
-FF = f"{SP}/tools/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg"
+FF = os.environ.get("FFMPEG", f"{SP}/tools/ffmpeg-master-latest-linux64-gpl/bin/ffmpeg")
 FONT = "/home/user/Skills-edit-motion/heyagain/assets/Inter-Medium.ttf"
 
 def ink(ch, size, x, y, W=1080, H=1920):

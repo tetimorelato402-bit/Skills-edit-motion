@@ -1,13 +1,14 @@
 """hey again. — the eight decks.
 
 Everything maps back to the three product categories: general (the stranger deck, never
-named that on camera), ex, and couple. `lead` is the small line above the title, `subject`
-is the big one. Five questions per deck, all forty distinct: the reel takes the first
+named that on camera), ex, and couple. `sub` is the single line that sits under the wordmark on the
+carousel title card; `lead`/`subject` are the two stacked lines the reel's theme card
+uses. Five questions per deck, all forty distinct: the reel takes the first
 three, the carousel takes all five.
 """
 
 DECKS = [
-    dict(key="partner", cat="couple", lead="questions for", subject="your partner",
+    dict(key="partner", sub="questions for your partner", cat="couple", lead="questions for", subject="your partner",
          questions=[
              "what have you forgiven me for without telling me?",
              "when do you feel furthest from me?",
@@ -15,7 +16,7 @@ DECKS = [
              "what version of me are you scared of losing?",
              "what do you wish i asked you more often?",
          ]),
-    dict(key="ex", cat="ex", lead="questions for", subject="your ex",
+    dict(key="ex", sub="questions for your ex", cat="ex", lead="questions for", subject="your ex",
          questions=[
              "what did you know before i did?",
              "when did you stop trying?",
@@ -23,7 +24,7 @@ DECKS = [
              "do you still defend me to people?",
              "what would you do differently?",
          ]),
-    dict(key="general", cat="general", lead="a round of", subject="general questions",
+    dict(key="general", sub="general questions", cat="general", lead="a round of", subject="general questions",
          questions=[
              "what are you pretending not to need?",
              "who would you call at 3am?",
@@ -31,7 +32,7 @@ DECKS = [
              "what do you want someone to ask you?",
              "when did you last surprise yourself?",
          ]),
-    dict(key="situationship", cat="couple", lead="questions for", subject="your situationship",
+    dict(key="situationship", sub="questions for your situationship", cat="couple", lead="questions for", subject="your situationship",
          questions=[
              "what are we when nobody is watching?",
              "who have you told about me?",
@@ -39,7 +40,7 @@ DECKS = [
              "are you keeping me or keeping your options?",
              "what would make you leave?",
          ]),
-    dict(key="firstdate", cat="general", lead="questions for", subject="a first date",
+    dict(key="firstdate", sub="questions for a first date", cat="general", lead="questions for", subject="a first date",
          questions=[
              "what is the fastest way to lose you?",
              "what do you lie about on purpose?",
@@ -47,7 +48,7 @@ DECKS = [
              "how do you know when you are done?",
              "what did your last person teach you?",
          ]),
-    dict(key="bestfriend", cat="general", lead="questions for", subject="your best friend",
+    dict(key="bestfriend", sub="questions for your best friend", cat="general", lead="questions for", subject="your best friend",
          questions=[
              "what do you protect me from?",
              "when did you last lie to spare me?",
@@ -55,7 +56,7 @@ DECKS = [
              "what have i never thanked you for?",
              "what would you never say to my face?",
          ]),
-    dict(key="gotaway", cat="ex", lead="questions for", subject="your almost",
+    dict(key="gotaway", sub="questions for your almost", cat="ex", lead="questions for", subject="your almost",
          questions=[
              "what were you waiting for me to say?",
              "would you have stayed if i asked?",
@@ -63,7 +64,7 @@ DECKS = [
              "what do you still not tell anyone?",
              "where do you think we would be?",
          ]),
-    dict(key="someonenew", cat="couple", lead="questions for", subject="someone new",
+    dict(key="someonenew", sub="questions for someone new", cat="couple", lead="questions for", subject="someone new",
          questions=[
              "what should i know before i fall for you?",
              "what do people get wrong about you first?",
