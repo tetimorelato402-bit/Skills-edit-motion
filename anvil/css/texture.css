@@ -57,3 +57,8 @@ body::before{
   .js [data-reveal]{opacity:1;transform:none;transition:none}
 }
 @media print{body::before,.tex-dark::before,.tex-dark::after{display:none}}
+
+/* Page-to-page: a quick cross-fade between Home, Plans and Cancel (browsers that support it). */
+@view-transition{navigation:auto}
+::view-transition-old(root),::view-transition-new(root){animation-duration:calc(.25s*var(--motion))}
+@media (prefers-reduced-motion:reduce){@view-transition{navigation:none}}

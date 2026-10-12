@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Cancel Anvil Membership</title>
+<title>Cancel your Anvil plan</title>
+<meta name="description" content="Cancel Anvil on the web, in the app, or with Apple. It takes under a minute.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@700;900&display=swap">
 <link rel="stylesheet" href="css/legal.css">
@@ -8,39 +9,55 @@
 <script>document.documentElement.classList.add('js')</script>
 <script src="js/config.js"></script></head><body>
 <header><div class="wrap"><a class="brand" href="index.html" aria-label="Anvil home"><svg viewBox="-2 2 68 42" aria-hidden="true"><path d="M0 4H64L54.3 14.1H42.1V24.2L47.9 36.2H38V38.4H26V36.2H16.1L21.9 24.2V14.1H9.7Z" transform="translate(0,2)" fill="currentColor"/></svg>Anvil</a>
-<nav><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="plan.html" aria-current="page">Pause or cancel</a></nav></div></header>
+<nav><a href="index.html">Home</a><a href="plans.html">Plans</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="cancel.html" aria-current="page">Cancel plan</a></nav></div></header>
 <main><div class="wrap">
-<span class="lab">Membership</span>
-<h1>Cancel your membership.</h1>
-<p>It takes under a minute. No phone calls, no forms, no questions you have to answer. How you cancel depends on where you subscribed.</p>
-<div class="draft">Draft for legal review. Items in [brackets] are still to be confirmed.</div>
-<div class="cards">
-<div class="card"><span class="lab">Subscribed on our website</span><h3>Cancel on the web</h3>
-<ol><li>Tap Cancel on the web.</li><li>Enter the email you subscribed with and open the sign-in link we send.</li><li>Tap Cancel plan, then confirm.</li></ol>
-<div class="sp"></div><a class="btn" data-portal rel="noopener">Cancel on the web</a></div>
-<div class="card"><span class="lab">In the app</span><h3>Cancel in Anvil</h3>
-<ol><li>Open the Routine tab and tap your photo.</li><li>Tap Plan.</li><li>Tap Cancel plan, then confirm.</li></ol></div>
-<div class="card"><span class="lab">Through the App Store</span><h3>Cancel with Apple</h3>
-<ol><li>Open iPhone Settings and tap your name.</li><li>Tap Subscriptions, then Anvil.</li><li>Tap Cancel Subscription.</li></ol>
-<div class="sp"></div><a class="btn ghost" href="https://support.apple.com/en-us/118428" target="_blank" rel="noopener">Apple's instructions</a></div>
-</div>
+<h1>Cancel your plan.</h1>
+<p class="sub">Where did you subscribe?</p>
 
-<h2>What happens when you cancel</h2>
-<ul>
-<li>You won't be charged again. You'll get an email confirming it.</li>
-<li>You keep paid features until the end of the period you already paid for. After that, you move to the free plan.</li>
-<li>Cancelled during a free trial? You won't be charged at all.</li>
-<li>Your circles, commitments and history stay. [Photos older than 3 months stay saved for 90 days so you can resubscribe or keep them.]</li>
-<li>Payments aren't refunded for partly used periods, except where the law requires. Charged by mistake? Email us and we'll make it right.</li>
+<ol class="ways">
+  <li class="way" id="web">
+    <span class="w-where">On the web</span>
+    <span class="w-how"><button type="button" class="btn" data-cancel>Cancel plan</button></span>
+  </li>
+  <li class="way" id="app">
+    <span class="w-where">In the app</span>
+    <span class="w-how path"><span>Your photo</span><i aria-hidden="true">→</i><span>Plan</span><i aria-hidden="true">→</i><span>Cancel</span></span>
+  </li>
+  <li class="way" id="apple">
+    <span class="w-where">With Apple</span>
+    <span class="w-how path"><span>Settings</span><i aria-hidden="true">→</i><span>Your name</span><i aria-hidden="true">→</i><span>Subscriptions</span><i aria-hidden="true">→</i><span>Anvil</span><i aria-hidden="true">→</i><span>Cancel</span>
+      <a class="w-help" href="https://support.apple.com/en-us/118428" target="_blank" rel="noopener">Apple’s help</a></span>
+  </li>
+</ol>
+
+<h2>What happens next</h2>
+<ul class="after">
+  <li>No more charges. We email you to confirm.</li>
+  <li>You keep Anvil until the period you paid for ends.</li>
+  <li>Cancelled during your free trial? You’re never charged.</li>
+  <li>Your circles and history stay saved if you come back.</li>
+  <li>Partly used periods aren’t refunded, except where the law requires. Charged by mistake? Email us and we’ll fix it.</li>
 </ul>
 
-<h2>Want to delete everything instead?</h2>
-<p>Cancelling keeps your account. To delete your account and your data, open the app, go to Settings and tap Delete account. If you pay through Apple, also cancel there, because deleting your account doesn't stop Apple's billing.</p>
-
-<h2>Trouble cancelling?</h2>
-<p>Email <span data-support-addr>[support@yourdomain]</span> with the subject "Cancel" from the email on your account. We'll cancel within 1 business day and confirm by email.</p>
+<p class="aside"><b>Want your data gone too?</b> In the app: Settings → Delete account. If you pay through Apple, cancel there as well; deleting your account doesn’t stop Apple’s billing.</p>
+<p class="aside" data-stuck hidden><b>Stuck?</b> Email <span data-support-addr></span> with the subject “Cancel”. We cancel within 1 business day and confirm by email.</p>
 </div></main>
-<footer><div class="wrap"><span>&copy; 2026 Anvil</span><nav><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="plan.html">Pause or cancel</a></nav></div></footer>
+
+<div class="pz" id="pz" role="dialog" aria-modal="true" aria-labelledby="pzh" aria-describedby="pzd" aria-hidden="true">
+  <div class="pzbox">
+    <button class="pzx" type="button" data-pz-close aria-label="Close, keep my plan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    <h2 id="pzh">Pause instead?</h2>
+    <p id="pzd">Skip a month. No charge. Your circle, streaks and photos stay put.</p>
+    <p class="pzsmall">Billing restarts <b id="pzdate">in 1 month</b>. We’ll remind you 3 days before.</p>
+    <div class="pzact">
+      <button type="button" class="btn" id="pzpause">Pause 1 month</button>
+      <button type="button" class="btn ghost" id="pzcancel">No, cancel my plan</button>
+    </div>
+    <p class="pznote" id="pznote" role="status"></p>
+  </div>
+</div>
+
+<footer><div class="wrap"><span>&copy; 2026 Anvil</span><nav><a href="index.html">Home</a><a href="plans.html">Plans</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="cancel.html">Cancel plan</a></nav></div></footer>
 <script src="js/legal.js"></script>
 <script src="js/tune.js"></script>
 </body></html>

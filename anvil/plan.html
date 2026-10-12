@@ -1,43 +1,7 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pause or Cancel Anvil</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@700;900&display=swap">
-<link rel="stylesheet" href="css/legal.css">
-<link rel="stylesheet" href="css/texture.css">
-<script>document.documentElement.classList.add('js')</script>
-<script src="js/config.js"></script></head><body>
-<header><div class="wrap"><a class="brand" href="index.html" aria-label="Anvil home"><svg viewBox="-2 2 68 42" aria-hidden="true"><path d="M0 4H64L54.3 14.1H42.1V24.2L47.9 36.2H38V38.4H26V36.2H16.1L21.9 24.2V14.1H9.7Z" transform="translate(0,2)" fill="currentColor"/></svg>Anvil</a>
-<nav><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="plan.html" aria-current="page">Pause or cancel</a></nav></div></header>
-<main><div class="wrap">
-<style>
-.pc{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px;align-items:stretch}
-@media (max-width:720px){.pc{grid-template-columns:1fr}}
-.pc .card{padding:24px;gap:12px}
-.pc ul{margin:4px 0 0;padding-left:20px;font-size:15px}.pc li{margin:5px 0}
-.pc .btn{width:100%}
-.pnote{margin-top:16px;font-size:15px;color:var(--soft)}
-</style>
-<span class="lab">Your plan</span>
-<h1>Pause or cancel.</h1>
-<p>Either one takes a minute. No calls, no forms, no reason needed.</p>
-<div class="draft">Draft for legal review. Items in [brackets] are still to be confirmed.</div>
-<div class="pc">
-<div class="card" id="cancel"><h3>Cancel</h3>
-<ul><li>No more charges. We’ll email you to confirm.</li><li>Keep paid features until the period you paid for ends, then move to the free plan.</li><li>Cancelled during a free trial? You won’t be charged at all.</li></ul>
-<div class="sp"></div><a class="btn" data-portal rel="noopener">Cancel my plan</a>
-<p class="note">Paid through Apple, or prefer the app? <a href="cancel.html">Here’s how</a>.</p></div>
-<div class="card" id="pause"><h3>Pause for 1 month</h3>
-<ul><li>No charge for the month.</li><li>Your circle, commitments and photos stay as they are.</li><li>Billing restarts <span id="rd">in 1 month</span>. We’ll remind you 3 days before, and you can cancel anytime while paused.</li></ul>
-<div class="sp"></div><a class="btn" data-portal rel="noopener">Pause my plan</a></div>
-</div>
-<p class="pnote">Paid through Apple? Manage it in iPhone Settings, then Subscriptions. <span data-support-line></span></p>
-<script>
-(()=>{const r=new Date();r.setMonth(r.getMonth()+1);document.getElementById('rd').textContent='on '+new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric'}).format(r);
-if(location.hash==='#cancel')document.getElementById('cancel').scrollIntoView();})();
-</script>
-</div></main>
-<footer><div class="wrap"><span>&copy; 2026 Anvil</span><nav><a href="index.html">Home</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="plan.html">Pause or cancel</a></nav></div></footer>
-<script src="js/legal.js"></script>
-<script src="js/tune.js"></script>
-</body></html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cancel your Anvil plan</title>
+<meta http-equiv="refresh" content="0; url=cancel.html">
+<link rel="canonical" href="cancel.html">
+<script>location.replace('cancel.html'+(location.hash||''))</script>
+</head><body><p><a href="cancel.html">Cancel your plan</a></p></body></html>
