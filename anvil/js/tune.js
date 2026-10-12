@@ -1,6 +1,6 @@
 /* Texture tuner. Only runs when the URL has ?tune — visitors never see it.
    Drag the sliders, then "Copy values" and paste over the tunable block in css/texture.css. */
-(()=>{if(!/[?&]tune\b/.test(location.search))return;
+(()=>{if(!/[?&]tune\b/.test(location.search)&&location.hash!=='#tune')return;
 const KEY='anvil-tune',root=document.documentElement;
 const F=[
   ['--grain-light','Grain on light',0,1,.01,''],
