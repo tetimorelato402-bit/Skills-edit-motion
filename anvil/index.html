@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Anvil: tell your friends you'll go, then go</title>
+<meta name="description" content="Tell a few friends what you'll do this week. The camera only opens when you get there, and your circle sees who showed up. Free to start, friends join free. iPhone.">
+<meta property="og:title" content="Anvil: for people who show up">
+<meta property="og:description" content="Tell a few friends what you'll do this week. The camera only opens when you get there. Your circle sees who showed up.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#E9E3D8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 44'%3E%3Cpath d='M0 6H64L54.3 16.1H42.1V26.2L47.9 38.2H38V40.4H26V38.2H16.1L21.9 26.2V16.1H9.7Z' fill='%2316130F'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Playfair+Display:wght@700;900&display=swap">
+<link rel="stylesheet" href="css/site.css">
+<link rel="stylesheet" href="css/texture.css">
+<script>document.documentElement.classList.add('js')</script>
+<script src="js/config.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="Anvil home"><svg viewBox="0 2 64 40" aria-hidden="true"><path d="M0 4H64L54.3 14.1H42.1V24.2L47.9 36.2H38V38.4H26V36.2H16.1L21.9 24.2V14.1H9.7Z" transform="translate(0,2)" fill="currentColor"/></svg><span>Anvil</span></a>
+    <div class="r">
+      <a class="t" href="#how">How it works</a>
+      <a class="t hide-s" href="#questions">Questions</a>
+      <a class="t" href="#pricing">Plans</a>
+      <a class="btn" href="#pricing" data-app>Get the app</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" id="top">
+  <div class="wrap">
+    <div>
+      <h1 data-reveal>For people who show up.</h1>
+      <p class="lede" data-reveal style="--d:1">Tell a few friends what you’ll do this week. Anvil only opens the camera once you’re actually there, and your friends watch the week fill in.</p>
+      <div class="ctas" data-reveal style="--d:2">
+        <a class="btn" href="#pricing" data-app><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.3 1.9-3.4 2-3.5-1.1-1.6-2.8-1.8-3.4-1.8-1.4-.1-2.8.9-3.5.9s-1.8-.9-3-.8c-1.5 0-3 .9-3.8 2.3-1.6 2.8-.4 7 1.2 9.3.8 1.1 1.7 2.4 2.9 2.3 1.2 0 1.6-.7 3-.7s1.8.7 3 .7c1.3 0 2.1-1.1 2.8-2.3.9-1.3 1.3-2.6 1.3-2.6s-2.5-1-2.5-3.8zM14.1 5.7c.6-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg><span>Get Anvil for iPhone</span></a>
+        <a class="tlink ink" href="#how">How it works</a>
+      </div>
+      <ul class="facts" data-reveal style="--d:3"><li>Free to start</li><li>Friends join free</li><li>$6.99 a month for more</li></ul>
+    </div>
+    <div class="stage glow" data-reveal style="--d:2">
+      <div class="fphone"><div class="fscreen" id="fscreen">
+        <div id="film"><video id="fv" muted playsinline loop preload="metadata" aria-label="A short film of the Anvil app: picking a commitment, arriving, the circle seeing it, the week, and inviting friends"><source src="media/anvil-film.mp4" type="video/mp4"><source src="media/anvil-film.webm" type="video/webm"></video></div>
+      </div></div>
+      <div class="chap" id="chap">
+        <div class="bars" id="cbars"></div>
+        <div class="now"><span class="n" id="cn">01</span><div><b id="ct">Say it.</b><p id="cd">Pick what you’ll do and how many times a week.</p></div><button type="button" class="snd" id="snd" aria-pressed="false" aria-label="Turn sound on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="w" d="M15.5 9a4.2 4.2 0 010 6M18 6.6a7.6 7.6 0 010 10.8"/><path class="x" d="M16 9.5l5 5M21 9.5l-5 5"/></svg></button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="head">
+      <h2 data-reveal>How a week works.</h2>
+      <p class="lede" data-reveal style="--d:1">You and two to five friends. Everyone says what they’ll do, and the app keeps score so nobody has to be the one who asks.</p>
+    </div>
+    <ol class="steps">
+      <li data-reveal><h3>Pick the thing and the days.</h3><p>Gym three times a week. A run on Sunday. Whatever you keep saying you’ll start.</p></li>
+      <li data-reveal style="--d:1"><h3>Go there.</h3><p>Anvil knows the places you set. When you arrive, the camera unlocks and you take a photo, right there.</p></li>
+      <li data-reveal style="--d:2"><h3>Your circle sees it.</h3><p>Your friends see your week fill in, one check-in at a time. You see theirs.</p></li>
+      <li data-reveal style="--d:3"><h3>Miss a day, and they notice.</h3><p>That’s the part that works. It’s a lot harder to skip when three people will see the gap.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="rules tex-dark" id="rules">
+  <div class="wrap">
+    <span class="kicker" data-reveal>Three things the app won’t bend on</span>
+    <div class="rule" data-reveal><h2>You can’t fake being there.</h2><p>The camera only opens at the place you picked. There’s no upload button and no camera roll, so last month’s gym photo doesn’t count.</p></div>
+    <div class="rule" data-reveal><h2>You can’t excuse yourself.</h2><p>Sick, travelling, a flat tyre: it happens. Ask, and <b>your circle</b> decides whether the day counts. One excused day a month.</p></div>
+    <div class="rule" data-reveal><h2>You can’t quietly quit.</h2><p>Go quiet and a friend can nudge you, and the rest of the circle sees it. Nobody outside your circle ever does.</p></div>
+  </div>
+</section>
+
+<section class="seen" id="privacy">
+  <div class="wrap grid">
+    <div>
+      <h2 data-reveal>Your friends see that you went. Not where you are.</h2>
+      <p class="lede" data-reveal style="--d:1">Anvil uses your location for one job: noticing when you arrive at a place you chose. It keeps the places you set and when you arrived there, not a trail of where you go.</p>
+      <p class="small" data-reveal style="--d:2">The details are in our <a class="ink" href="privacy.html">privacy policy</a>, written to be read.</p>
+    </div>
+    <div class="ledger" data-reveal style="--d:1">
+      <div class="col yes"><h3>Your circle sees</h3><ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>That you checked in, and on which day</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>The photo you took there</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Your week and your streak</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>For runs, the route line and distance, with no map under it</li>
+      </ul></div>
+      <div class="col no"><h3>Nobody ever sees</h3><ul>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>Where you are, or a map of it</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>How far away you are</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>The exact time you arrived</li>
+        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>Your camera roll, contacts or other apps</li>
+      </ul></div>
+    </div>
+  </div>
+</section>
+
+<section class="price-sec" id="pricing">
+  <div class="wrap">
+    <div class="phead">
+      <div><h2 data-reveal>Free for one small circle.</h2>
+        <p class="lede" data-reveal style="--d:1">Joining someone else’s circle is always free. You only pay to run more circles, or bigger ones.</p></div>
+      <div class="bill" role="group" aria-label="Billing period"><button type="button" id="bm" class="on" aria-pressed="true">Monthly</button><button type="button" id="by" aria-pressed="false">Yearly <em>2 months free</em></button></div>
+    </div>
+
+    <div class="ptabs" role="tablist" aria-label="Plans"><button type="button" role="tab" id="pt-anvil" class="on" aria-selected="true">Anvil</button><button type="button" role="tab" id="pt-free" aria-selected="false">Free</button></div>
+    <div class="plans" id="plans" data-show="anvil">
+      <article class="circle" data-reveal>
+        <div class="top"><b>Anvil</b><span class="badge" id="trialb">First 7 days free</span></div>
+        <div class="big"><strong id="cp">$6.99</strong><span id="cu">a month</span></div>
+        <div class="per" id="cpp">Charged monthly once your free week ends</div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Up to 3 circles, 6 people each</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>As many commitments as you like</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Photos kept until you delete them</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>Every share card style</li>
+        </ul>
+        <div class="act"><button class="btn bronze" type="button" data-plan>Start free trial</button><small id="actnote">Then $6.99 a month until you cancel.</small></div>
+      </article>
+
+      <article class="free" data-reveal style="--d:1">
+        <b class="n">Free</b>
+        <div class="big"><strong>$0</strong><span>no card needed</span></div>
+        <p>Enough to try it properly with two friends.</p>
+        <ul><li>One circle of 3</li><li>2 commitments each</li><li>The camera lock and live photos</li><li>The week, nudges and heads-ups</li><li>Photos kept for 3 months</li></ul>
+        <div class="sp"></div>
+        <a class="btn ghost" href="#pricing" data-app>Start free</a>
+      </article>
+    </div>
+
+    <div class="terms" id="terms-box">
+      <p id="tdisc"><b>How the trial works:</b> it’s free for 7 days. If you don’t cancel before it ends, you’ll be charged $6.99 a month until you cancel. We’ll remind you 3 days before the trial ends.</p>
+      <p>Cancel anytime in the app, in iPhone Settings if you paid through Apple, or on our <a href="plan.html">pause or cancel page</a>. You keep paid features until the end of the period you paid for; partly used periods aren’t refunded, except where the law requires. Prices in USD; sales tax may apply. <a href="terms.html">Full terms</a>.</p>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="questions">
+  <div class="wrap grid">
+    <div>
+      <h2 data-reveal>Fair questions.</h2>
+      <p class="lede" data-reveal style="--d:1">The things people usually ask before they invite anyone.</p>
+    </div>
+    <div>
+      <details class="qa" data-reveal><summary>Do my friends have to pay?</summary><div class="a"><p>No. Joining someone’s circle is always free. Only the person who runs the circle pays, and only if they want more than one circle or more than three people in it.</p></div></details>
+      <details class="qa" data-reveal><summary>Why does it ask for location “Always”?</summary><div class="a"><p>So it can notice when you arrive at a place you chose, even with the app closed, and unlock the camera there. That’s the only thing it’s used for.</p><p>Nobody in your circle ever sees your location, a map, or how far away you are. You can switch location off in iPhone Settings at any time; the camera just won’t unlock at your places until you turn it back on.</p></div></details>
+      <details class="qa" data-reveal><summary>What if I was there and it didn’t notice?</summary><div class="a"><p>GPS isn’t perfect, and a missed check-in isn’t proof you weren’t there. Tell your circle and ask them to excuse the day. They decide, not the app.</p></div></details>
+      <details class="qa" data-reveal><summary>Isn’t being nudged in front of everyone a bit much?</summary><div class="a"><p>It’s a tap on the shoulder from a friend, seen only by the few people in your circle. Nothing is posted anywhere public, and there’s no feed for strangers. Nudges are for encouraging each other; using them to pressure or shame someone is against our rules.</p></div></details>
+      <details class="qa" data-reveal><summary>Can I leave a circle?</summary><div class="a"><p>Yes. Ask to leave and the circle can let you go straight away. If they don’t, you’re out on your own after 7 days. You can block or report anyone at any time.</p></div></details>
+      <details class="qa" data-reveal><summary>Is there an Android version?</summary><div class="a"><p>Not yet. Anvil is iPhone only for now, which means everyone in a circle needs an iPhone too.</p></div></details>
+      <details class="qa" data-reveal><summary>How do I cancel?</summary><div class="a"><p>In the app (tap your photo, then Plan), in iPhone Settings under Subscriptions if you paid through Apple, or on our <a class="ink" href="plan.html">pause or cancel page</a>. No calls, no forms, no reasons needed. Cancel during the trial and you’re never charged.</p></div></details>
+      <details class="qa" data-reveal><summary>Who can use Anvil?</summary><div class="a"><p>Anyone 13 or older. If you’re under 18, you need a parent or guardian’s permission. Circles are always private.</p></div></details>
+      <details class="qa" data-reveal><summary>Something else?</summary><div class="a"><p data-support>Email us and a person will write back.</p></div></details>
+    </div>
+  </div>
+</section>
+
+<section class="close tex-dark" id="end">
+  <div class="wrap">
+    <h2 data-reveal>Who would notice if you stopped?</h2>
+    <p data-reveal style="--d:1">Pick two people who would. Send them the invite from the app. It’s free for them.</p>
+    <div class="ctas" data-reveal style="--d:2"><a class="btn bronze" href="#pricing" data-app>Get Anvil for iPhone</a><a class="tlink ink" href="#pricing">See plans</a></div>
+  </div>
+</section>
+</main>
+
+<section class="cre" id="creators" role="dialog" aria-modal="true" aria-label="Anvil Creators" hidden>
+  <div class="crebar"><div class="wrap"><span class="crelab">Anvil Creators</span><button type="button" class="creclose" id="creclose" aria-label="Close">Close <span aria-hidden="true">×</span></button></div></div>
+  <div class="wrap">
+    <div class="crebox">
+      <div>
+        <h2>Made a video about Anvil?</h2>
+        <span class="tag">#anvil</span>
+        <ol class="csteps">
+          <li><b>1</b>Post a video with #anvil, wherever you post.</li>
+          <li><b>2</b>Send us the link here.</li>
+          <li><b>3</b>We’ll watch it and get back to you.</li>
+        </ol>
+      </div>
+      <div>
+        <form class="cform" id="cf" novalidate>
+          <div class="fl2"><span class="l" id="pl">Where did you post it?</span>
+            <div class="plats" role="radiogroup" aria-labelledby="pl">
+              <label><input type="radio" name="plat" value="Instagram" checked><span>Instagram</span></label>
+              <label><input type="radio" name="plat" value="TikTok"><span>TikTok</span></label>
+              <label><input type="radio" name="plat" value="YouTube"><span>YouTube</span></label>
+              <label><input type="radio" name="plat" value="X"><span>X</span></label>
+              <label><input type="radio" name="plat" value="Other"><span>Other</span></label>
+            </div></div>
+          <div class="two">
+            <div class="fl2"><label class="l" for="cu1">Username</label><input type="text" id="cu1" placeholder="@yourname" autocomplete="off" maxlength="60"></div>
+            <div class="fl2"><label class="l" for="ce1">Email</label><input type="email" id="ce1" placeholder="you@email.com" autocomplete="email" maxlength="120"></div>
+          </div>
+          <div class="fl2"><label class="l" for="cl1">Link to the video</label><input type="url" id="cl1" placeholder="https://" inputmode="url" maxlength="400"></div>
+          <div class="fl2"><label class="l" for="cm1">Anything else? <small>(optional)</small></label><textarea id="cm1" maxlength="800" placeholder="Other links, what you’re showing up for, anything."></textarea></div>
+          <label class="chk"><input type="checkbox" id="cok"><span>The video is mine, it’s public, and it uses #anvil. I’m happy for Anvil to email me about it.</span></label>
+          <button class="btn" type="submit" id="csend">Send it</button>
+          <div class="cnote" id="cnote" aria-live="polite"></div>
+          <p class="fine">We only use your details to reply about your video. See our <a href="privacy.html">privacy policy</a>.</p>
+        </form>
+        <div class="cdone" id="cdone" role="status"><h3>Got it.</h3><p>We’ll watch it. If it’s a fit, we’ll email you.</p><button type="button" id="cagain">Send another</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="#top"><svg viewBox="0 2 64 40" aria-hidden="true"><path d="M0 4H64L54.3 14.1H42.1V24.2L47.9 36.2H38V38.4H26V36.2H16.1L21.9 24.2V14.1H9.7Z" transform="translate(0,2)" fill="currentColor"/></svg><span>Anvil</span></a>
+    <nav aria-label="Footer"><a href="#how">How it works</a><a href="#pricing">Plans</a><a href="#questions">Questions</a><a href="#creators">Creators</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="plan.html">Pause or cancel</a><a href="#" data-support-link hidden>Contact</a></nav>
+    <span class="co-line">© 2026 Anvil. Made in Miami.</span>
+  </div>
+</footer>
+
+<div class="co" id="co" role="dialog" aria-modal="true" aria-labelledby="coh" aria-hidden="true">
+  <div class="cobox">
+    <button class="x" id="cox" type="button" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/></svg></button>
+    <h3 id="coh">Anvil, monthly</h3>
+    <div class="corow"><span>Due today</span><b>$0.00</b></div>
+    <div class="corow"><span>Free trial ends</span><b id="cot"></b></div>
+    <div class="corow"><span>First charge</span><b id="cod"></b></div>
+    <div class="corow"><span>After that</span><b id="cor"></b></div>
+    <label class="consent" for="coagree"><input type="checkbox" id="coagree"><span id="coagreet"></span></label>
+    <button class="btn" type="button" id="copay" disabled>Continue to payment</button>
+    <p class="fine">We’ll email you a receipt with these terms and how to cancel, and remind you 3 days before your trial ends. Cancel before then and you won’t be charged. <a href="terms.html">Terms</a> · <a href="privacy.html">Privacy</a></p>
+  </div>
+</div>
+
+<script src="js/site.js"></script>
+<script src="js/tune.js"></script>
+</body>
+</html>

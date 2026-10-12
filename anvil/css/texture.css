@@ -1,0 +1,59 @@
+/* ==========================================================================
+   Texture & effects — the one file to tune the feel of the site.
+   Every page loads this. Change a number here and it changes everywhere.
+   Open any page with ?tune at the end of the URL to try values live,
+   then press "Copy values" and paste the result over the block below.
+   ========================================================================== */
+:root{
+  /* Paper grain over light sections. 0 = off, .5 = the original look. */
+  --grain-light: .42;
+  /* Grain over dark sections (soft-light, so it adds tooth without greying). */
+  --grain-dark: .35;
+  /* Tile size of the grain image. Bigger = coarser, more like newsprint. */
+  --grain-size: 256px;
+  /* Darkened edges on the dark sections. 0 = flat. */
+  --vignette: .35;
+  /* Warm glow behind the phone. 0 = off. */
+  --glow: .5;
+  /* Motion: 1 = normal, .5 = calmer, 0 = no movement at all. */
+  --motion: 1;
+  /* How far things rise as they appear, in px (multiplied by --motion). */
+  --rise: 14px;
+  /* How long a reveal takes. */
+  --reveal-time: .7s;
+}
+/* ---- end of the tunable block ---- */
+
+/* Grain on paper: fixed, so it doesn't crawl when you scroll. */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:100;
+  background:url(../img/grain.png) 0 0/var(--grain-size) repeat;
+  mix-blend-mode:multiply;opacity:var(--grain-light);
+}
+/* Dark sections get their own grain (multiply disappears on dark) and a vignette. */
+.tex-dark{position:relative;isolation:isolate}
+.tex-dark::before,.tex-dark::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:-1}
+.tex-dark::before{background:url(../img/grain.png) 0 0/var(--grain-size) repeat;mix-blend-mode:soft-light;opacity:var(--grain-dark)}
+.tex-dark::after{background:radial-gradient(120% 90% at 50% 40%,transparent 45%,rgba(0,0,0,var(--vignette)) 100%)}
+
+/* Soft warm light behind the phone, like it's sitting under a lamp. */
+.glow{position:relative}
+.glow::before{content:'';position:absolute;inset:-12% -30% 0;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(214,170,110,calc(.38*var(--glow))),transparent 70%)}
+
+/* Reveal on scroll. JS adds .in when the element is in view.
+   Without JS, or with reduced motion, everything is simply visible. */
+.js [data-reveal]{opacity:0;transform:translateY(calc(var(--rise)*var(--motion)));
+  transition:opacity calc(var(--reveal-time)*var(--motion)) cubic-bezier(.22,.8,.24,1),transform calc(var(--reveal-time)*var(--motion)) cubic-bezier(.22,.8,.24,1);
+  transition-delay:calc(var(--d,0)*80ms*var(--motion))}
+.js [data-reveal].in{opacity:1;transform:none}
+
+/* Links: the underline draws in instead of popping. */
+.ink{text-decoration:none;background:linear-gradient(currentColor,currentColor) 0 100%/100% 1px no-repeat;transition:background-size calc(.3s*var(--motion))}
+.ink:hover{background-size:0 1px;background-position:100% 100%}
+
+@media (prefers-reduced-motion:reduce){
+  :root{--motion:0}
+  .js [data-reveal]{opacity:1;transform:none;transition:none}
+}
+@media print{body::before,.tex-dark::before,.tex-dark::after{display:none}}
