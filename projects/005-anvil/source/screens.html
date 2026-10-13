@@ -1,0 +1,852 @@
+<meta charset="utf-8">
+<title>Anvil — screens</title>
+<!--
+  ANVIL, the whole spine.
+
+  Every screen is a real iPhone artboard: 393 x 852 CSS px, rendered at
+  deviceScaleFactor 3 to 1179 x 2556, which is exactly what the TestFlight
+  recording is. So these are not pictures of an app, they are the app at
+  1:1 — a measurement taken off one of them is a number you can type into
+  SwiftUI.
+
+  The palette, the type and the floating tab bar are lifted off the build,
+  not invented: bone #E3DACD, card #EEE9DE, ink #231C15, gold #9E7C52.
+  What is new is everything the build had not got to yet — the streak
+  number where the gold dash is a placeholder, the week strip, the Miss,
+  the circle, the routine — and a tightening of the parts that existed.
+-->
+<style>
+@font-face { font-family:'Playfair'; src:url('fonts/playfair.woff2') format('woff2'); font-weight:400 900; }
+@font-face { font-family:'Inter';    src:url('fonts/inter.woff2')    format('woff2'); font-weight:100 900; }
+@font-face { font-family:'Plex';     src:url('fonts/plexmono.woff2') format('woff2'); font-weight:400 700; }
+
+:root{
+  /* measured off the build */
+  --bone:#E3DACD; --card:#EEE9DE; --ink:#231C15; --ink2:#5C5346; --ink3:#857B6B;
+  --gold:#9E7C52;
+  /* the two signals the build did not have yet, and both stay in the warm
+     family: a stock iOS red in this room reads as an error dialog rather
+     than as a broken promise, and a stock success-green reads as a fitness
+     tracker. A kept promise is ink, the strongest mark bone can carry. */
+  --miss:#9A3B21; --hit:#231C15;
+  --line:rgba(35,28,21,.10); --line2:rgba(35,28,21,.18);
+  --pad:20px;                       /* the build's page margin */
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{background:#12100E;font-family:Inter,system-ui,sans-serif}
+.wrap{display:flex;flex-wrap:wrap;gap:40px;padding:40px}
+
+.screen{
+  position:relative;width:393px;height:852px;overflow:hidden;
+  background:var(--bone);color:var(--ink);flex:0 0 auto;
+}
+.body{position:absolute;inset:0;display:flex;flex-direction:column;padding:0 var(--pad);}
+.scroll{flex:1;overflow:hidden}
+
+/* ---------------------------------------------------------------- chrome */
+.status{position:absolute;top:0;left:0;right:0;height:59px;z-index:5;
+        display:flex;align-items:center;padding:14px 24px 0;pointer-events:none}
+.status .t{font:600 16px Inter;letter-spacing:-.01em;width:70px}
+.status .island{width:118px;height:34px;border-radius:20px;background:#000;margin:0 auto}
+.status .r{width:70px;display:flex;justify-content:flex-end;align-items:center;gap:5px}
+.status .r i{display:block;background:currentColor;border-radius:1px}
+.on-dark .status{color:#F3EDE2}
+
+.tabs{position:absolute;left:10px;right:10px;bottom:12px;height:66px;z-index:6;
+      background:var(--ink);border-radius:26px;display:flex;align-items:center;
+      padding:0 4px}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;color:var(--gold)}
+.tab.on{color:#F3EDE2}
+.tab svg{width:19px;height:19px;display:block}
+.tab span{font:500 8.5px Plex;letter-spacing:.14em}
+.tab .u{width:16px;height:1.5px;background:var(--gold);border-radius:1px;margin-top:1px;opacity:0}
+.tab.on .u{opacity:1}
+.homebar{position:absolute;left:50%;transform:translateX(-50%);bottom:5px;width:128px;height:4px;
+         border-radius:3px;background:rgba(243,237,226,.5);z-index:7}
+
+/* ------------------------------------------------------------ typography */
+.kicker{font:500 10px Plex;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3)}
+.display{font-family:Playfair;font-weight:500;font-size:34px;line-height:1.04;letter-spacing:-.015em}
+.display.sm{font-size:27px}
+.wordmark{font-family:Playfair;font-weight:700;font-size:25px;letter-spacing:-.01em}
+h2.sec{font:500 10px Plex;letter-spacing:.2em;text-transform:uppercase;color:var(--ink3)}
+p.copy{font:400 14.5px/1.5 Inter;color:var(--ink2)}
+p.copy.ink{color:var(--ink)}
+.num{font-family:Plex;font-variant-numeric:tabular-nums}
+
+/* --------------------------------------------------------------- pieces */
+.head{display:flex;align-items:baseline;justify-content:space-between;padding-top:66px;padding-bottom:14px}
+.pick{font:500 10px Plex;letter-spacing:.18em;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.card{background:var(--card);border-radius:20px;padding:16px}
+.card.tight{padding:14px}
+.btn{height:52px;border-radius:14px;background:var(--ink);color:#F3EDE2;display:flex;
+     align-items:center;justify-content:center;font:500 11px Plex;letter-spacing:.18em}
+.btn.ghost{background:transparent;border:1px solid var(--line2);color:var(--ink)}
+.btn.quiet{background:transparent;color:var(--ink3)}
+.btn.wide{width:100%}
+.input{height:52px;border-radius:14px;background:var(--card);display:flex;align-items:center;
+       padding:0 16px;font:400 15px Inter;color:var(--ink)}
+.input.ph{color:#A79C8C}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{width:34px;height:34px;border-radius:17px;background:var(--card);display:flex;
+      align-items:center;justify-content:center;font:400 13px Plex;color:var(--ink2)}
+.pill.on{background:var(--ink);color:#F3EDE2}
+.chip{height:30px;border-radius:15px;background:var(--card);display:inline-flex;align-items:center;
+      padding:0 13px;font:500 10px Plex;letter-spacing:.14em;color:var(--ink2)}
+.rule{height:1px;background:var(--line)}
+
+/* the week strip: seven marks, one per day. This is the piece the build was
+   missing — a streak number alone says how long, this says how it is going. */
+.week{display:flex;gap:4px}
+.week i{width:13px;height:13px;border-radius:4px;background:rgba(35,28,21,.10);display:block}
+.week i.hit{background:var(--hit)}
+.week i.miss{background:var(--miss)}
+.week i.due{background:transparent;box-shadow:inset 0 0 0 1.5px var(--gold)}
+.week.sm i{width:9px;height:9px;border-radius:3px}
+.on-ink .week i{background:rgba(243,237,226,.20)}
+.on-ink .week i.hit{background:#F3EDE2}
+.on-ink .week i.due{background:transparent;box-shadow:inset 0 0 0 1.5px var(--gold)}
+
+.row{display:flex;align-items:center;gap:12px}
+.rank{font:400 12px Plex;color:var(--ink3);width:14px}
+.grow{flex:1;min-width:0}
+.name{font:500 17px Inter;letter-spacing:-.01em}
+.sub{font:400 12.5px Inter;color:var(--ink3);margin-top:2px}
+.streak{font-family:Plex;font-weight:500;font-size:23px;color:var(--gold);line-height:1}
+.streak small{font-size:9px;letter-spacing:.16em;display:block;color:var(--ink3);margin-top:4px}
+
+.proof{border-radius:20px;overflow:hidden;background:var(--card)}
+.proof img{width:100%;height:190px;object-fit:cover;display:block}
+.proof .meta{padding:12px 14px 14px}
+.verified{display:inline-flex;align-items:center;gap:5px;font:500 9px Plex;letter-spacing:.16em;color:var(--gold)}
+
+.sheet{position:absolute;left:0;right:0;bottom:0;top:52px;background:var(--bone);
+       border-radius:26px 26px 0 0;padding:0 var(--pad);display:flex;flex-direction:column;
+       box-shadow:0 -20px 50px rgba(0,0,0,.16)}
+.sheet .x{position:absolute;right:18px;top:16px;width:30px;height:30px;border-radius:15px;
+          background:var(--card);display:flex;align-items:center;justify-content:center}
+.dim{position:absolute;inset:0;background:rgba(20,15,11,.35)}
+
+/* the deal, restructured: the build had one long paragraph nobody reads.
+   Three numbered clauses read as terms, which is what they are. */
+.deal{background:var(--card);border-radius:20px;padding:16px 16px 6px}
+.clause{display:flex;gap:12px;padding-bottom:12px}
+.clause .n{font:400 11px Plex;color:var(--gold);padding-top:2px}
+.clause p{font:400 13.5px/1.45 Inter;color:var(--ink2)}
+.clause b{font-weight:600;color:var(--ink)}
+
+.list .li{display:flex;align-items:center;gap:12px;padding:15px 0}
+.list .li + .li{border-top:1px solid var(--line)}
+.li .lbl{flex:1;font:400 15px Inter}
+.li .val{font:400 13px Inter;color:var(--ink3)}
+.chev{width:7px;height:7px;border-right:1.4px solid var(--ink3);border-top:1.4px solid var(--ink3);
+      transform:rotate(45deg)}
+
+.stat{display:flex;gap:26px}
+.stat b{display:block;font:500 26px Plex;color:var(--ink);line-height:1}
+.stat span{font:500 9px Plex;letter-spacing:.16em;color:var(--ink3);display:block;margin-top:6px}
+
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.grid7 i{aspect-ratio:1;border-radius:5px;background:rgba(35,28,21,.08)}
+.grid7 i.hit{background:var(--hit)}
+.grid7 i.miss{background:var(--miss)}
+.grid7 i.none{background:rgba(35,28,21,.05)}
+
+.avatar{width:38px;height:38px;border-radius:19px;background:var(--ink);color:#F3EDE2;
+        display:flex;align-items:center;justify-content:center;font:500 13px Plex}
+.avatar.g{background:var(--gold)}
+.avatar.lg{width:64px;height:64px;border-radius:32px;font-size:20px}
+
+.notice{border-radius:20px;padding:16px;background:var(--card);border-left:3px solid var(--miss)}
+.tagline{font:400 13px/1.5 Inter;color:var(--ink3)}
+.center{display:flex;flex-direction:column;align-items:center;text-align:center}
+.spacer{flex:1}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt20{margin-top:20px}
+.mt28{margin-top:28px}.mt36{margin-top:36px}
+.gap8{display:flex;flex-direction:column;gap:8px}
+.gap10{display:flex;flex-direction:column;gap:10px}
+.gap14{display:flex;flex-direction:column;gap:14px}
+.pb{padding-bottom:96px}
+</style>
+
+<div class="wrap" id="wrap">
+
+<!-- 01 ------------------------------------------------------------ welcome -->
+<section class="screen notabs" id="s01-welcome">
+  <div class="body" style="align-items:center;text-align:center">
+    <div style="flex:1"></div>
+    <div class="wordmark" style="font-size:34px">Anvil</div>
+    <div class="display mt28" style="font-size:40px">Prove it.</div>
+    <p class="copy mt16" style="max-width:272px">A promise your circle can see, a place you have
+      to actually stand in, and a photo taken there. Nothing else counts.</p>
+    <div style="flex:1.15"></div>
+    <div class="gap10" style="align-self:stretch">
+      <div class="btn wide">START A CIRCLE</div>
+      <div class="btn ghost wide">I HAVE AN INVITE</div>
+    </div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+<!-- 02 --------------------------------------------------------------- name -->
+<section class="screen notabs" id="s02-name">
+  <div class="body">
+    <div style="padding-top:96px"></div>
+    <div class="kicker">Your name</div>
+    <h1 class="display mt12">What should they<br>call you?</h1>
+    <p class="copy mt16">This is the name your circle sees on everything you prove.</p>
+    <div class="input mt28">Matheus</div>
+    <div class="spacer"></div>
+    <div class="btn wide">CONTINUE</div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+<!-- 03 ------------------------------------------------------------- circle -->
+<section class="screen notabs" id="s03-circle">
+  <div class="body">
+    <div style="padding-top:96px"></div>
+    <div class="kicker">Your circle</div>
+    <h1 class="display mt12">Who is holding<br>you to it?</h1>
+    <p class="copy mt16">Four to eight people who will notice. Anvil is unpleasant alone and
+      works in a group.</p>
+    <div class="card mt28" style="padding:18px">
+      <div class="kicker">Join with a code</div>
+      <div class="row mt12" style="gap:8px">
+        <div class="input" style="flex:1;background:var(--bone);letter-spacing:.32em;font-family:Plex">GEEKED</div>
+        <div class="btn" style="width:64px;border-radius:14px">GO</div>
+      </div>
+    </div>
+    <div class="row mt20" style="gap:12px"><div class="rule grow"></div>
+      <span class="kicker">or</span><div class="rule grow"></div></div>
+    <div class="btn ghost wide mt20">START A NEW CIRCLE</div>
+    <div class="spacer"></div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+<!-- 04 --------------------------------------------------------- permission -->
+<section class="screen notabs" id="s04-permission">
+  <div class="body">
+    <div style="padding-top:96px"></div>
+    <div class="kicker">Location</div>
+    <h1 class="display mt12">Anvil asks once.</h1>
+    <p class="copy mt16">A check-in is your location plus a photo taken there, so without
+      location Anvil cannot back one up.</p>
+    <div class="deal mt28">
+      <div class="clause"><span class="n">01</span><p>It is asked for at the <b>very end</b> of
+        making a commitment, once you have named a place and chosen how often.</p></div>
+      <div class="clause"><span class="n">02</span><p>Your circle sees the <b>name you gave the
+        place</b> and nothing else. Never the map, never where it is.</p></div>
+      <div class="clause"><span class="n">03</span><p>Anvil pays attention <b>within 150m</b> of
+        the pin, and only in the hour around a check-in.</p></div>
+    </div>
+    <div class="spacer"></div>
+    <div class="gap10">
+      <div class="btn wide">ALLOW LOCATION</div>
+      <div class="btn quiet wide">NOT NOW</div>
+    </div>
+    <div style="height:30px"></div>
+  </div>
+</section>
+
+<!-- 05 --------------------------------------------------------------- home -->
+<section class="screen" id="s05-home" data-tab="1">
+  <div class="body">
+    <div class="head"><div class="wordmark">Anvil</div>
+      <div class="pick">GEEKED <span class="chev" style="transform:rotate(135deg);margin-top:-4px"></span></div></div>
+    <div class="scroll pb">
+      <h2 class="sec">Standings</h2>
+      <div class="gap8 mt12">
+        <div class="card tight"><div class="row">
+          <span class="rank num">1</span>
+          <div class="grow"><div class="name">Barrios</div><div class="sub">Gym · 3x a week</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="due"></i></div></div>
+          <div style="text-align:right"><div class="streak">24</div><small>WEEKS</small></div>
+        </div></div>
+        <div class="card tight"><div class="row">
+          <span class="rank num">2</span>
+          <div class="grow"><div class="name">Matheus</div><div class="sub">Anvil Gym · 3x a week</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="hit"></i><i></i><i class="hit"></i><i></i><i class="due"></i><i></i></div></div>
+          <div style="text-align:right"><div class="streak">9</div><small>WEEKS</small></div>
+        </div></div>
+        <div class="card tight"><div class="row">
+          <span class="rank num">3</span>
+          <div class="grow"><div class="name">Joe</div><div class="sub">Dining Hall · 5x a week</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="miss"></i><i class="hit"></i><i class="hit"></i><i></i><i class="due"></i><i></i></div></div>
+          <div style="text-align:right"><div class="streak" style="color:var(--miss)">0</div><small>WEEKS</small></div>
+        </div></div>
+      </div>
+      <h2 class="sec mt28">Today</h2>
+      <div class="proof mt12">
+        <img src="proof.jpg" alt="">
+        <div class="meta"><div class="row"><div class="grow">
+          <div class="name">Joe</div><div class="sub">FIELD · 7 SEP, 13:40</div></div>
+          <span class="verified">◆ VERIFIED</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 06 ------------------------------------------------------------- commit -->
+<section class="screen notabs" id="s06-commit">
+  <div class="dim"></div>
+  <div class="sheet">
+    <div class="x"><span style="font:400 16px Inter;color:var(--ink2)">✕</span></div>
+    <div style="padding-top:28px"></div>
+    <div class="kicker">New commitment</div>
+    <h1 class="display sm mt8">What are you<br>promising?</h1>
+    <div class="scroll" style="margin-top:22px">
+      <h2 class="sec">Where</h2>
+      <div class="card tight mt8"><div class="row">
+        <div class="grow"><div class="name" style="font-size:15px">Anvil Gym</div>
+          <div class="sub">Added 4 Sep</div></div>
+        <span class="chip">CHANGE</span></div></div>
+      <h2 class="sec mt20">How often</h2>
+      <div class="pills mt8">
+        <span class="pill">1</span><span class="pill">2</span><span class="pill on">3</span>
+        <span class="pill">4</span><span class="pill">5</span><span class="pill">6</span>
+        <span class="pill">7</span>
+        <span style="align-self:center;font:400 12.5px Inter;color:var(--ink3);margin-left:4px">a week</span>
+      </div>
+      <h2 class="sec mt20">Who sees it</h2>
+      <div class="mt8"><span class="chip" style="background:var(--ink);color:#F3EDE2">GEEKED · 6</span></div>
+      <h2 class="sec mt20">The deal</h2>
+      <div class="deal mt8">
+        <div class="clause"><span class="n">01</span><p>You check in <b>3x a week</b>, and your
+          circle sees every one.</p></div>
+        <div class="clause"><span class="n">02</span><p>Two of three is a <b>Miss</b>. There is no
+          partial credit, and a Miss is announced.</p></div>
+        <div class="clause"><span class="n">03</span><p>This week is a <b>warm-up</b>. Scoring
+          starts Monday.</p></div>
+      </div>
+      <div style="height:20px"></div>
+    </div>
+    <div class="btn wide" style="margin-bottom:34px">MAKE THE PROMISE</div>
+  </div>
+</section>
+
+<!-- 07 -------------------------------------------------------------- place -->
+<section class="screen notabs" id="s07-place">
+  <div class="dim"></div>
+  <div class="sheet">
+    <div class="x"><span style="font:400 16px Inter;color:var(--ink2)">✕</span></div>
+    <div style="padding-top:28px"></div>
+    <div class="kicker">New place</div>
+    <h1 class="display sm mt8">Where are you going?</h1>
+    <div class="input ph mt20">Search</div>
+    <!-- A DRAWN map, not an embedded one. The build showed raw Apple Maps
+         chrome — blue ocean, a Legal link — which is the one rectangle in the
+         app that belongs to somebody else's design. -->
+    <div class="mt12" style="border-radius:20px;overflow:hidden;height:184px;position:relative;background:#DCD2C3">
+      <svg width="353" height="184" viewBox="0 0 353 184" style="display:block">
+        <rect width="353" height="184" fill="#DDD3C4"/>
+        <g stroke="#CFC4B2" stroke-width="9" fill="none">
+          <path d="M-10 44 H363 M-10 126 H363 M64 -10 V194 M212 -10 V194 M300 -10 V194"/>
+        </g>
+        <g stroke="#D5CBBA" stroke-width="4" fill="none">
+          <path d="M-10 86 H363 M138 -10 V194 M256 -10 V194"/>
+        </g>
+        <g fill="#D3C8B6">
+          <rect x="78" y="56" width="46" height="24" rx="3"/><rect x="152" y="56" width="46" height="24" rx="3"/>
+          <rect x="78" y="96" width="46" height="22" rx="3"/><rect x="226" y="96" width="60" height="22" rx="3"/>
+          <rect x="226" y="52" width="60" height="28" rx="3"/>
+        </g>
+        <path d="M-10 150 C 80 140, 150 168, 363 152 L363 194 L-10 194 Z" fill="#CFC9B4"/>
+        <circle cx="176" cy="92" r="52" fill="rgba(158,124,82,.10)" stroke="#9E7C52"
+                stroke-width="1.2" stroke-dasharray="4 4"/>
+        <path d="M176 78 c-7 0-12 5.4-12 12 0 9 12 20 12 20 s12-11 12-20 c0-6.6-5-12-12-12z"
+              fill="#231C15"/>
+        <circle cx="176" cy="90" r="4.2" fill="#E3DACD"/>
+      </svg>
+      <div style="position:absolute;right:10px;bottom:9px;font:500 8px Plex;letter-spacing:.14em;color:var(--ink3)">150M</div>
+    </div>
+    <div class="input mt12">Anvil Gym</div>
+    <p class="copy mt12" style="font-size:13px">Your circle sees this name and nothing else —
+      never the map, never where it is. Anvil starts paying attention within 150m of the pin,
+      which is wide enough to cover the car park.</p>
+    <div class="spacer"></div>
+    <div class="btn wide" style="margin-bottom:34px">ADD PLACE</div>
+  </div>
+</section>
+
+<!-- 08 ------------------------------------------------------------ promise -->
+<section class="screen notabs" id="s08-promise">
+  <div class="body">
+    <div style="padding-top:96px"></div>
+    <div class="kicker">It is binding</div>
+    <h1 class="display mt12">The promise<br>is made.</h1>
+    <div class="card mt28" style="padding:20px">
+      <div class="row"><div class="grow"><div class="kicker">What</div>
+        <div class="name mt8" style="font-size:19px">Anvil Gym</div></div>
+        <div style="text-align:right"><div class="kicker">How often</div>
+        <div class="name mt8" style="font-size:19px">3<span style="color:var(--ink3);font-size:13px">x / wk</span></div></div>
+      </div>
+      <div class="rule mt16" style="margin-bottom:16px"></div>
+      <div class="row"><div class="grow"><div class="kicker">Who sees it</div>
+        <div class="name mt8" style="font-size:19px">Geeked · 6</div></div>
+        <div style="text-align:right"><div class="kicker">Scoring</div>
+        <div class="name mt8" style="font-size:19px">Mon 8 Sep</div></div>
+      </div>
+    </div>
+    <p class="copy mt20">Barrios, Joe and four others have been told. You can retire a commitment
+      at any time and everyone sees that too.</p>
+    <div class="spacer"></div>
+    <div class="btn wide">SEE THE BOARD</div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+<!-- 09 ----------------------------------------------------------- watching -->
+<section class="screen" id="s09-watching" data-tab="2">
+  <div class="body">
+    <div class="head" style="padding-bottom:8px"><div>
+      <div class="kicker" style="color:var(--gold)">● IN RANGE</div>
+      <h1 class="display mt8" style="font-size:30px">Anvil Gym</h1></div></div>
+    <p class="copy">You have until midnight. This is check-in two of three this week.</p>
+    <div class="scroll" style="display:flex;flex-direction:column;justify-content:center;padding-bottom:70px">
+      <div style="border-radius:20px;overflow:hidden;background:#171310;height:328px;position:relative">
+        <img src="proof2.jpg" style="width:100%;height:100%;object-fit:cover;opacity:.62">
+        <div style="position:absolute;left:14px;top:14px;font:500 9px Plex;letter-spacing:.16em;color:#F3EDE2">
+          51.5074, 0.1278 · 13:41</div>
+      </div>
+      <div class="center mt20">
+        <div style="width:74px;height:74px;border-radius:37px;background:var(--ink);
+                    display:flex;align-items:center;justify-content:center">
+          <div style="width:60px;height:60px;border-radius:30px;border:2px solid var(--bone)"></div>
+        </div>
+        <div class="kicker mt12">TAKE THE PROOF</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 ----------------------------------------------------------- captured -->
+<section class="screen notabs" id="s10-captured">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <div class="kicker">Check-in</div>
+    <h1 class="display sm mt8">Is that the proof?</h1>
+    <div class="proof mt20"><img src="proof.jpg" style="height:330px">
+      <div class="meta"><div class="row"><div class="grow">
+        <div class="name">Anvil Gym</div><div class="sub">7 SEP, 13:41 · WITHIN 40M</div></div>
+        <span class="verified">◆ VERIFIED</span></div></div></div>
+    <p class="copy mt16" style="font-size:13px">Once it is posted it cannot be deleted. That is
+      the whole point of it.</p>
+    <div class="spacer"></div>
+    <div class="gap10">
+      <div class="btn wide">POST THE PROOF</div>
+      <div class="btn quiet wide">RETAKE</div>
+    </div>
+    <div style="height:30px"></div>
+  </div>
+</section>
+
+<!-- 11 ---------------------------------------------------------- the miss -->
+<section class="screen" id="s11-miss" data-tab="1">
+  <div class="body">
+    <div class="head"><div class="wordmark">Anvil</div>
+      <div class="pick">GEEKED <span class="chev" style="transform:rotate(135deg);margin-top:-4px"></span></div></div>
+    <div class="scroll pb">
+      <h2 class="sec">This week</h2>
+      <div class="notice mt12">
+        <div class="kicker" style="color:var(--miss)">A MISS</div>
+        <div class="display sm mt8" style="font-size:23px">Joe missed<br>the Dining Hall.</div>
+        <p class="copy mt12" style="font-size:13.5px">Three of five, and the week is over.
+          His streak goes back to zero on Monday and everybody has been told.</p>
+        <div class="week mt16"><i class="hit"></i><i class="miss"></i><i class="hit"></i>
+          <i class="hit"></i><i class="miss"></i><i class="miss"></i><i class="miss"></i></div>
+      </div>
+      <h2 class="sec mt28">Standings</h2>
+      <div class="gap8 mt12">
+        <div class="card tight"><div class="row"><span class="rank num">1</span>
+          <div class="grow"><div class="name">Barrios</div><div class="sub">Gym · 3x a week</div></div>
+          <div style="text-align:right"><div class="streak">24</div><small>WEEKS</small></div></div></div>
+        <div class="card tight"><div class="row"><span class="rank num">2</span>
+          <div class="grow"><div class="name">Matheus</div><div class="sub">Anvil Gym · 3x a week</div></div>
+          <div style="text-align:right"><div class="streak">9</div><small>WEEKS</small></div></div></div>
+        <div class="card tight" style="opacity:.72"><div class="row"><span class="rank num">3</span>
+          <div class="grow"><div class="name">Joe</div><div class="sub">Dining Hall · 5x a week</div></div>
+          <div style="text-align:right"><div class="streak" style="color:var(--miss)">0</div><small>WEEKS</small></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 -------------------------------------------------------- streak page -->
+<section class="screen notabs" id="s12-streak">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <div class="kicker">Barrios · Gym</div>
+    <div class="row mt12" style="align-items:flex-end;gap:10px">
+      <div style="font-family:Plex;font-weight:500;font-size:66px;line-height:.85;color:var(--gold)">24</div>
+      <div class="kicker" style="padding-bottom:8px">WEEKS UNBROKEN</div>
+    </div>
+    <div class="stat mt28">
+      <div><b>71</b><span>CHECK-INS</span></div>
+      <div><b>3<span style="font-size:14px;color:var(--ink3)">x</span></b><span>A WEEK</span></div>
+      <div><b>0</b><span>MISSES</span></div>
+    </div>
+    <h2 class="sec mt28">Since 24 March</h2>
+    <div class="grid7 mt12">
+      <i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i>
+      <i class="hit"></i><i class="none"></i><i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i>
+      <i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="none"></i><i class="hit"></i>
+      <i class="none"></i><i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="hit"></i>
+      <i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="hit"></i><i class="none"></i>
+      <i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="due"></i><i class="none"></i>
+    </div>
+    <p class="copy mt20" style="font-size:13px">Every square is a day. Filled is a check-in with a
+      photo and a location behind it.</p>
+    <div class="spacer"></div>
+    <div class="btn ghost wide">SEE THE PROOF</div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+<!-- 13 --------------------------------------------------------- week board -->
+<section class="screen" id="s13-week" data-tab="1">
+  <div class="body">
+    <div class="head"><div class="wordmark">Anvil</div>
+      <div class="pick">GEEKED <span class="chev" style="transform:rotate(135deg);margin-top:-4px"></span></div></div>
+    <div class="scroll pb">
+      <h2 class="sec">Week 37 · closes Sunday</h2>
+      <div class="card mt12" style="padding:6px 16px">
+        <div class="list">
+          <div class="li"><div class="avatar">B</div><div class="grow"><div class="name" style="font-size:15px">Barrios</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="hit"></i><i class="hit"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="val num">3/3</div></div>
+          <div class="li"><div class="avatar g">M</div><div class="grow"><div class="name" style="font-size:15px">Matheus</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="hit"></i><i class="due"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="val num">2/3</div></div>
+          <div class="li"><div class="avatar">J</div><div class="grow"><div class="name" style="font-size:15px">Joe</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="miss"></i><i class="hit"></i><i class="hit"></i><i class="miss"></i><i class="miss"></i><i class="miss"></i></div></div>
+            <div class="val num" style="color:var(--miss)">3/5</div></div>
+          <div class="li"><div class="avatar">S</div><div class="grow"><div class="name" style="font-size:15px">Sofia</div>
+            <div class="week sm mt8"><i class="hit"></i><i class="hit"></i><i class="hit"></i><i class="hit"></i><i></i><i></i><i></i></div></div>
+            <div class="val num">4/4</div></div>
+          <div class="li"><div class="avatar">R</div><div class="grow"><div class="name" style="font-size:15px">Ravi</div>
+            <div class="week sm mt8"><i class="hit"></i><i></i><i class="due"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="val num">1/2</div></div>
+        </div>
+      </div>
+      <p class="copy mt16" style="font-size:13px">Nobody is ranked mid-week. The board settles on
+        Sunday night and Monday starts clean.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 14 --------------------------------------------------------- circle tab -->
+<section class="screen" id="s14-circle" data-tab="0">
+  <div class="body">
+    <div class="head"><div class="wordmark">Geeked</div>
+      <div class="pick">6 PEOPLE</div></div>
+    <div class="scroll pb">
+      <div class="card" style="padding:6px 16px">
+        <div class="list">
+          <div class="li"><div class="avatar">B</div><div class="grow"><div class="name" style="font-size:15px">Barrios</div>
+            <div class="sub">24 weeks · no misses</div></div><div class="chev"></div></div>
+          <div class="li"><div class="avatar g">M</div><div class="grow"><div class="name" style="font-size:15px">Matheus</div>
+            <div class="sub">9 weeks · you</div></div><div class="chev"></div></div>
+          <div class="li"><div class="avatar">J</div><div class="grow"><div class="name" style="font-size:15px">Joe</div>
+            <div class="sub">Broke a streak on Sunday</div></div><div class="chev"></div></div>
+          <div class="li"><div class="avatar">S</div><div class="grow"><div class="name" style="font-size:15px">Sofia</div>
+            <div class="sub">11 weeks · 1 miss</div></div><div class="chev"></div></div>
+          <div class="li"><div class="avatar">R</div><div class="grow"><div class="name" style="font-size:15px">Ravi</div>
+            <div class="sub">2 weeks</div></div><div class="chev"></div></div>
+          <div class="li"><div class="avatar">A</div><div class="grow"><div class="name" style="font-size:15px">Ana</div>
+            <div class="sub">Joined yesterday</div></div><div class="chev"></div></div>
+        </div>
+      </div>
+      <div class="btn ghost wide mt20">INVITE SOMEONE</div>
+      <p class="copy mt16" style="font-size:13px">A circle works between four and eight. Past that
+        nobody notices anybody.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15 ------------------------------------------------------------- invite -->
+<section class="screen notabs" id="s15-invite">
+  <div class="dim"></div>
+  <div class="sheet" style="top:300px;border-radius:26px 26px 0 0">
+    <div class="x"><span style="font:400 16px Inter;color:var(--ink2)">✕</span></div>
+    <div style="padding-top:30px"></div>
+    <div class="kicker">Invite to Geeked</div>
+    <h1 class="display sm mt8">Two left.</h1>
+    <div class="card mt20 center" style="padding:22px">
+      <div style="font-family:Plex;font-weight:500;font-size:34px;letter-spacing:.22em;padding-left:.22em">GEEKED</div>
+      <div class="kicker mt12">THE CODE EXPIRES IN 24H</div>
+    </div>
+    <div class="gap10 mt20">
+      <div class="btn wide">SHARE THE LINK</div>
+      <div class="btn ghost wide">COPY CODE</div>
+    </div>
+    <div class="spacer"></div>
+    <div style="height:34px"></div>
+  </div>
+</section>
+
+<!-- 16 ------------------------------------------------------------- member -->
+<section class="screen notabs" id="s16-member">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <div class="row"><div class="avatar lg">B</div>
+      <div class="grow" style="margin-left:4px"><div class="display sm" style="font-size:24px">Barrios</div>
+        <div class="sub">In Geeked since March</div></div></div>
+    <div class="stat mt28">
+      <div><b>24</b><span>WEEKS</span></div>
+      <div><b>71</b><span>CHECK-INS</span></div>
+      <div><b>0</b><span>MISSES</span></div>
+    </div>
+    <h2 class="sec mt28">Commitments</h2>
+    <div class="gap8 mt12">
+      <div class="card tight"><div class="row"><div class="grow">
+        <div class="name" style="font-size:15px">Gym</div><div class="sub">3x a week</div></div>
+        <div class="week sm"><i class="hit"></i><i class="hit"></i><i class="hit"></i><i></i><i></i><i></i><i></i></div></div></div>
+      <div class="card tight"><div class="row"><div class="grow">
+        <div class="name" style="font-size:15px">Library</div><div class="sub">2x a week</div></div>
+        <div class="week sm"><i class="hit"></i><i class="hit"></i><i></i><i></i><i></i><i></i><i></i></div></div></div>
+    </div>
+    <h2 class="sec mt28">Latest proof</h2>
+    <div class="proof mt12"><img src="proof3.jpg" style="height:150px">
+      <div class="meta"><div class="row"><div class="grow"><div class="sub">GYM · 6 SEP, 07:12</div></div>
+        <span class="verified">◆ VERIFIED</span></div></div></div>
+    <div class="spacer"></div>
+    <div style="height:30px"></div>
+  </div>
+</section>
+
+<!-- 17 -------------------------------------------------------------- board -->
+<section class="screen" id="s17-board" data-tab="1">
+  <div class="body">
+    <div class="head"><div class="wordmark">Standings</div><div class="pick">ALL TIME</div></div>
+    <div class="scroll pb">
+      <div class="gap8">
+        <div class="card tight" style="background:var(--ink);color:#F3EDE2"><div class="row">
+          <span class="rank num" style="color:var(--gold)">1</span>
+          <div class="grow"><div class="name">Barrios</div>
+            <div class="sub" style="color:rgba(243,237,226,.55)">Gym · no misses</div></div>
+          <div style="text-align:right"><div class="streak">24</div>
+            <small style="color:rgba(243,237,226,.5)">WEEKS</small></div></div></div>
+        <div class="card tight"><div class="row"><span class="rank num">2</span>
+          <div class="grow"><div class="name">Sofia</div><div class="sub">Pool · 1 miss</div></div>
+          <div style="text-align:right"><div class="streak">11</div><small>WEEKS</small></div></div></div>
+        <div class="card tight"><div class="row"><span class="rank num">3</span>
+          <div class="grow"><div class="name">Matheus</div><div class="sub">Anvil Gym · 2 misses</div></div>
+          <div style="text-align:right"><div class="streak">9</div><small>WEEKS</small></div></div></div>
+        <div class="card tight"><div class="row"><span class="rank num">4</span>
+          <div class="grow"><div class="name">Ravi</div><div class="sub">Studio · 1 miss</div></div>
+          <div style="text-align:right"><div class="streak">2</div><small>WEEKS</small></div></div></div>
+        <div class="card tight"><div class="row"><span class="rank num">5</span>
+          <div class="grow"><div class="name">Joe</div><div class="sub">Dining Hall · broke Sunday</div></div>
+          <div style="text-align:right"><div class="streak" style="color:var(--miss)">0</div><small>WEEKS</small></div></div></div>
+      </div>
+      <p class="copy mt16" style="font-size:13px">Longest unbroken run, not total check-ins.
+        Volume is not the point.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 18 ------------------------------------------------------------ routine -->
+<section class="screen" id="s18-routine" data-tab="3">
+  <div class="body">
+    <div class="head"><div class="wordmark">Routine</div><div class="pick">WEEK 37</div></div>
+    <div class="scroll pb">
+      <h2 class="sec">Due today</h2>
+      <div class="card mt12 on-ink" style="padding:18px;background:var(--ink);color:#F3EDE2">
+        <div class="row"><div class="grow">
+          <div class="name" style="font-size:19px">Anvil Gym</div>
+          <div class="sub" style="color:rgba(243,237,226,.55)">Check-in 3 of 3 · until midnight</div></div>
+          <div class="week sm"><i class="hit"></i><i class="hit"></i><i class="due"></i><i></i><i></i><i></i><i></i></div>
+        </div>
+        <div class="btn wide mt16" style="background:var(--bone);color:var(--ink);height:46px">CHECK IN NOW</div>
+      </div>
+      <h2 class="sec mt28">This week</h2>
+      <div class="gap8 mt12">
+        <div class="card tight"><div class="row"><div class="grow">
+          <div class="name" style="font-size:15px">Library</div><div class="sub">2x a week · done</div></div>
+          <span class="verified">◆ 2/2</span></div></div>
+        <div class="card tight"><div class="row"><div class="grow">
+          <div class="name" style="font-size:15px">Sunday run</div><div class="sub">1x a week · Sunday</div></div>
+          <div class="val sub num">0/1</div></div></div>
+      </div>
+      <div class="btn ghost wide mt20">MAKE A COMMITMENT</div>
+    </div>
+  </div>
+</section>
+
+<!-- 19 ------------------------------------------------------ commit detail -->
+<section class="screen notabs" id="s19-detail">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <div class="kicker">Commitment</div>
+    <h1 class="display sm mt8">Anvil Gym</h1>
+    <p class="copy mt8">3x a week · seen by Geeked · since 4 July</p>
+    <div class="stat mt28">
+      <div><b>9</b><span>WEEKS</span></div>
+      <div><b>27</b><span>CHECK-INS</span></div>
+      <div><b>2</b><span>MISSES</span></div>
+    </div>
+    <h2 class="sec mt28">Last eight weeks</h2>
+    <div class="row mt12" style="gap:6px;align-items:flex-end;height:74px">
+      <div style="flex:1;height:100%;background:var(--ink);border-radius:4px"></div>
+      <div style="flex:1;height:100%;background:var(--ink);border-radius:4px"></div>
+      <div style="flex:1;height:66%;background:var(--miss);border-radius:4px"></div>
+      <div style="flex:1;height:100%;background:var(--ink);border-radius:4px"></div>
+      <div style="flex:1;height:100%;background:var(--ink);border-radius:4px"></div>
+      <div style="flex:1;height:100%;background:var(--ink);border-radius:4px"></div>
+      <div style="flex:1;height:66%;background:var(--miss);border-radius:4px"></div>
+      <div style="flex:1;height:66%;background:rgba(158,124,82,.4);border-radius:4px"></div>
+    </div>
+    <div class="card mt28" style="padding:4px 16px"><div class="list">
+      <div class="li"><div class="lbl">How often</div><div class="val">3x a week</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Place</div><div class="val">Anvil Gym</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Who sees it</div><div class="val">Geeked</div><div class="chev"></div></div>
+    </div></div>
+    <div class="spacer"></div>
+    <div class="btn quiet wide" style="color:var(--miss)">RETIRE THIS COMMITMENT</div>
+    <div style="height:30px"></div>
+  </div>
+</section>
+
+<!-- 20 -------------------------------------------------------- commit list -->
+<section class="screen" id="s20-commitments" data-tab="3">
+  <div class="body">
+    <div class="head"><div class="wordmark">Promises</div><div class="pick">3 LIVE</div></div>
+    <div class="scroll pb">
+      <div class="gap10">
+        <div class="card"><div class="row"><div class="grow">
+          <div class="name">Anvil Gym</div><div class="sub">3x a week · 9 weeks</div></div>
+          <div class="streak">9</div></div>
+          <div class="week mt16"><i class="hit"></i><i class="hit"></i><i class="due"></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="card"><div class="row"><div class="grow">
+          <div class="name">Library</div><div class="sub">2x a week · 4 weeks</div></div>
+          <div class="streak">4</div></div>
+          <div class="week mt16"><i class="hit"></i><i class="hit"></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="card"><div class="row"><div class="grow">
+          <div class="name">Sunday run</div><div class="sub">1x a week · new</div></div>
+          <div class="streak" style="color:var(--ink3)">—</div></div>
+          <div class="week mt16"><i></i><i></i><i></i><i></i><i></i><i></i><i class="due"></i></div></div>
+      </div>
+      <h2 class="sec mt28">Retired</h2>
+      <div class="card tight mt12" style="opacity:.6"><div class="row"><div class="grow">
+        <div class="name" style="font-size:15px">6am swim</div><div class="sub">Retired 22 Aug · 3 weeks</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 21 ------------------------------------------------------------ profile -->
+<section class="screen" id="s21-profile" data-tab="0">
+  <div class="body">
+    <div class="head"><div class="wordmark">You</div><div class="pick">SETTINGS</div></div>
+    <div class="scroll pb">
+      <div class="row mt8"><div class="avatar lg g">M</div>
+        <div class="grow" style="margin-left:4px"><div class="display sm" style="font-size:24px">Matheus</div>
+          <div class="sub">In Geeked since July</div></div></div>
+      <div class="stat mt28">
+        <div><b>9</b><span>WEEKS</span></div>
+        <div><b>31</b><span>CHECK-INS</span></div>
+        <div><b>2</b><span>MISSES</span></div>
+      </div>
+      <h2 class="sec mt28">Your record</h2>
+      <div class="grid7 mt12">
+        <i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i>
+        <i class="hit"></i><i class="none"></i><i class="miss"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i>
+        <i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="none"></i><i class="hit"></i>
+        <i class="none"></i><i class="hit"></i><i class="hit"></i><i class="none"></i><i class="hit"></i><i class="none"></i><i class="due"></i>
+      </div>
+      <p class="copy mt16" style="font-size:13px">Two misses in nine weeks. Both were Fridays.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 22 ----------------------------------------------------------- settings -->
+<section class="screen notabs" id="s22-settings">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <h1 class="display sm">Settings</h1>
+    <h2 class="sec mt28">You</h2>
+    <div class="card mt12" style="padding:4px 16px"><div class="list">
+      <div class="li"><div class="lbl">Name</div><div class="val">Matheus</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Notifications</div><div class="val">On</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Location</div><div class="val">While using</div><div class="chev"></div></div>
+    </div></div>
+    <h2 class="sec mt28">Circle</h2>
+    <div class="card mt12" style="padding:4px 16px"><div class="list">
+      <div class="li"><div class="lbl">Geeked</div><div class="val">6 people</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Invite someone</div><div class="val">2 left</div><div class="chev"></div></div>
+    </div></div>
+    <h2 class="sec mt28">Anvil</h2>
+    <div class="card mt12" style="padding:4px 16px"><div class="list">
+      <div class="li"><div class="lbl">What Anvil knows</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl">Export my proof</div><div class="chev"></div></div>
+      <div class="li"><div class="lbl" style="color:var(--miss)">Leave the circle</div><div class="chev"></div></div>
+    </div></div>
+    <div class="spacer"></div>
+    <div class="center"><div class="kicker">ANVIL 1.0 (TESTFLIGHT)</div></div>
+    <div style="height:30px"></div>
+  </div>
+</section>
+
+<!-- 23 ------------------------------------------------------------ privacy -->
+<section class="screen notabs" id="s23-privacy">
+  <div class="body">
+    <div style="padding-top:70px"></div>
+    <div class="kicker">What Anvil knows</div>
+    <h1 class="display mt12">Less than<br>you think.</h1>
+    <div class="card mt28" style="padding:6px 16px"><div class="list">
+      <div class="li"><div class="grow"><div class="lbl">The name you gave a place</div>
+        <div class="sub">Anvil Gym</div></div><span class="chip" style="background:var(--bone)">SHARED</span></div>
+      <div class="li"><div class="grow"><div class="lbl">That you were within 150m</div>
+        <div class="sub">Yes or no, never the number</div></div><span class="chip" style="background:var(--bone)">SHARED</span></div>
+      <div class="li"><div class="grow"><div class="lbl">The photo you took there</div>
+        <div class="sub">To your circle only</div></div><span class="chip" style="background:var(--bone)">SHARED</span></div>
+    </div></div>
+    <div class="card mt12" style="padding:6px 16px"><div class="list">
+      <div class="li"><div class="grow"><div class="lbl">The coordinates of the pin</div>
+        <div class="sub">On your phone, never uploaded</div></div>
+        <span class="chip" style="background:var(--ink);color:#F3EDE2">NEVER</span></div>
+      <div class="li"><div class="grow"><div class="lbl">Where you are the rest of the time</div>
+        <div class="sub">Not collected at all</div></div>
+        <span class="chip" style="background:var(--ink);color:#F3EDE2">NEVER</span></div>
+    </div></div>
+    <div class="spacer"></div>
+    <div class="btn ghost wide">READ THE WHOLE THING</div>
+    <div style="height:38px"></div>
+  </div>
+</section>
+
+</div>
+
+<script>
+// The status bar and the tab bar are injected rather than written 23 times:
+// a chrome change has to be one edit or the screens drift apart.
+const ICONS = [
+ '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 15.2c2.7-.6 5 1.2 5 3.8"/></svg>',
+ '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/><path d="M12 14v3M9 20h6"/></svg>',
+ '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2.2l1.2-2h8.2l1.2 2h2.2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.8" r="3.4"/></svg>',
+ '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.6" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.6" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>'];
+const NAMES = ['CIRCLE','HOME','CAMERA','ROUTINE'];
+
+document.querySelectorAll('.screen').forEach(sc => {
+  const dark = sc.classList.contains('on-dark');
+  sc.insertAdjacentHTML('afterbegin',
+    '<div class="status"><div class="t">9:41</div><div class="island"></div>' +
+    '<div class="r" style="gap:3px">' +
+    [3,5,7,9].map(h => '<i style="width:3px;height:' + h + 'px;border-radius:1px"></i>').join('') +
+    '<i style="width:14px;height:10px;border-radius:2px;margin-left:3px"></i>' +
+    '<i style="width:22px;height:11px;border-radius:3px"></i></div></div>');
+  const tabIx = sc.dataset.tab;
+  if (tabIx !== undefined) {
+    sc.insertAdjacentHTML('beforeend',
+      '<div class="tabs">' + NAMES.map((n,i) =>
+        '<div class="tab' + (i == tabIx ? ' on' : '') + '">' + ICONS[i] +
+        '<span>' + n + '</span><div class="u"></div></div>').join('') + '</div>' +
+      '<div class="homebar"></div>');
+  } else {
+    sc.insertAdjacentHTML('beforeend',
+      '<div class="homebar" style="background:rgba(35,28,21,.28)"></div>');
+  }
+});
+window.READY = true;
+</script>
