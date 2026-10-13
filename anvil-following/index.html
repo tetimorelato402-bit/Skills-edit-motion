@@ -1,0 +1,269 @@
+<title>Anvil Following List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&family=Playfair+Display:wght@500;700&display=swap">
+<style>
+/* Layout: one narrow ledger column, Anvil deck styling — mono eyebrows, serif headline, bronze accent, anvil mark only. */
+:root{
+  --paper:#E6DFD2; --paper2:#DCD4C5; --card:#F2EDE4; --ink:#17140F; --body:#3A342B;
+  --soft:#877F71; --line:#D5CCBB; --bronze:#A8895E; --bronzeText:#7C6342; --rust:#A3372B;
+  --serif:'Playfair Display',Georgia,'Times New Roman',serif;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'Courier New',monospace;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#17140F; --paper2:#1C1712; --card:#211C16; --ink:#EDE6D8; --body:#CFC6B6;
+  --soft:#8F8676; --line:#332C23; --bronze:#A8895E; --bronzeText:#C9AC7E; --rust:#D0685A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#17140F; --paper2:#1C1712; --card:#211C16; --ink:#EDE6D8; --body:#CFC6B6;
+  --soft:#8F8676; --line:#332C23; --bronze:#A8895E; --bronzeText:#C9AC7E; --rust:#D0685A; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--body);font-family:var(--sans);font-size:15px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-inline:20px;padding-block:40px 72px;display:flex;flex-direction:column;gap:32px}
+
+header{display:flex;flex-direction:column;gap:18px}
+.mark{width:44px;height:auto;fill:var(--bronze);display:block}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--bronzeText)}
+h1{font-family:var(--serif);font-weight:500;color:var(--ink);font-size:clamp(30px,6vw,44px);line-height:1.12;margin:0;text-wrap:balance}
+.lede{margin:0;max-width:56ch;color:var(--body)}
+
+.stats{display:flex;flex-wrap:wrap;gap:12px 40px;padding-block:18px;border-block:1px solid var(--line)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--serif);font-weight:500;font-size:28px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat span{font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft)}
+
+.tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.search{flex:1 1 240px;min-width:0;font:inherit;font-family:var(--mono);font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:10px 16px}
+.search::placeholder{color:var(--soft)}
+.filter{display:flex;gap:4px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.filter button{font:inherit;letter-spacing:inherit;text-transform:inherit;color:var(--soft);background:none;border:1px solid transparent;border-radius:999px;padding:8px 12px;cursor:pointer}
+.filter button[aria-pressed="true"]{color:var(--ink);border-color:var(--line);background:var(--card)}
+:focus-visible{outline:2px solid var(--bronze);outline-offset:2px}
+
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:520px}
+thead th{font-family:var(--mono);font-weight:400;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);text-align:left;padding:0 12px 10px;border-bottom:1px solid var(--ink)}
+th.num,td.num{text-align:right;width:170px}
+tr.day td{padding:26px 12px 8px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--bronzeText);border-bottom:1px solid var(--line)}
+tr.day em{font-style:normal;color:var(--soft);margin-left:10px}
+tbody tr.row td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr.row:hover td{background:var(--paper2)}
+.user{font-family:var(--serif);font-weight:500;font-size:16.5px;color:var(--ink);word-break:break-all}
+.link{font-family:var(--mono);font-size:12.5px;color:var(--body);text-decoration:none;border-bottom:1px solid var(--line);word-break:break-all;transition:color .15s var(--ease),border-color .15s var(--ease)}
+.link:hover{color:var(--bronzeText);border-color:var(--bronze)}
+.count{width:120px;font-family:var(--mono);font-size:14px;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 10px;transition:border-color .15s var(--ease)}
+.count::placeholder{color:var(--soft)}
+.count:hover{border-color:var(--bronze)}
+.count.saved{border-color:var(--bronze)}
+.count.err{border-color:var(--rust)}
+.count:disabled{background:transparent;border-color:transparent}
+
+.empty{padding:48px 12px;text-align:center;color:var(--soft);font-family:var(--mono);font-size:12px;letter-spacing:.08em}
+.note{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:.06em;min-height:1.5em}
+.note.err{color:var(--rust)}
+footer{display:flex;align-items:center;gap:12px;color:var(--soft);font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase}
+footer .mark{width:22px}
+@media (max-width:560px){
+  table{min-width:0}
+  thead{display:none}
+  tbody tr.row{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:12px 4px;border-bottom:1px solid var(--line)}
+  tbody tr.row td{padding:0;border:0}
+  tbody tr.row td.u{grid-column:1}
+  tbody tr.row td.l{grid-column:1;grid-row:2}
+  tbody tr.row td.num{grid-column:2;grid-row:1 / span 2;width:auto;align-self:center}
+  tr.day td{display:block}
+  .count{width:104px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <svg class="mark" viewBox="44 116 390 208" aria-label="Anvil" role="img"><polygon points="45,117 433,117 373,178 299,178 299,238 334,310 275,310 275,323 204,323 204,310 145,310 180,238 180,178 106,178"/></svg>
+    <div class="eyebrow">Anvil · Instagram</div>
+    <h1>Following list</h1>
+    <p class="lede">Every account Anvil follows, newest first. Type each account's follower count in the last column; it saves as you go.</p>
+  </header>
+
+  <section class="stats" aria-label="Summary">
+    <div class="stat"><b id="sTotal">–</b><span>Following</span></div>
+    <div class="stat"><b id="sLatest">–</b><span id="sLatestLabel">Latest day</span></div>
+    <div class="stat"><b id="sFilled">–</b><span>Counts filled</span></div>
+  </section>
+
+  <div class="tools">
+    <input id="q" class="search" type="search" placeholder="Search usernames" autocomplete="off" aria-label="Search usernames">
+    <div class="filter" role="group" aria-label="Show">
+      <button type="button" id="fAll" aria-pressed="true">All</button>
+      <button type="button" id="fTodo" aria-pressed="false">No count yet</button>
+    </div>
+  </div>
+
+  <div class="tablebox">
+    <table>
+      <thead><tr><th>Username</th><th>Profile link</th><th class="num">Follower count</th></tr></thead>
+      <tbody id="rows"><tr><td colspan="3" class="empty">Loading the list…</td></tr></tbody>
+    </table>
+  </div>
+  <div id="note" class="note" role="status"></div>
+
+  <footer>
+    <svg class="mark" viewBox="44 116 390 208" aria-hidden="true"><polygon points="45,117 433,117 373,178 299,178 299,238 334,310 275,310 275,323 204,323 204,310 145,310 180,238 180,178 106,178"/></svg>
+    <span id="updated">Anvil</span>
+  </footer>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const rowsEl = $('rows'), noteEl = $('note');
+  let days = [];            // [{id, date, accounts:[{u,at}], counts:{}}]
+  let db = null, canWrite = true;
+  let query = '', onlyTodo = false;
+  const local = {};         // username -> value typed but not yet confirmed
+  const queues = {};        // dayId -> {pending:{u:n}, busy:bool}
+  const drafts = {};        // username -> raw text while the field is being edited
+
+  const fmtDay = iso => {
+    const [y, m, d] = iso.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC'});
+  };
+  const fmtNum = n => (typeof n === 'number' && isFinite(n)) ? n.toLocaleString('en-US') : '';
+  const parseNum = s => {
+    const t = String(s).trim().toLowerCase().replace(/,/g, '');
+    if (!t) return null;
+    const m = t.match(/^(\d+(?:\.\d+)?)([km])?$/);
+    if (!m) return NaN;
+    return Math.round(parseFloat(m[1]) * (m[2] === 'k' ? 1e3 : m[2] === 'm' ? 1e6 : 1));
+  };
+  const say = (msg, err) => { noteEl.textContent = msg; noteEl.classList.toggle('err', !!err); };
+
+  function countFor(day, u) {
+    if (u in local) return local[u];
+    const c = day.counts && day.counts[u];
+    return typeof c === 'number' ? c : null;
+  }
+
+  function render() {
+    const total = days.reduce((s, d) => s + d.accounts.length, 0);
+    let filled = 0;
+    days.forEach(d => d.accounts.forEach(a => { if (countFor(d, a.u) != null) filled++; }));
+    $('sTotal').textContent = total.toLocaleString('en-US');
+    $('sFilled').textContent = total ? `${filled.toLocaleString('en-US')} / ${total.toLocaleString('en-US')}` : '0';
+    if (days[0]) { $('sLatest').textContent = days[0].accounts.length; $('sLatestLabel').textContent = 'Added ' + fmtDay(days[0].date).replace(/, \d{4}$/, ''); }
+    else { $('sLatest').textContent = '0'; }
+    $('updated').textContent = days[0] ? 'Anvil · last export ' + fmtDay(days[0].date) : 'Anvil';
+
+    if (!days.length) {
+      rowsEl.innerHTML = '<tr><td colspan="3" class="empty">No accounts yet. Send Claude today\'s Instagram export and the list fills in here.</td></tr>';
+      return;
+    }
+    const active = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.u : null;
+    const frag = document.createDocumentFragment();
+    let shown = 0;
+    for (const d of days) {
+      const list = d.accounts.filter(a => (!query || a.u.toLowerCase().includes(query)) && (!onlyTodo || countFor(d, a.u) == null || a.u === active));
+      if (!list.length) continue;
+      const h = document.createElement('tr'); h.className = 'day';
+      const hc = document.createElement('td'); hc.colSpan = 3;
+      hc.textContent = fmtDay(d.date);
+      const em = document.createElement('em'); em.textContent = list.length + (list.length === 1 ? ' account' : ' accounts');
+      hc.appendChild(em); h.appendChild(hc); frag.appendChild(h);
+      for (const a of list) {
+        shown++;
+        const tr = document.createElement('tr'); tr.className = 'row';
+        const tu = document.createElement('td'); tu.className = 'u';
+        const sp = document.createElement('span'); sp.className = 'user'; sp.textContent = a.u; tu.appendChild(sp);
+        const tl = document.createElement('td'); tl.className = 'l';
+        const link = 'https://www.instagram.com/' + a.u + '/';
+        const an = document.createElement('a'); an.className = 'link'; an.href = link; an.target = '_blank'; an.rel = 'noopener';
+        an.textContent = 'instagram.com/' + a.u; tl.appendChild(an);
+        const tn = document.createElement('td'); tn.className = 'num';
+        const inp = document.createElement('input');
+        inp.className = 'count'; inp.type = 'text'; inp.inputMode = 'numeric'; inp.placeholder = '—';
+        inp.id = 'c-' + a.u; inp.dataset.u = a.u; inp.dataset.day = d.id;
+        inp.setAttribute('aria-label', 'Follower count for ' + a.u);
+        inp.value = a.u in drafts ? drafts[a.u] : fmtNum(countFor(d, a.u));
+        inp.disabled = !canWrite;
+        tn.appendChild(inp);
+        tr.append(tu, tl, tn); frag.appendChild(tr);
+      }
+    }
+    if (!shown) {
+      const tr = document.createElement('tr'); tr.innerHTML = '<td colspan="3" class="empty"></td>';
+      tr.firstChild.textContent = query ? `No username matches “${query}”.` : 'Every account has a follower count.';
+      frag.appendChild(tr);
+    }
+    const sel = active && document.activeElement.selectionStart;
+    rowsEl.replaceChildren(frag);
+    if (active) { const el = document.getElementById('c-' + active); if (el) { el.focus(); try { el.setSelectionRange(sel, sel); } catch (e) {} } }
+  }
+
+  async function flush(dayId) {
+    const q = queues[dayId];
+    if (!q || q.busy || !Object.keys(q.pending).length) return;
+    q.busy = true;
+    const batch = q.pending; q.pending = {};
+    try {
+      await db.doc('days/' + dayId).update({counts: batch});
+      Object.keys(batch).forEach(u => {
+        if (local[u] === batch[u]) delete local[u];
+        const el = document.getElementById('c-' + u);
+        if (el) { el.classList.remove('err'); el.classList.add('saved'); setTimeout(() => el.classList.remove('saved'), 900); }
+      });
+      say('Saved.');
+    } catch (e) {
+      Object.keys(batch).forEach(u => { const el = document.getElementById('c-' + u); if (el) el.classList.add('err'); });
+      if (e && e.code === 'invalid_argument') { canWrite = false; say('This copy of the list is read-only, so counts can’t be saved.', true); render(); }
+      else say('Couldn’t save that count. Check your connection and type it again.', true);
+    } finally {
+      q.busy = false;
+      if (Object.keys(q.pending).length) flush(dayId);
+    }
+  }
+
+  function commit(inp) {
+    const u = inp.dataset.u, dayId = inp.dataset.day;
+    const n = parseNum(inp.value);
+    if (Number.isNaN(n)) { inp.classList.add('err'); say('Type a number, like 2134 or 2.1k.', true); return; }
+    delete drafts[u];
+    inp.classList.remove('err');
+    const day = days.find(d => d.id === dayId);
+    const current = day && day.counts ? (typeof day.counts[u] === 'number' ? day.counts[u] : null) : null;
+    inp.value = fmtNum(n);
+    if (n === current && !(u in local)) return;
+    if (!db) { say('Saving isn’t available in this view.', true); return; }
+    local[u] = n;
+    (queues[dayId] ||= {pending: {}, busy: false}).pending[u] = n;
+    flush(dayId);
+    render();
+  }
+
+  rowsEl.addEventListener('input', e => { if (e.target.classList.contains('count')) drafts[e.target.dataset.u] = e.target.value; });
+  rowsEl.addEventListener('change', e => { if (e.target.classList.contains('count')) commit(e.target); });
+  rowsEl.addEventListener('keydown', e => {
+    if (!e.target.classList.contains('count') || e.key !== 'Enter') return;
+    e.preventDefault();
+    const all = [...rowsEl.querySelectorAll('input.count')];
+    const next = all[all.indexOf(e.target) + 1];
+    e.target.blur();
+    if (next) next.focus();
+  });
+  $('q').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); render(); });
+  const setFilter = todo => { onlyTodo = todo; $('fAll').setAttribute('aria-pressed', String(!todo)); $('fTodo').setAttribute('aria-pressed', String(todo)); render(); };
+  $('fAll').addEventListener('click', () => setFilter(false));
+  $('fTodo').addEventListener('click', () => setFilter(true));
+
+  (async () => {
+    db = window.claude && window.claude.use ? await window.claude.use('db') : null;
+    if (!db) { rowsEl.innerHTML = '<tr><td colspan="3" class="empty">Open this page on claude.ai, signed in, to see the list.</td></tr>'; return; }
+    const user = await window.claude.use('user');
+    if (user) { try { const w = await user.can('data.write'); if (w === false) canWrite = false; } catch (e) {} }
+    db.collection('days').orderBy('date', 'desc').limit(1000).onSnapshot(snap => {
+      days = snap.docs.map(s => ({id: s.id, ...s.data()})).filter(d => Array.isArray(d.accounts));
+      render();
+    }, () => say('The list stopped updating. Reload the page.', true));
+  })();
+})();
+</script>
