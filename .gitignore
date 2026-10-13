@@ -23,3 +23,7 @@ tools/outputs/
 
 # graded plate cache: 121 full-res frames, rebuilt from the source in ~35 min
 tools/cache/
+
+# the splash renders from splash.html in 20 seconds
+projects/005-anvil/splash/frames/
+projects/005-anvil/splash/pv/

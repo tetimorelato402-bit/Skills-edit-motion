@@ -1,0 +1,287 @@
+<meta charset="utf-8">
+<title>Anvil — launch</title>
+<!--
+  THE ANVIL LAUNCH ANIMATION.
+
+  393 x 852 CSS px at deviceScaleFactor 3 -> 1179 x 2556, the same artboard as
+  source/screens.html, so every number below is a number you can type into
+  SwiftUI without scaling anything. Everything is drawn in POINTS.
+
+  The mark is not an image. The silhouette is the real logo, traced off the
+  artwork as a half-profile (PROF below) and extruded into a solid that is
+  rotated, lit and projected per frame. That matters for one reason: at rest
+  the solid is face-on, so the only thing visible is its front cap, which is
+  the logo exactly — not an approximation of it that has to be cross-faded to
+  the real one.
+
+  WHAT WAS WRONG WITH THE OLD ONE, and what each fix is:
+
+  1. It arrived at an angle the anvil cannot survive. Past about 40 degrees of
+     yaw this mark loses its silhouette — it is a wide, flat object, so edge-on
+     it is a sliver, and for the first half of the old animation it read as a
+     boot. The turn now starts at 34 degrees and the shape is legible on frame
+     one. A logo animation that begins unrecognisable has spent its only asset.
+  2. Nothing had weight. It rotated in place, which is a sticker being skewed.
+     An anvil is the heaviest object in any room it is in, so this one FALLS,
+     lands, and compresses on the frame it lands. That is the whole idea of the
+     mark, performed rather than decorated.
+  3. Everything resolved at a different moment — rotation, scale and position
+     drifting to a stop on their own schedules, which is what made it feel
+     soft. Yaw, pitch, roll, fall and scale are now ONE curve with ONE landing
+     frame at T_LAND. One event, not five.
+  4. It was slow. 2.3 seconds of logo before the app appeared. This is 1.6, and
+     it is doing more.
+  5. The sparks were falling confetti, which is the opposite of what struck
+     steel does. They now leave the strike face sideways and fast, as streaks
+     along their own velocity, and they are gone in a third of a second.
+
+  THE TEXT IS GONE. No wordmark, no tagline. The mark carries it.
+-->
+<style>
+  *{margin:0;padding:0}
+  html,body{width:393px;height:852px;overflow:hidden;background:#E3DACD}
+  #stage{position:relative;width:393px;height:852px;overflow:hidden;background:#E3DACD}
+  canvas{position:absolute;left:0;top:0;width:393px;height:852px;display:block}
+</style>
+<div id="stage"><canvas id="c"></canvas></div>
+<script>
+// ---------------------------------------------------------------- the device
+const W=393, H=852, DPR=3;
+const cv=document.getElementById('c');
+cv.width=W*DPR; cv.height=H*DPR;
+const g=cv.getContext('2d');
+
+// ---------------------------------------------------------------- palette
+// Anvil's own, measured off the build (005-anvil/BRIEF.md). The front cap is
+// INK exactly, never shaded: the mark may turn, it may not change colour.
+//
+// The walls run ink -> GOLD, the app's own second colour, and the range is wide
+// on purpose. The first pass ran them #17110B -> #5A4733, every wall landed
+// within a few values of the ink face, and the solid read as a flat shape being
+// skewed — which is the exact failure the 3D exists to avoid. An extrusion that
+// cannot be told from its own front cap is not an extrusion.
+const BONE='#E3DACD', INK='#231C15', GOLD='#9E7C52';
+const WALL_DARK=[0x2A,0x20,0x15], WALL_LIT=[0x9E,0x7C,0x52];   // ink -> GOLD
+
+// ---------------------------------------------------------------- the mark
+// Traced off the supplied artwork by scanline, at 1 % of the height. x is the
+// half-width as a fraction of the FULL width; y runs 0 at the top edge to 1 at
+// the foot. The four corners are where the measured half-width steps or
+// changes slope, so this is the logo's geometry and not a drawing of it.
+//   plate taper 0.497 -> 0.348 over y 0 -> 0.295, then the OVERHANG steps in to
+//   the waist at 0.158, which holds to 0.605, then the base flares to 0.249 by
+//   0.940, then the foot steps in to 0.094.
+const PROF=[
+  [0.4971, 0.000],      // top edge, full width
+  [0.3480, 0.295],      // bottom of the plate's taper
+  [0.1579, 0.295],      // the overhang: a horizontal step in
+  [0.1579, 0.605],      // the waist, straight
+  [0.2485, 0.940],      // the base, flared
+  [0.0936, 0.940],      // the foot: a second step in
+  [0.0906, 1.000],      // the foot's bottom
+];
+const ASPECT=343/184;   // measured off the artwork's bounding box
+
+// the closed outline: down the right side, then back up the mirrored left
+const OUT=[];
+for(const p of PROF)            OUT.push([ p[0], (p[1]-0.5)/ASPECT]);
+for(let i=PROF.length-1;i>=0;i--) OUT.push([-PROF[i][0], (PROF[i][1]-0.5)/ASPECT]);
+
+// ---------------------------------------------------------------- layout
+const LOGO_W   = 176;              // pt. Measured off the TestFlight recording.
+const LOGO_CY  = H*0.455;          // pt. Where it already sits — losing the
+                                   // wordmark removes what was under the mark,
+                                   // it does not move the mark.
+const DEPTH    = 0.260;            // extrusion, as a fraction of the width. An
+                                   // anvil is a DEEP object; at 0.15 the side
+                                   // wall projected to 8 % of the mark and the
+                                   // turn still read as a skew.
+const CAM      = 3.4;              // camera distance, in width units
+
+// ---------------------------------------------------------------- the clock
+const T_IN   = 0.00;
+const T_LAND = 0.44;               // ONE landing frame: everything resolves here
+const T_SETL = 0.60;               // the compression is finished
+const T_HOLD = 1.05;               // dead still until here
+const T_OUT  = 1.35;               // handed over to the app
+const DUR    = 1.45;
+const F      = 1/60;
+
+// ---------------------------------------------------------------- curves
+const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,u)=>a+(b-a)*u;
+// THE FALL ACCELERATES. This is the fix that matters most. An out-curve
+// decelerates into the landing, so the mark is already standing still before it
+// arrives and the impact has nothing to absorb — which is what made the first
+// pass, and the original, feel soft. Gravity is u squared: the anvil is moving
+// at its fastest on the frame it lands, and the compression is what takes that
+// speed out of it.
+const gravity=u=>u*u;
+// The turn is LINEAR, and the floor is what stops it. Nothing slows a spin in
+// mid-air, so an eased rotation has the mark square and motionless a tenth of a
+// second before it lands — which is two events, a turn and then a drop, when the
+// whole point is that it is one. Constant angular velocity, cut dead at T_LAND,
+// with the compression absorbing it: that is the same instant doing both jobs.
+const turn=u=>u;
+const outCubic=u=>1-Math.pow(1-u,3);
+const hash=i=>{const s=Math.sin(i*91.7)*43758.5453; return s-Math.floor(s);};
+
+// ---------------------------------------------------------------- 3D
+function mat(yaw,pitch,roll){
+  const cy=Math.cos(yaw),  sy=Math.sin(yaw);
+  const cx=Math.cos(pitch),sx=Math.sin(pitch);
+  const cz=Math.cos(roll), sz=Math.sin(roll);
+  // Rz * Rx * Ry
+  return [
+    [ cz*cy+sz*sx*sy, -sz*cx, cz*-sy+sz*sx*cy],
+    [ sz*cy-cz*sx*sy,  cz*cx, sz*-sy-cz*sx*cy],
+    [ cx*sy,           sx,    cx*cy          ],
+  ];
+}
+const ap=(m,v)=>[m[0][0]*v[0]+m[0][1]*v[1]+m[0][2]*v[2],
+                 m[1][0]*v[0]+m[1][1]*v[1]+m[1][2]*v[2],
+                 m[2][0]*v[0]+m[2][1]*v[1]+m[2][2]*v[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+function norm(v){const L=Math.hypot(v[0],v[1],v[2])||1; return [v[0]/L,v[1]/L,v[2]/L];}
+
+// key light: upper left, in front. One light. The top plate's upper face is
+// what catches it, and that single plane is what stops the turn reading as a
+// flat shape being skewed.
+const KEY=norm([-0.40,-0.74,0.54]);
+
+function shade(n){
+  const l=Math.max(0, n[0]*KEY[0]+n[1]*KEY[1]+n[2]*KEY[2]);
+  const u=Math.pow(l,0.85);
+  const c=i=>Math.round(lerp(WALL_DARK[i],WALL_LIT[i],u));
+  return `rgb(${c(0)},${c(1)},${c(2)})`;
+}
+
+// Build, transform, cull and paint the solid. Painter's algorithm over mean z,
+// because this profile is CONCAVE at the overhang and at the foot — a pure
+// backface cull would let the underside of the plate paint over the waist.
+function drawSolid(ctx, cx, cy, S, yaw, pitch, roll, sqx, sqy){
+  const M=mat(yaw,pitch,roll), d=DEPTH/2, n=OUT.length;
+  const F3=[], B3=[];
+  for(const p of OUT){
+    F3.push(ap(M,[p[0],p[1], d]));
+    B3.push(ap(M,[p[0],p[1],-d]));
+  }
+  // squash is applied in SCREEN space about the foot, because the anvil is
+  // sitting on something — compressing about its centre would be a jelly
+  const footY=(1.0-0.5)/ASPECT;
+  const P=v=>{
+    const f=CAM/(CAM-v[2]);
+    const x=v[0]*f*S, y=v[1]*f*S;
+    return [cx + x*sqx, cy + footY*S + (y - footY*S)*sqy];
+  };
+  const faces=[];
+  const push=(v3,front)=>{
+    const nz=norm(cross(sub(v3[1],v3[0]), sub(v3[2],v3[0])));
+    if(nz[2]<=0.001) return;                       // facing away
+    faces.push({v:v3.map(P), z:v3.reduce((a,p)=>a+p[2],0)/v3.length, n:nz, front:!!front});
+  };
+  // WINDING: OUT runs down the right side and back up the left, and model y
+  // increases downward, so the front cap as written has a +z normal. The walls
+  // therefore have to be F,B,B,F and NOT F,F,B,B — the obvious order gives every
+  // side an INWARD normal, which culls exactly the wrong half of the solid and
+  // shades what survives from the wrong side. It does not error; it just comes
+  // back as a mangled silhouette.
+  for(let i=0;i<n;i++){
+    const j=(i+1)%n;
+    push([F3[i],B3[i],B3[j],F3[j]]);
+  }
+  push(F3, true);                                  // the front cap: the logo
+  push(B3.slice().reverse());                      // the back cap
+  faces.sort((a,b)=>a.z-b.z);
+  for(const f of faces){
+    // The front cap is the logo and is never shaded; everything else is the
+    // solid the logo is cut out of. Tagged at build time, not inferred from the
+    // transform — inferring it only held at identity rotation, so for the whole
+    // of the fall the mark was being painted in the wall colour.
+    ctx.fillStyle = f.front ? INK : shade(f.n);
+    ctx.beginPath();
+    ctx.moveTo(f.v[0][0],f.v[0][1]);
+    for(let k=1;k<f.v.length;k++) ctx.lineTo(f.v[k][0],f.v[k][1]);
+    ctx.closePath(); ctx.fill();
+  }
+}
+
+// ---------------------------------------------------------------- the impact
+// There are no sparks. The original had them and the first pass here rebuilt
+// them properly — off the base rather than the top, sideways, as streaks — and
+// at phone size fourteen gold scratches under the mark still read as dirt on
+// the lens rather than as force. The impact is carried by the two things that
+// are actually the object: it COMPRESSES about its foot, and a shadow snaps in
+// under it. A logo that flinches when it lands is heavy; a logo with sparks on
+// it is a logo with sparks on it.
+const FOOTY=(1.0-0.5)/ASPECT;
+
+// ============================================================================
+window.renderFrame=function(t){
+  t=Math.max(0,Math.min(DUR-1e-5,t));
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.fillStyle=BONE; g.fillRect(0,0,W,H);
+
+  // ---- the fall: one curve, one landing frame ----------------------------
+  const raw=clamp((t-T_IN)/(T_LAND-T_IN));
+  const uf=gravity(raw), ut=turn(raw);
+  const yaw   = lerp(-34,0,ut)*Math.PI/180;
+  // NEGATIVE pitch tips the top toward the camera. Positive tips it away, which
+  // put the viewer under the anvil looking up at its base — the one angle where
+  // the plate, the single most recognisable thing about the mark, is hidden.
+  const pitch = lerp(-16,0,ut)*Math.PI/180;
+  const roll  = lerp( -4,0,ut)*Math.PI/180;
+  const drop  = lerp(-76,0,uf);                   // pt above its resting place
+  const scale = lerp(1.075,1.0,uf);
+
+  // ---- the impact: a compression, about the foot -------------------------
+  // 0.955 is as far as it goes. A logo that visibly wobbles is a toy; this is
+  // one compression and out, and it is over in nine frames.
+  let sqx=1, sqy=1;
+  if(t>=T_LAND && t<T_SETL){
+    const p=(t-T_LAND)/(T_SETL-T_LAND);
+    const k=Math.sin(Math.PI*p)*Math.pow(1-p,0.6);
+    sqy=1-0.045*k; sqx=1+0.020*k;
+  }
+
+  // ---- the exit ----------------------------------------------------------
+  // No fade in. iOS has already run its own app-open zoom to get here, and a
+  // second transition on top of it is the thing that makes a launch feel slow.
+  // The mark is legible on frame one, which is half the brief.
+  let alpha=1, exitS=1;
+  if(t>=T_HOLD){
+    const p=outCubic(clamp((t-T_HOLD)/(T_OUT-T_HOLD)));
+    alpha=1-p; exitS=lerp(1,1.055,p);
+  }
+  if(alpha<=0.001) return true;
+  g.globalAlpha=alpha;
+
+  const S=LOGO_W*scale*exitS;
+  const cx=W/2, cy=LOGO_CY+drop;
+
+  // ---- the ground it lands on -------------------------------------------
+  // The shadow exists only around the impact. It is what makes the mark an
+  // object that arrived somewhere; then it goes, and what is left is the logo
+  // on a bone page with nothing under it.
+  let sh=0;
+  if(t>=T_LAND-2*F) sh=clamp((t-(T_LAND-2*F))/(3*F))*(1-clamp((t-T_SETL)/0.30));
+  if(sh>0.001){
+    const by=cy+(1.0-0.5)/ASPECT*S+3;
+    const rw=S*0.46, rh=S*0.058;
+    const gr=g.createRadialGradient(cx,by,0,cx,by,rw);
+    gr.addColorStop(0,`rgba(35,28,21,${(0.20*sh).toFixed(3)})`);
+    gr.addColorStop(0.55,`rgba(35,28,21,${(0.09*sh).toFixed(3)})`);
+    gr.addColorStop(1,'rgba(35,28,21,0)');
+    g.save(); g.translate(cx,by); g.scale(1,rh/rw); g.translate(-cx,-by);
+    g.fillStyle=gr; g.beginPath(); g.arc(cx,by,rw,0,6.2832); g.fill(); g.restore();
+  }
+
+  // ---- the solid ---------------------------------------------------------
+  drawSolid(g, cx, cy, S, yaw, pitch, roll, sqx, sqy);
+
+  return true;
+};
+window.DUR=DUR; window.MARKS={T_LAND,T_SETL,T_HOLD,T_OUT};
+window.renderFrame(0);
+</script>
