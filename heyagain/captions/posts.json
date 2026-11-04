@@ -1,0 +1,702 @@
+[
+ {
+  "post": 1,
+  "title": "The Room You Left",
+  "emotion": "longing",
+  "tint": "faded denim tint",
+  "slides": [
+   {
+    "caption": "hey again.",
+    "background_prompt": "teen bedroom at dusk, posters, dent in the pillow, window light"
+   },
+   {
+    "caption": "the room still smells like you.",
+    "background_prompt": "closet with one hanger left, evening light"
+   },
+   {
+    "caption": "nobody moved the chair.",
+    "background_prompt": "desk chair pulled out, dust in sunlight, mug ring on wood"
+   },
+   {
+    "caption": "you can visit, but you can't stay.",
+    "background_prompt": "bedroom doorway from the hallway, door half open"
+   },
+   {
+    "caption": "what did you leave on purpose?",
+    "background_prompt": "hoodie folded on a bare mattress"
+   }
+  ]
+ },
+ {
+  "post": 2,
+  "title": "Missed Call",
+  "emotion": "regret",
+  "tint": "warm sepia",
+  "slides": [
+   {
+    "caption": "you have one new voicemail.",
+    "background_prompt": "old answering machine blinking red on a nightstand"
+   },
+   {
+    "caption": "it's from three years ago.",
+    "background_prompt": "flip phone on a car dashboard, evening"
+   },
+   {
+    "caption": "you know exactly what it says.",
+    "background_prompt": "landline phone off the hook on a kitchen wall"
+   },
+   {
+    "caption": "you never called back.",
+    "background_prompt": "phone booth at night, rain, one light on"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "phone screen glowing face-down on a bed"
+   }
+  ]
+ },
+ {
+  "post": 3,
+  "title": "The Passenger Seat",
+  "emotion": "comfort and loss",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "the passenger seat still leans back the way you liked it.",
+    "background_prompt": "car interior, empty passenger seat, sunset through windshield"
+   },
+   {
+    "caption": "we never finished that playlist.",
+    "background_prompt": "aux cord and cracked phone on a car seat"
+   },
+   {
+    "caption": "you fell asleep before the good part.",
+    "background_prompt": "highway at night from inside a car, dashboard glow"
+   },
+   {
+    "caption": "some drives only work with two people.",
+    "background_prompt": "gas station at dusk, one car, neon"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "rearview view of empty road, sun low"
+   }
+  ]
+ },
+ {
+  "post": 4,
+  "title": "Group Chat",
+  "emotion": "loneliness in a crowd",
+  "tint": "cream heavy",
+  "slides": [
+   {
+    "caption": "the group chat has 4 people.",
+    "background_prompt": "phone on a table at a party, blurry lights"
+   },
+   {
+    "caption": "nobody has typed since march.",
+    "background_prompt": "empty bar table, three glasses, one left full"
+   },
+   {
+    "caption": "you still check it.",
+    "background_prompt": "phone on a pillow at 2am, screen glow"
+   },
+   {
+    "caption": "you were the one who kept it alive.",
+    "background_prompt": "kitchen table with four chairs, one pulled out"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "string of unopened text bubbles, blurry"
+   }
+  ]
+ },
+ {
+  "post": 5,
+  "title": "First Apartment",
+  "emotion": "pride and fear",
+  "tint": "warm sepia",
+  "slides": [
+   {
+    "caption": "the first night you slept on the floor.",
+    "background_prompt": "empty apartment, mattress on floor, moving boxes"
+   },
+   {
+    "caption": "you ate cereal for dinner and called it freedom.",
+    "background_prompt": "kitchen counter, cereal box, one bowl, window at night"
+   },
+   {
+    "caption": "you bought a plant so something else was alive.",
+    "background_prompt": "windowsill with one plant, city outside"
+   },
+   {
+    "caption": "it was small and it was yours.",
+    "background_prompt": "apartment door with a new key in the lock"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "string lights over a single mattress, boxes half open"
+   }
+  ]
+ },
+ {
+  "post": 6,
+  "title": "The Idea You Shelved",
+  "emotion": "ambition",
+  "tint": "rust and cream",
+  "slides": [
+   {
+    "caption": "the idea you shelved is still yours.",
+    "background_prompt": "desk with sticky notes and a sleeping laptop"
+   },
+   {
+    "caption": "you had the name picked out.",
+    "background_prompt": "notebook open to a page with a circled word, blurred"
+   },
+   {
+    "caption": "you told two people and then went quiet.",
+    "background_prompt": "coffee shop table, two cups, one laptop closed"
+   },
+   {
+    "caption": "fear is just excitement that stopped moving.",
+    "background_prompt": "whiteboard half erased, marker on the tray"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "garage workbench, one lamp on, tools out"
+   }
+  ]
+ },
+ {
+  "post": 7,
+  "title": "Summer Before Everything",
+  "emotion": "bittersweet",
+  "tint": "golden hour",
+  "slides": [
+   {
+    "caption": "the summer before everything changed.",
+    "background_prompt": "pool at golden hour, one towel, inflatable drifting"
+   },
+   {
+    "caption": "you didn't know it was the last one.",
+    "background_prompt": "bike thrown on a lawn, sprinkler running, evening"
+   },
+   {
+    "caption": "you thought you had more time.",
+    "background_prompt": "porch with two chairs, one tipped over, fireflies"
+   },
+   {
+    "caption": "you did have more time. you just used it differently.",
+    "background_prompt": "beach at dusk, footprints, one flip flop"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "open car window, hand out of frame, fields blurring"
+   }
+  ]
+ },
+ {
+  "post": 8,
+  "title": "Unsent",
+  "emotion": "hesitation",
+  "tint": "cream heavy",
+  "slides": [
+   {
+    "caption": "you typed it out.",
+    "background_prompt": "phone with a long text drafted, blurry screen, dark room"
+   },
+   {
+    "caption": "you deleted it three times.",
+    "background_prompt": "notes app open, cursor blinking, blurred"
+   },
+   {
+    "caption": "you sent 'hey' instead.",
+    "background_prompt": "phone face-up on a diner table, coffee"
+   },
+   {
+    "caption": "it said everything you meant.",
+    "background_prompt": "crumpled letter in a bin next to a desk"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "phone locking, screen fading to black"
+   }
+  ]
+ },
+ {
+  "post": 9,
+  "title": "Mom's Kitchen",
+  "emotion": "warmth and ache",
+  "tint": "warm sepia",
+  "slides": [
+   {
+    "caption": "the kitchen sounds different now.",
+    "background_prompt": "kitchen at morning, radio on the counter, one bowl"
+   },
+   {
+    "caption": "she still keeps your mug on the left.",
+    "background_prompt": "cupboard open, one chipped mug in front"
+   },
+   {
+    "caption": "the fridge has a photo of you at eight.",
+    "background_prompt": "fridge door with magnets and one faded photo, blurred"
+   },
+   {
+    "caption": "you call on sundays. mostly.",
+    "background_prompt": "landline on a wall, calendar next to it"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "kitchen table, sunlight, one chair pulled out"
+   }
+  ]
+ },
+ {
+  "post": 10,
+  "title": "The Job You Quit",
+  "emotion": "relief and doubt",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "you left the badge on the desk.",
+    "background_prompt": "office desk, lanyard and badge, monitor off"
+   },
+   {
+    "caption": "the elevator felt slower on the way down.",
+    "background_prompt": "elevator interior, buttons lit, empty"
+   },
+   {
+    "caption": "nobody threw a party.",
+    "background_prompt": "empty conference room, one chair turned to the window"
+   },
+   {
+    "caption": "you were right. you just don't feel it yet.",
+    "background_prompt": "parking garage at dusk, one car left"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "office lobby at night, revolving door, rain outside"
+   }
+  ]
+ },
+ {
+  "post": 11,
+  "title": "Screen Time",
+  "emotion": "numbness",
+  "tint": "cream heavy",
+  "slides": [
+   {
+    "caption": "6 hours and 42 minutes.",
+    "background_prompt": "phone on a bed, blue glow on sheets, dark"
+   },
+   {
+    "caption": "you weren't looking for anything.",
+    "background_prompt": "couch at night, TV static reflection on a window"
+   },
+   {
+    "caption": "you found it anyway.",
+    "background_prompt": "laptop half closed, headphones on a desk"
+   },
+   {
+    "caption": "put it down. just for the length of this post.",
+    "background_prompt": "phone face-down on a nightstand, lamp off"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "window at dawn, curtains half open, empty bed"
+   }
+  ]
+ },
+ {
+  "post": 12,
+  "title": "Old Wifi Password",
+  "emotion": "the strange comfort of small memories",
+  "tint": "rust and cream",
+  "slides": [
+   {
+    "caption": "you still know their wifi password.",
+    "background_prompt": "router blinking in a hallway corner, night"
+   },
+   {
+    "caption": "you know which stair creaks.",
+    "background_prompt": "wooden staircase, hallway light on upstairs"
+   },
+   {
+    "caption": "you know how they take their coffee.",
+    "background_prompt": "two mugs on a counter, one with lipstick"
+   },
+   {
+    "caption": "small things are how we stay.",
+    "background_prompt": "key hook by a door, one key left"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "front door with a mat, porch light on"
+   }
+  ]
+ },
+ {
+  "post": 13,
+  "title": "Waiting Room",
+  "emotion": "anxiety and stillness",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "every clock in here is wrong.",
+    "background_prompt": "hospital waiting room, plastic chairs, vending machine glow"
+   },
+   {
+    "caption": "you counted the ceiling tiles.",
+    "background_prompt": "dropped ceiling with one flickering light"
+   },
+   {
+    "caption": "you made a deal with something.",
+    "background_prompt": "chair by a window, rain, magazines"
+   },
+   {
+    "caption": "the door opens and it's your name.",
+    "background_prompt": "hallway with a half open door, fluorescent light"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "parking lot at night, one car, hospital sign blurred"
+   }
+  ]
+ },
+ {
+  "post": 14,
+  "title": "Last Day of School",
+  "emotion": "nostalgia and freedom",
+  "tint": "golden hour",
+  "slides": [
+   {
+    "caption": "the last day smelled like cut grass and sharpies.",
+    "background_prompt": "school hallway, lockers open, papers on floor, afternoon light"
+   },
+   {
+    "caption": "you signed a yearbook you'll never open.",
+    "background_prompt": "yearbook on a desk, pens, sunlight"
+   },
+   {
+    "caption": "the bus was loud and you were quiet.",
+    "background_prompt": "school bus interior, empty seats, afternoon"
+   },
+   {
+    "caption": "you never went back to that hallway.",
+    "background_prompt": "school parking lot, empty, golden hour"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "backpack on a bedroom floor, window open"
+   }
+  ]
+ },
+ {
+  "post": 15,
+  "title": "2 A.M.",
+  "emotion": "clarity and loneliness",
+  "tint": "cream heavy",
+  "slides": [
+   {
+    "caption": "it's 2am and you're fine.",
+    "background_prompt": "kitchen at night, fridge light open, bare feet out of frame"
+   },
+   {
+    "caption": "you're not fine but you're awake.",
+    "background_prompt": "bathroom mirror steam, one light, blurred"
+   },
+   {
+    "caption": "this is where the truth lives.",
+    "background_prompt": "living room, one lamp, blanket on the floor"
+   },
+   {
+    "caption": "write it down before morning takes it.",
+    "background_prompt": "notebook open on a bed, pen, dark"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "window at 2am, streetlight, curtain moving"
+   }
+  ]
+ },
+ {
+  "post": 16,
+  "title": "Airport",
+  "emotion": "transition",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "nobody is from here.",
+    "background_prompt": "airport gate at dawn, empty chairs, runway glow"
+   },
+   {
+    "caption": "everyone is leaving something.",
+    "background_prompt": "rolling suitcase alone in a terminal corridor"
+   },
+   {
+    "caption": "you're carrying more than a bag.",
+    "background_prompt": "overhead bin closed, one seat, window"
+   },
+   {
+    "caption": "goodbye and hello sound the same in here.",
+    "background_prompt": "arrivals hall, flowers on a bench, blurred"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "plane window, wing, sunrise"
+   }
+  ]
+ },
+ {
+  "post": 17,
+  "title": "Grandpa's Garage",
+  "emotion": "reverence",
+  "tint": "warm sepia",
+  "slides": [
+   {
+    "caption": "he fixed things that weren't broken.",
+    "background_prompt": "garage workbench, tools, radio, afternoon light"
+   },
+   {
+    "caption": "the radio was always on the same station.",
+    "background_prompt": "old radio on a shelf, dust, wrench"
+   },
+   {
+    "caption": "you still hold a screwdriver the way he did.",
+    "background_prompt": "hand tools laid out on a rag, close, blurred"
+   },
+   {
+    "caption": "nothing in here has been moved.",
+    "background_prompt": "garage from the doorway, car under a sheet"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "open garage door, driveway, sunset"
+   }
+  ]
+ },
+ {
+  "post": 18,
+  "title": "Dating App",
+  "emotion": "hope and fatigue",
+  "tint": "rust and cream",
+  "slides": [
+   {
+    "caption": "you've said 'hey' 200 times this year.",
+    "background_prompt": "phone on a coffee table, wine glass, evening"
+   },
+   {
+    "caption": "they all started the same.",
+    "background_prompt": "two chairs at a bar, one empty, candle"
+   },
+   {
+    "caption": "one of them didn't.",
+    "background_prompt": "restaurant table for two, one coat on the chair"
+   },
+   {
+    "caption": "you can't swipe for the feeling. you can only recognize it.",
+    "background_prompt": "street at night, two shadows on the pavement, blurred"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "phone on a nightstand, notification glow"
+   }
+  ]
+ },
+ {
+  "post": 19,
+  "title": "Money Talk",
+  "emotion": "pressure",
+  "tint": "rust and cream",
+  "slides": [
+   {
+    "caption": "you checked your balance before you checked your texts.",
+    "background_prompt": "kitchen table, laptop, receipts, coffee"
+   },
+   {
+    "caption": "you're not broke. you're building.",
+    "background_prompt": "apartment desk at night, lamp, calculator"
+   },
+   {
+    "caption": "nobody sees the first two years.",
+    "background_prompt": "home office, boxes, one plant, monitor off"
+   },
+   {
+    "caption": "the plan is boring. that's why it works.",
+    "background_prompt": "notebook with a grid, pen, morning light"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "city view from an apartment window at night"
+   }
+  ]
+ },
+ {
+  "post": 20,
+  "title": "The Friend Who Moved",
+  "emotion": "distance",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "three hours behind and still your best friend.",
+    "background_prompt": "two clocks on a wall, apartment, evening"
+   },
+   {
+    "caption": "you send voice notes instead of calling.",
+    "background_prompt": "phone on a couch, earbuds, blanket"
+   },
+   {
+    "caption": "you've been meaning to visit for two years.",
+    "background_prompt": "suitcase in a closet, unpacked, dust"
+   },
+   {
+    "caption": "distance doesn't end things. silence does.",
+    "background_prompt": "two mugs on a windowsill, city outside"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "train platform at night, one bench"
+   }
+  ]
+ },
+ {
+  "post": 21,
+  "title": "Sunday",
+  "emotion": "gentle sadness",
+  "tint": "golden hour",
+  "slides": [
+   {
+    "caption": "sunday is the softest kind of sad.",
+    "background_prompt": "living room, afternoon light, blanket, tea"
+   },
+   {
+    "caption": "you cleaned so you wouldn't think.",
+    "background_prompt": "clean kitchen, sponge drying, window"
+   },
+   {
+    "caption": "you thought anyway.",
+    "background_prompt": "bathtub filling, one candle, tiles"
+   },
+   {
+    "caption": "monday can wait until it can't.",
+    "background_prompt": "alarm clock on a nightstand, evening"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "bedroom at dusk, curtains glowing"
+   }
+  ]
+ },
+ {
+  "post": 22,
+  "title": "Lost Photo",
+  "emotion": "memory",
+  "tint": "warm sepia",
+  "slides": [
+   {
+    "caption": "the best night has no photos.",
+    "background_prompt": "film camera on a bar, empty glasses, neon"
+   },
+   {
+    "caption": "you were too busy living it.",
+    "background_prompt": "rooftop at night, string lights, two chairs"
+   },
+   {
+    "caption": "your memory is the only copy.",
+    "background_prompt": "shoebox of prints, one blank polaroid"
+   },
+   {
+    "caption": "some things are meant to fade.",
+    "background_prompt": "photo album open, blurred faces, sunlight"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "disposable camera on a car dashboard"
+   }
+  ]
+ },
+ {
+  "post": 23,
+  "title": "The Version of You",
+  "emotion": "identity",
+  "tint": "rust and cream",
+  "slides": [
+   {
+    "caption": "the version of you at 19 would be shocked.",
+    "background_prompt": "teen bedroom, mirrorless, posters, sneakers"
+   },
+   {
+    "caption": "some of it would scare them.",
+    "background_prompt": "empty stage, one spotlight"
+   },
+   {
+    "caption": "most of it would make them proud.",
+    "background_prompt": "desk with a diploma frame face down, lamp"
+   },
+   {
+    "caption": "you didn't become someone else. you became more.",
+    "background_prompt": "hallway of a house with family photos, blurred"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "open road at dawn, empty, mist"
+   }
+  ]
+ },
+ {
+  "post": 24,
+  "title": "Rainy Bus Window",
+  "emotion": "daydream",
+  "tint": "faded denim",
+  "slides": [
+   {
+    "caption": "you had your best ideas on the bus.",
+    "background_prompt": "bus window with rain, city lights blurred"
+   },
+   {
+    "caption": "you never wrote them down.",
+    "background_prompt": "bus seat, backpack, headphones"
+   },
+   {
+    "caption": "the city looked like a movie you were in.",
+    "background_prompt": "street through wet glass at night, neon"
+   },
+   {
+    "caption": "you missed your stop and didn't care.",
+    "background_prompt": "bus stop at night, rain, one light"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "bus interior, empty, fluorescent, rain outside"
+   }
+  ]
+ },
+ {
+  "post": 25,
+  "title": "Hey Again",
+  "emotion": "welcome",
+  "tint": "tangerine only",
+  "slides": [
+   {
+    "caption": "hey again.",
+    "background_prompt": "flat tangerine, no scene, cream text large"
+   },
+   {
+    "caption": "this page is for the version of you that's still in there.",
+    "background_prompt": "hallway light on, door open, night"
+   },
+   {
+    "caption": "we don't post to make you feel better.",
+    "background_prompt": "kitchen table with a letter, morning"
+   },
+   {
+    "caption": "we post to make you feel.",
+    "background_prompt": "window at dusk, curtain moving"
+   },
+   {
+    "caption": "hey again.",
+    "background_prompt": "flat tangerine, no scene, cream text large"
+   }
+  ]
+ }
+]

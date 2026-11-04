@@ -1,1 +1,8 @@
 .DS_Store
+heyagain/.env
+heyagain/backgrounds/
+heyagain/output/
+heyagain/cache/
+heyagain/build.log
+*.part
+__pycache__/

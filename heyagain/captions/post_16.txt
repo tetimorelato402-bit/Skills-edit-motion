@@ -1,0 +1,6 @@
+# 16 Airport | emotion: transition | tint: faded denim
+post16_slide1 | nobody is from here. | airport gate at dawn, empty chairs, runway glow
+post16_slide2 | everyone is leaving something. | rolling suitcase alone in a terminal corridor
+post16_slide3 | you're carrying more than a bag. | overhead bin closed, one seat, window
+post16_slide4 | goodbye and hello sound the same in here. | arrivals hall, flowers on a bench, blurred
+post16_slide5 | hey again. | plane window, wing, sunrise
