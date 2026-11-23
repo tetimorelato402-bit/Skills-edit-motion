@@ -1,0 +1,25 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,400..700,0..100,0..1&family=Figtree:wght@400..600&family=JetBrains+Mono:wght@400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/system.css">
+<link rel="stylesheet" href="assets/ui/cards.css">
+<link rel="stylesheet" href="assets/motion/motion.css">
+<link rel="stylesheet" href="assets/backgrounds/backgrounds.css">
+<link rel="stylesheet" href="assets/layout/layout.css">
+<link rel="stylesheet" href="assets/icons/icon.css">
+<!-- <html lang="en" data-radius="sharp">; keep this <style> after the links: layout.css resets --ly-scale -->
+<style>
+:root {
+  --p-bg: #ece4d6; --p-surface: #e3d9c7; --p-ink: #15110e; --p-muted: #675b4f;
+  --p-accent: #3d5fc0; --p-accent-ink: #ece4d6; --p-action: #3d5fc0; --p-action-ink: #ece4d6;
+  --p-inv-bg: #15110e; --p-inv-surface: #211d19; --p-inv-ink: #ece4d6; --p-inv-muted: #928b82;
+  --p-inv-accent: #3d5fc0; --p-inv-accent-ink: #ece4d6; --p-inv-action: #3d5fc0; --p-inv-action-ink: #ece4d6;
+  --font-display: "Fraunces", Georgia, serif;
+  --font-text: "Figtree", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --display-weight: 400;
+  --display-tracking: -0.02em;
+  --display-tracking-xl: -0.028em;
+  --display-axes: 'SOFT' 30, 'WONK' 0;
+}
+</style>

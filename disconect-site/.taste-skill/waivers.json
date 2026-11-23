@@ -1,0 +1,4 @@
+[
+  { "check": "tilt", "target": "svg.stamp", "reason": "The brief's stamp carries its words around the circle (DISCONECT · BE WHERE YOU ARE); the lock stamp follows that brand mark, set on a curve by design" },
+  { "check": "empty-visual", "target": "section#prices", "reason": "The 'picture' is the film grain the brief asks for on every surface; the price list is a picture-less section by the skill's own rule" }
+]

@@ -1,0 +1,159 @@
+consistency  /home/user/Skills-edit-motion/disconect-site/index.html
+--quick: not checked: scroll-linked (stepping), scroll-reveal (the reveal walk; IntersectionObserver reveals are read), hover-spill, hidden-visual, loop-pause, forms, reduced-motion, the dead-IntersectionObserver walk (hidden content is read with scripts off and under reduced motion), hover-move. Still told: IntersectionObserver reveals (scroll-reveal), held sections (pinned) and CSS scroll timelines (scroll-linked); faults inside held or [data-big-scene] sections are WARNs
+
+1440x900  11 screens  2 FAIL  14 WARN
+  FAIL empty-visual    section#prices
+       the background picture shows nothing here: 99% of it is one colour (#d9d1c4)  [1440-12-empty-visual.jpg]
+       fix: make the visual draw at every width: a picture that loads, an effect that renders, or its still fallback; never an empty frame
+  FAIL tilt            div.wrap > div.prints > figure.print.print--b > svg.stamp  "SAVES OPEN · AT THE END OF THE NIGHT ·"
+       "SAVES OPEN · AT THE END OF THE NIGHT ·" is set on a curve (an SVG textPath)  [1440-09-tilt.jpg]
+       fix: set it straight
+  WARN scroll-reveal   section#rules > div.wrap > p.mo-wh__text  "Nobody posts the night while it is still"
+       starts "color" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(1) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)  [1440-11-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  WARN text-contrast   div.device > div.device__screen.pause__screen > div.pause__grid > span.app-tile:nth-of-type(5)  "Social"
+       8 lines of text in drawn mocks read under 4.5:1 (1 colour pair), the worst "Social" in #7e7366 on #1a140f at 3.94:1  [1440-08-text-contrast.jpg]
+       fix: lift the mocks' muted text (labels, meta, initials) to 4.5:1 on their own panel, or set it larger
+  WARN busy-ground     h2#how-h  "How the app works on the night."
+       text over a detailed part of a picture (its ground changes by 1.5 L* from one pixel to the next under the words) (and 47 more like it: "night.", "The host's door code is ", "Scan the door code", "Name and phone number, a", ...)  [1440-04-busy-ground.jpg]
+       fix: move the text to a calm part of the picture, or put it on a panel
+  WARN busy-ground     section#rules > div.wrap > p.t-label  "THE RULES OF THE NIGHT"
+       text over a detailed part of a picture (its ground changes by 1.5 L* from one pixel to the next under the words) (inside a held section or scroll scene, whose motion --quick does not check) (and 30 more like it: "Nobody", "posts", "the", "night", ...)  [1440-10-busy-ground.jpg]
+       fix: move the text to a calm part of the picture, or put it on a panel
+  WARN section-gaps    main#top > section.hero.hero--photo / section#how
+       116px between these sections, -57% against the median 267px  [1440-05-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#prices / footer#contact
+       391px between these sections, +46% against the median 267px  [1440-14-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN photo-set       div.wrap.grid > div.span-6.start-7 > div.wall > img:nth-of-type(1)  "photo-f124587607-500.webp"
+       8 photographs in more than one look: saturation from 0.11 to 0.43; the odd one out is photo-f124587607-500.webp  [1440-06-photo-set.jpg]
+       fix: grade the photographs to one look (light, colour, warmth), or replace the odd one out
+  WARN photo-credit    (the page text)
+       1 library source (wikimedia): the page credits wikimedia; confirm each shows the client's own product, place or people
+       fix: confirm the library photograph shows the client's own product, place or people; otherwise replace it
+  WARN nav-labels      header.nav > div.wrap.nav__bar > a.nav__logo  "disconect"
+       "disconect" opens a section headed "One camera for the whole room."  [1440-01-nav-labels.jpg]
+       fix: name each nav link after the heading of the section it opens
+  WARN nav-labels      div.wrap.nav__bar > nav.nav__links > div.nav__item:nth-of-type(4) > a.nav__link  "Questions"
+       "Questions" opens a section headed "Does the app pause calls?"  [1440-02-nav-labels.jpg]
+       fix: name each nav link after the heading of the section it opens
+  WARN label-centre    header.nav > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Get the iOS app"
+       its label sits 18px off-centre (25px of room at the left, 43px at the right)  [1440-03-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+  WARN copy-length     section#prices  "Prices for hosts and guests."
+       1 section over 90 words a screen outside the UI mocks ("Prices for hosts and gue" 116); 49 words a screen across the page (389 words in 8 screens): a tech page says it in about 80 or fewer  [1440-13-copy-length.jpg]
+       fix: cut every section to its heading, one line and the product UI: the UI says the rest; no second paragraph, no list of feature sentences
+  WARN nav-current     header.nav
+       the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)  [1440-07-nav-current.jpg]
+       fix: mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls
+  WARN action-repeat   header.nav > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "get the ios app"
+       "get the ios app" shows 2 times on the first screen at 1440px (nav, hero): the nav's button and the hero's; nothing else on the screen may repeat it  [1440-15-action-repeat.jpg]
+       fix: show the action once a screen besides the nav's button: the hero's, the close's or the phone bar's, never all at once
+
+390x844  18 screens  2 FAIL  14 WARN
+  FAIL tilt            div.wrap > div.prints > figure.print.print--b > svg.stamp  "SAVES OPEN · AT THE END OF THE NIGHT ·"
+       "SAVES OPEN · AT THE END OF THE NIGHT ·" is set on a curve (an SVG textPath)  [390-13-tilt.jpg]
+       fix: set it straight
+  FAIL photo-upscale   div.wrap.grid > div.span-6.start-7 > div.wall > img:nth-of-type(2)  "img: People talking at a crowded bar in "
+       photo-f85149984-330.webp: 234x156 shown at 170x216, blown up 1.39x  [390-06-photo-upscale.jpg]
+       fix: use a source at least as wide as the picture is shown (twice that for sharp screens)
+  WARN nav             header.nav > div.wrap.nav__bar > button.nav__toggle
+       the nav is lopsided: its last item ends 13px inside the content's edge (366px), while its first starts on the other edge  [390-01-nav.jpg]
+       fix: start the nav's first item and end its last on the content's two edges
+  WARN scroll-reveal   section#rules > div.wrap > p.mo-wh__text  "Nobody posts the night while it is still"
+       starts "color" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(1) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)  [390-15-scroll-reveal.jpg]
+       fix: show it at rest: no fade, rise or unmask when it is scrolled into view
+  WARN cta             section#how  "How the app works on the night."
+       a section over 1.5 screens long with no link or button in it  [390-07-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN cta             section#camera  "One shared camera for the room."
+       a section over 1.5 screens long with no link or button in it  [390-09-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN cta             section#disconnect  "Apps pause at the door."
+       a section over 1.5 screens long with no link or button in it  [390-11-cta.jpg]
+       fix: add the action: a button in the hero, one on every priced item, one in the closing section
+  WARN text-contrast   div.device > div.device__screen.pause__screen > div.pause__grid > span.app-tile:nth-of-type(5)  "Social"
+       5 lines of text in drawn mocks read under 4.5:1 (1 colour pair), the worst "Social" in #7e7366 on #1a140f at 3.94:1  [390-12-text-contrast.jpg]
+       fix: lift the mocks' muted text (labels, meta, initials) to 4.5:1 on their own panel, or set it larger
+  WARN busy-ground     h2#how-h  "How the app works on the night."
+       text over a detailed part of a picture (its ground changes by 1.5 L* from one pixel to the next under the words) (and 47 more like it: "night.", "The host's door code is ", "Scan the door code", "Name and phone number, a", ...)  [390-03-busy-ground.jpg]
+       fix: move the text to a calm part of the picture, or put it on a panel
+  WARN busy-ground     section#rules > div.wrap > p.t-label  "THE RULES OF THE NIGHT"
+       text over a detailed part of a picture (its ground changes by 1.4 L* from one pixel to the next under the words) (inside a held section or scroll scene, whose motion --quick does not check) (and 29 more like it: "Nobody", "posts", "the", "night", ...)  [390-16-busy-ground.jpg]
+       fix: move the text to a calm part of the picture, or put it on a panel
+  WARN section-gaps    main#top > section.hero.hero--photo / section#how
+       153px between these sections, -54% against the median 335px of gaps at a change of ground  [390-04-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#camera / section#disconnect
+       255px between these sections, -38% against the median 414px  [390-10-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    section#disconnect / section#memories
+       255px between these sections, -38% against the median 414px  [390-14-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN section-gaps    main#top > section.hero.hero--photo / section#how
+       uneven space at the edge of a band: 59px outside its edge, 94px inside it (the space on either side of a change of ground reads as one gap only when the two match)  [390-05-section-gaps.jpg]
+       fix: use one gap between sections (all within 25% of each other)
+  WARN photo-set       div.wrap.grid > div.span-6.start-7 > div.wall > img:nth-of-type(1)  "photo-f124587607-330.webp"
+       7 photographs in more than one look: saturation from 0.12 to 0.44; the odd one out is photo-f124587607-330.webp  [390-08-photo-set.jpg]
+       fix: grade the photographs to one look (light, colour, warmth), or replace the odd one out
+  WARN label-centre    header.nav > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary  "Get the iOS app"
+       its label sits 18px off-centre (13px of room at the left, 31px at the right)  [390-02-label-centre.jpg]
+       fix: centre the label in its button, or fill the empty side with an icon
+
+first screen at 1280, 1152, 1024, 896, 768  0 FAIL  0 WARN
+
+the page at 320x640, walked for what runs past the screen's edge  0 FAIL
+
+checks
+  PASS assets                 PASS shader-lint            PASS gl-fallback            
+  FAIL empty-visual           PASS hero-fill              PASS flush                  
+  PASS placeholder            PASS sample-label           PASS caption                
+  PASS credit-wall            WARN nav                    PASS nav-covers             
+  PASS spill                  PASS off-viewport           PASS fold-card              
+  SKIP hover-spill            PASS overlap-text           PASS collide                
+  PASS tap-size               PASS row-gap                PASS cut-text               
+  PASS fold-cut               PASS marquee                SKIP scroll-linked          
+  WARN scroll-reveal          PASS pinned                 SKIP loop-pause             
+  SKIP reduced-motion         PASS hidden-content         PASS webgl                  
+  PASS no-visual              PASS text-only              PASS card-visual            
+  SKIP hidden-visual          PASS card-family            PASS card-layout            
+  PASS nesting                PASS effect-repeat          PASS ui-fit                 
+  PASS ui-centre              PASS dark-ground            PASS button-styles          
+  PASS button-shape           PASS same-action            PASS button-picture         
+  WARN cta                    PASS pricing-tiers          PASS copy-headline          
+  PASS copy-fact              PASS copy-headings          PASS copy-buttons           
+  PASS copy-actions           PASS heading-scale          PASS stagger                
+  PASS top-stagger            PASS off-grid               PASS col-edge               
+  PASS right-edge             PASS centre-axis            FAIL tilt                   
+  PASS contrast               WARN text-contrast          PASS body-size              
+  WARN busy-ground            WARN section-gaps           PASS proximity              
+  PASS hole                   PASS links                  SKIP forms                  
+  FAIL photo-upscale          WARN photo-set              WARN photo-credit           
+  PASS nav-family             WARN nav-labels             PASS link-styles            
+  PASS heading-align          WARN label-centre           PASS fake-button            
+  PASS stranded-action        PASS orphan                 PASS unit-break             
+  PASS tab-wrap               PASS effects-fit            PASS fade-cut               
+  PASS photo-weight           WARN copy-length            WARN nav-current            
+  PASS progress-bar           PASS photo-repeat           PASS button-contrast        
+  PASS photo-print            PASS grounds                PASS split-align            
+  PASS fact-agree             PASS fold-action            PASS action-count           
+  PASS one-screen             SKIP hover                  SKIP hover-move             
+  PASS product-shown          PASS same-object            PASS font-load              
+  PASS visual-caption         PASS visual-empty           PASS effect-kind            
+  PASS hero-enter             PASS moment-none            PASS street-number          
+  PASS postcode               PASS coordinates            PASS company-number         
+  PASS phone-number           PASS hero-screen            PASS section-height         
+  PASS section-air            PASS one-section            PASS one-heading            
+  PASS container-edges        PASS row-lines              PASS split-pair             
+  PASS motion-layer           PASS count-text             PASS loop-cycle             
+  PASS section-tile           PASS empty-area             PASS a11y-name              
+  PASS img-alt                PASS field-label            PASS heading-order          
+  PASS tabindex               PASS focus-ring             PASS focus-visible          
+  PASS focus-hidden           PASS skip-link              PASS menu-toggle            
+  PASS lang                   PASS page-meta              PASS share-meta             
+  WARN action-repeat          PASS map-link               PASS open-now               
+  PASS assumed                PASS run-on                 PASS form-fields            
+  PASS form-send              
+
+total  4 FAIL  28 WARN  (crops and report.json in /home/user/Skills-edit-motion/disconect-site/.taste-skill/consistency)

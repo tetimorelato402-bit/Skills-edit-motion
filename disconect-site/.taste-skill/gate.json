@@ -1,0 +1,390 @@
+{
+ "start": "2026-11-23T19:05:53.933Z",
+ "round": 3,
+ "idle": 0,
+ "errors": 0,
+ "status": "open",
+ "history": [
+  {
+   "at": "2026-11-23T19:58:24.582Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 2,
+   "round": 1,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-23T20:01:47.276Z",
+   "mode": "manual",
+   "status": "fail",
+   "fails": 2,
+   "round": 2,
+   "reused": false,
+   "stopHookActive": false
+  },
+  {
+   "at": "2026-11-23T20:04:17.912Z",
+   "mode": "manual",
+   "status": "open",
+   "fails": 1,
+   "round": 3,
+   "reused": false,
+   "stopHookActive": false
+  }
+ ],
+ "max": 3,
+ "marker": {
+  "page": "index.html",
+  "url": null,
+  "root": null,
+  "kind": "software",
+  "category": "social camera app for nightclubs and private events",
+  "primary": "Download on the App Store",
+  "rounds": 3,
+  "start": "2026-11-23T19:05:53.933Z",
+  "by": "gate.mjs --start"
+ },
+ "manual": true,
+ "roundKey": "5e1407231798c2e5:90a189fc",
+ "roundFree": false,
+ "idleFree": false,
+ "blockKey": null,
+ "fp": "5e1407231798c2e5",
+ "page": "index.html",
+ "found": {
+  "fails": [
+   {
+    "check": "empty-visual",
+    "where": "section#prices",
+    "msg": "the background picture shows nothing here: 99% of it is one colour (#d9d1c4)",
+    "fix": "make the visual draw at every width: a picture that loads, an effect that renders, or its still fallback; never an empty frame",
+    "widths": [
+     1440
+    ],
+    "from": "consistency",
+    "ids": [
+     "empty-visual"
+    ],
+    "wheres": [
+     "section#prices"
+    ]
+   },
+   {
+    "check": "tilt",
+    "where": "div.wrap > div.prints > figure.print.print--b > svg.stamp \"SAVES OPEN · AT THE END OF THE NIGHT ·\"",
+    "msg": "\"SAVES OPEN · AT THE END OF THE NIGHT ·\" is set on a curve (an SVG textPath)",
+    "fix": "set it straight",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency",
+    "ids": [
+     "tilt"
+    ],
+    "wheres": [
+     "div.wrap > div.prints > figure.print.print--b > svg.stamp \"SAVES OPEN · AT THE END OF THE NIGHT ·\""
+    ]
+   },
+   {
+    "check": "off-viewport",
+    "where": "header.nav > div.wrap.nav__bar > button.nav__toggle",
+    "msg": "at 320px wide it runs 12px past the screen's right edge (cut there: the page clips what runs past it)",
+    "fix": "keep it inside the screen at this width: let it shrink, wrap or stack",
+    "widths": [
+     320
+    ],
+    "from": "consistency",
+    "ids": [
+     "off-viewport"
+    ],
+    "wheres": [
+     "header.nav > div.wrap.nav__bar > button.nav__toggle"
+    ]
+   }
+  ],
+  "warns": [
+   {
+    "check": "scroll-reveal",
+    "where": "section#rules > div.wrap > p.mo-wh__text \"Nobody posts the night while it is still\"",
+    "msg": "starts \"color\" (0.2 s) the moment it is scrolled into view (an IntersectionObserver) on span.mo-w:nth-of-type(1) (inside a dealt moment's section, [data-moment]: an enter moment is expected on every kind; its still is judged under reduced motion)",
+    "fix": "show it at rest: no fade, rise or unmask when it is scrolled into view",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-actions",
+    "where": "(the page)",
+    "msg": "the main action \"Download on the App Store\" does not read word for word the same in the nav or hero and the closing section",
+    "fix": "few actions, one wording: at most 2 in the hero, the main action word for word in nav, hero and close",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "text-contrast",
+    "where": "div.device > div.device__screen.pause__screen > div.pause__grid > span.app-tile:nth-of-type(5) \"Social\"",
+    "msg": "8 lines of text in drawn mocks read under 4.5:1 (1 colour pair), the worst \"Social\" in #7e7366 on #1a140f at 3.94:1",
+    "fix": "lift the mocks' muted text (labels, meta, initials) to 4.5:1 on their own panel, or set it larger",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "busy-ground",
+    "where": "h2#how-h \"How the app works on the night.\"",
+    "msg": "text over a detailed part of a picture (its ground changes by 1.5 L* from one pixel to the next under the words) (and 47 more like it: \"night.\", \"The host's door code is \", \"Scan the door code\", \"Name and phone number, a\", ...)",
+    "fix": "move the text to a calm part of the picture, or put it on a panel",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "busy-ground",
+    "where": "section#rules > div.wrap > p.t-label \"THE RULES OF THE NIGHT\"",
+    "msg": "text over a detailed part of a picture (its ground changes by 1.5 L* from one pixel to the next under the words) (inside a held section or scroll scene, whose motion --quick does not check) (and 30 more like it: \"Nobody\", \"posts\", \"the\", \"night\", ...)",
+    "fix": "move the text to a calm part of the picture, or put it on a panel",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "main#top > section.hero.hero--photo / section#how",
+    "msg": "116px between these sections, -57% against the median 267px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#prices / footer#contact",
+    "msg": "391px between these sections, +46% against the median 267px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-set",
+    "where": "div.wrap.grid > div.span-6.start-7 > div.wall > img:nth-of-type(1) \"photo-f124587607-960.webp\"",
+    "msg": "8 photographs in more than one look: saturation from 0.12 to 0.42; the odd one out is photo-f124587607-960.webp",
+    "fix": "grade the photographs to one look (light, colour, warmth), or replace the odd one out",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "photo-credit",
+    "where": "(the page text)",
+    "msg": "1 library source (wikimedia): the page credits wikimedia; confirm each shows the client's own product, place or people",
+    "fix": "confirm the library photograph shows the client's own product, place or people; otherwise replace it",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "header.nav > div.wrap.nav__bar > a.nav__logo \"disconect\"",
+    "msg": "\"disconect\" opens a section headed \"One camera for the whole room.\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-labels",
+    "where": "div.wrap.nav__bar > nav.nav__links > div.nav__item:nth-of-type(4) > a.nav__link \"Questions\"",
+    "msg": "\"Questions\" opens a section headed \"Does the app pause calls?\"",
+    "fix": "name each nav link after the heading of the section it opens",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "label-centre",
+    "where": "header.nav > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary \"Get the iOS app\"",
+    "msg": "its label sits 18px off-centre (25px of room at the left, 43px at the right)",
+    "fix": "centre the label in its button, or fill the empty side with an icon",
+    "widths": [
+     1440,
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "copy-length",
+    "where": "section#prices \"Prices for hosts and guests.\"",
+    "msg": "1 section over 90 words a screen outside the UI mocks (\"Prices for hosts and gue\" 116); 49 words a screen across the page (389 words in 8 screens): a tech page says it in about 80 or fewer",
+    "fix": "cut every section to its heading, one line and the product UI: the UI says the rest; no second paragraph, no list of feature sentences",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav-current",
+    "where": "header.nav",
+    "msg": "the nav stays on screen with 4 links to the page's sections, but never marks the one you are in (no link changes as the page scrolls)",
+    "fix": "mark the link of the section on screen (a colour, a weight or a line under it) as the visitor scrolls",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "action-repeat",
+    "where": "header.nav > div.wrap.nav__bar > div.nav__actions > a.btn.btn--primary \"get the ios app\"",
+    "msg": "\"get the ios app\" shows 2 times on the first screen at 1440px (nav, hero): the nav's button and the hero's; nothing else on the screen may repeat it",
+    "fix": "show the action once a screen besides the nav's button: the hero's, the close's or the phone bar's, never all at once",
+    "widths": [
+     1440
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "nav",
+    "where": "header.nav > div.wrap.nav__bar > button.nav__toggle",
+    "msg": "the nav is lopsided: its last item ends 13px inside the content's edge (366px), while its first starts on the other edge",
+    "fix": "start the nav's first item and end its last on the content's two edges",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "cta",
+    "where": "section#how \"How the app works on the night.\"",
+    "msg": "a section over 1.5 screens long with no link or button in it",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "cta",
+    "where": "section#camera \"One shared camera for the room.\"",
+    "msg": "a section over 1.5 screens long with no link or button in it",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "cta",
+    "where": "section#disconnect \"Apps pause at the door.\"",
+    "msg": "a section over 1.5 screens long with no link or button in it",
+    "fix": "add the action: a button in the hero, one on every priced item, one in the closing section",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#camera / section#disconnect",
+    "msg": "255px between these sections, -38% against the median 414px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   },
+   {
+    "check": "section-gaps",
+    "where": "section#disconnect / section#memories",
+    "msg": "255px between these sections, -38% against the median 414px",
+    "fix": "use one gap between sections (all within 25% of each other)",
+    "widths": [
+     390
+    ],
+    "from": "consistency"
+   }
+  ],
+  "crashed": [],
+  "seconds": {
+   "consistency": 126,
+   "layout": 4
+  }
+ },
+ "open": [
+  {
+   "check": "off-viewport",
+   "where": "header.nav > div.wrap.nav__bar > button.nav__toggle",
+   "msg": "at 320px wide it runs 12px past the screen's right edge (cut there: the page clips what runs past it)",
+   "fix": "keep it inside the screen at this width: let it shrink, wrap or stack",
+   "widths": [
+    320
+   ],
+   "from": "consistency",
+   "ids": [
+    "off-viewport"
+   ],
+   "wheres": [
+    "header.nav > div.wrap.nav__bar > button.nav__toggle"
+   ]
+  }
+ ],
+ "waived": [
+  {
+   "check": "empty-visual",
+   "where": "section#prices",
+   "msg": "the background picture shows nothing here: 99% of it is one colour (#d9d1c4)",
+   "fix": "make the visual draw at every width: a picture that loads, an effect that renders, or its still fallback; never an empty frame",
+   "widths": [
+    1440
+   ],
+   "from": "consistency",
+   "ids": [
+    "empty-visual"
+   ],
+   "wheres": [
+    "section#prices"
+   ],
+   "reason": "The 'picture' is the film grain the brief asks for on every surface; the price list is a picture-less section by the skill's own rule"
+  },
+  {
+   "check": "tilt",
+   "where": "div.wrap > div.prints > figure.print.print--b > svg.stamp \"SAVES OPEN · AT THE END OF THE NIGHT ·\"",
+   "msg": "\"SAVES OPEN · AT THE END OF THE NIGHT ·\" is set on a curve (an SVG textPath)",
+   "fix": "set it straight",
+   "widths": [
+    1440,
+    390
+   ],
+   "from": "consistency",
+   "ids": [
+    "tilt"
+   ],
+   "wheres": [
+    "div.wrap > div.prints > figure.print.print--b > svg.stamp \"SAVES OPEN · AT THE END OF THE NIGHT ·\""
+   ],
+   "reason": "The brief's stamp carries its words around the circle (DISCONECT · BE WHERE YOU ARE); the lock stamp follows that brand mark, set on a curve by design"
+  }
+ ],
+ "warnCount": 21,
+ "at": "2026-11-23T20:04:17.912Z",
+ "openTold": true
+}

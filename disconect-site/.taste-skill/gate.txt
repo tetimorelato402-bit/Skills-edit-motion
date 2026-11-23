@@ -1,0 +1,2 @@
+gate: no build is active in /home/user/Skills-edit-motion/disconect-site (no .taste-skill/build.json); begin one with: node "/home/user/Skills-edit-motion/.claude/skills/design-taste-frontend/scripts/gate.mjs" --start index.html
+GATE: OFF (no build active)

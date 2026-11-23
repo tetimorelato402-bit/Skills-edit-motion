@@ -1,0 +1,65 @@
+
+1440x900  lines x 80 and 1360, nav 72px, one screen 900px
+  hero 900 tall; h1 80px/1.02, 2 lines, 532x163 at 128,341; lead 20/30, 3 lines, 486 wide; buttons 2 x 44; visual -
+  stress: photo h1 at 30 of 32 characters takes 2 lines, hero 900 tall
+  section section.hero.hero--photo section.hero.hero--photo "One camer y     0  h   900  content 900
+  section #how section.section.g2m "How the app works on the night. "  y   900  h   900  content 640
+  section #camera section.section.ground-inverse "One shared camera fo y  1800  h   900  content 618
+  section #disconnect section.section.g2m "Apps pause at the door. Cal y  2700  h   900  content 622
+  section #memories section.section "The night's photos, kept as one " y  3600  h   900  content 647
+  section #rules section.section.statement "The rules of the night Nob y  4500  h   900  content 242
+  section #hosts section.section.g2m "Free for nightclubs and private  y  5400  h   900  content 680
+  section #prices section.section.g2m "Prices for hosts and guests. Di y  6300  h   900  content 518
+  no findings
+
+1024x768  lines x 80 and 944, nav 72px, one screen 768px
+  hero 768 tall; h1 65.743px/1.02, 3 lines, 324x201 at 128,259; lead 18.8186/28.228, 3 lines, 324 wide; buttons 2 x 44; visual -
+  stress: photo h1 at 30 of 32 characters takes 3 lines, hero 768 tall
+  section section.hero.hero--photo section.hero.hero--photo "One camer y     0  h   768  content 768
+  section #how section.section.g2m "How the app works on the night. "  y   768  h   768  content 528
+  section #camera section.section.ground-inverse "One shared camera fo y  1536  h   768  content 486
+  section #disconnect section.section.g2m "Apps pause at the door. Cal y  2304  h   768  content 489
+  section #memories section.section "The night's photos, kept as one " y  3072  h   768  content 577
+  section #rules section.section.statement "The rules of the night Nob y  3840  h   768  content 209
+  section #hosts section.section.g2m "Free for nightclubs and private  y  4608  h   768  content 548
+  section #prices section.section.g2m "Prices for hosts and guests. Di y  5376  h   768  content 515
+  no findings
+
+820x1180  lines x 48 and 772, nav 72px, one screen 1180px
+  hero 1180 tall; h1 58.7478px/1.02, 2 lines, 485x120 at 48,659; lead 18.2352/27.3528, 3 lines, 442 wide; buttons 2 x 44; visual -
+  stress: photo h1 at 30 of 32 characters takes 2 lines, hero 1180 tall
+  section section.hero.hero--photo section.hero.hero--photo "One camer y     0  h  1180  content 889
+  section #how section.section.g2m "How the app works on the night. "  y  1180  h  1180  content 745
+  section #camera section.section.ground-inverse "One shared camera fo y  2360  h  1180  content 742
+  section #disconnect section.section.g2m "Apps pause at the door. Cal y  3540  h  1180  content 715
+  section #memories section.section "The night's photos, kept as one " y  4720  h  1180  content 654
+  section #rules section.section.statement "The rules of the night Nob y  5900  h  1180  content 237
+  section #hosts section.section.g2m "Free for nightclubs and private  y  7080  h  1180  content 806
+  section #prices section.section.g2m "Prices for hosts and guests. Di y  8260  h  1180  content 657
+  no findings
+
+768x1024  lines x 48 and 720, nav 72px, one screen 1024px
+  hero 1024 tall; h1 56.9647px/1.02, 2 lines, 470x116 at 48,630; lead 18.0865/27.1297, 3 lines, 439 wide; buttons 2 x 44; visual -
+  stress: photo h1 at 30 of 32 characters takes 2 lines, hero 1024 tall
+  section section.hero.hero--photo section.hero.hero--photo "One camer y     0  h  1024  content 856
+  section #how section.section.g2m "How the app works on the night. "  y  1024  h  1024  content 744
+  section #camera section.section.ground-inverse "One shared camera fo y  2048  h  1024  content 741
+  section #disconnect section.section.g2m "Apps pause at the door. Cal y  3072  h  1024  content 714
+  section #memories section.section "The night's photos, kept as one " y  4096  h  1024  content 653
+  section #rules section.section.statement "The rules of the night Nob y  5120  h  1024  content 231
+  section #hosts section.section.g2m "Free for nightclubs and private  y  6144  h  1024  content 805
+  section #prices section.section.g2m "Prices for hosts and guests. Di y  7168  h  1024  content 694
+  no findings
+
+390x844  lines x 24 and 366, nav 56px, one screen 844px
+  hero 844 tall; h1 44.0031px/1.02, 2 lines, 342x90 at 24,474; lead 17.0054/25.5081, 3 lines, 342 wide; buttons 2 x 44; visual -
+  stress: photo h1 at 30 of 32 characters takes 2 lines, hero 844 tall
+  section section.hero.hero--photo section.hero.hero--photo "One camer y     0  h   844  content 741
+  section #how section.section.g2m "How the app works on the night. "  y   844  h  1688  content 1146
+  section #camera section.section.ground-inverse "One shared camera fo y  2532  h  1688  content 1431
+  section #disconnect section.section.g2m "Apps pause at the door. Cal y  4220  h  1688  content 1433
+  section #memories section.section "The night's photos, kept as one " y  5908  h   844  content 427
+  section #rules section.section.statement "The rules of the night Nob y  6752  h   844  content 297
+  section #hosts section.section.g2m "Free for nightclubs and private  y  7596  h  1688  content 1264
+  section #prices section.section.g2m "Prices for hosts and guests. Di y  9284  h  1688  content 1277
+  no findings

@@ -1,0 +1,8 @@
+== f91338605
+
+/home/user/Skills-edit-motion/disconect-site/assets/img/credits.json
+once the page's markup uses these files (credits reads the page for them, so not before): node /home/user/Skills-edit-motion/.claude/skills/design-taste-frontend/scripts/photos.mjs credits --out /home/user/Skills-edit-motion/disconect-site prints the footer credits for the photographs it uses
+
+not saved:
+f91338605: gave up after 5 tries
+== f91338611
