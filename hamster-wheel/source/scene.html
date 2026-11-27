@@ -1,0 +1,197 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#000}canvas{display:block}</style></head>
+<body>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const W = 720, H = 1280;
+const BEAT = 60 / 148;
+const T_DROP = 4 * BEAT;          // 1.62s
+const T_C = T_DROP + 3 * BEAT;    // 2.84s
+const T_D = T_DROP + 4.5 * BEAT;  // 3.45s
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(W, H); renderer.setPixelRatio(1);
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.3;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x070b18);
+scene.fog = new THREE.Fog(0x0a1024, 6, 16);
+const camera = new THREE.PerspectiveCamera(35, W / H, 0.05, 60);
+
+// ---------- lights: warm lamp key vs cool moon rim (as in the reference) ----------
+scene.add(new THREE.HemisphereLight(0x3a4a7a, 0x1a0d08, 0.35));
+const lamp = new THREE.SpotLight(0xffa868, 16, 14, Math.PI / 5, 0.7, 1.6);
+lamp.position.set(2.8, 2.6, 2.4); lamp.target.position.set(0, 0.6, 0);
+lamp.castShadow = true; lamp.shadow.mapSize.set(2048, 2048); lamp.shadow.radius = 6; lamp.shadow.bias = -0.0004;
+scene.add(lamp, lamp.target);
+const moon = new THREE.DirectionalLight(0x7f9cff, 3.2);
+moon.position.set(-3, 3.5, -3); scene.add(moon);
+const fill = new THREE.PointLight(0x4060ff, 3, 8); fill.position.set(-2.5, 1.2, 2); scene.add(fill);
+const lampGlow = new THREE.Mesh(new THREE.SphereGeometry(0.18, 24, 16), new THREE.MeshBasicMaterial({ color: 0xffb070 }));
+lampGlow.position.set(3.4, 2.9, -2.2); scene.add(lampGlow);
+
+// ---------- room: desk, window with night city + moon ----------
+const wood = (() => {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 512; const g = c.getContext('2d');
+  g.fillStyle = '#6b3a1f'; g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 90; i++) { g.strokeStyle = `rgba(${30 + Math.random() * 40},${12 + Math.random() * 15},5,${0.15 + Math.random() * 0.25})`; g.lineWidth = 1 + Math.random() * 3; g.beginPath(); const y = Math.random() * 512; g.moveTo(0, y); for (let x = 0; x <= 512; x += 32) g.lineTo(x, y + Math.sin(x / 60 + i) * 6); g.stroke(); }
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3, 3); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const desk = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.MeshStandardMaterial({ map: wood, roughness: 0.55, metalness: 0.05 }));
+desk.rotation.x = -Math.PI / 2; desk.receiveShadow = true; scene.add(desk);
+
+const cityTex = (() => {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 1024; const g = c.getContext('2d');
+  const sky = g.createLinearGradient(0, 0, 0, 1024); sky.addColorStop(0, '#0b1640'); sky.addColorStop(1, '#22306a');
+  g.fillStyle = sky; g.fillRect(0, 0, 1024, 1024);
+  g.filter = 'blur(6px)';
+  for (let i = 0; i < 40; i++) { const w = 40 + Math.random() * 90, h = 250 + Math.random() * 550, x = Math.random() * 1024; g.fillStyle = '#0a1230'; g.fillRect(x, 1024 - h, w, h);
+    for (let k = 0; k < 40; k++) { g.fillStyle = Math.random() < 0.6 ? 'rgba(255,200,120,0.8)' : 'rgba(140,180,255,0.6)'; g.fillRect(x + Math.random() * w, 1024 - Math.random() * h, 4, 6); } }
+  g.filter = 'blur(2px)';
+  const mg = g.createRadialGradient(720, 260, 10, 720, 260, 220); mg.addColorStop(0, 'rgba(255,250,230,1)'); mg.addColorStop(0.35, 'rgba(240,240,255,1)'); mg.addColorStop(0.4, 'rgba(160,180,255,0.35)'); mg.addColorStop(1, 'rgba(80,100,200,0)');
+  g.fillStyle = mg; g.beginPath(); g.arc(720, 260, 220, 0, 7); g.fill();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+})();
+const windowPlane = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), new THREE.MeshBasicMaterial({ map: cityTex, fog: false }));
+windowPlane.position.set(1.5, 5, -7); scene.add(windowPlane);
+// window mullions
+const frameMat = new THREE.MeshStandardMaterial({ color: 0x05070d, roughness: 0.9 });
+for (const x of [-2.5, 4.5]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.25, 20, 0.25), frameMat); m.position.set(x, 5, -6.8); scene.add(m); }
+
+// ---------- wheel ----------
+const R = 1.15, WHEEL_Y = 1.35, DEPTH = 0.75;
+const wheelPivot = new THREE.Group(); wheelPivot.position.set(0, WHEEL_Y, 0); scene.add(wheelPivot);
+const wheel = new THREE.Group(); wheelPivot.add(wheel);
+const metal = new THREE.MeshStandardMaterial({ color: 0xd8dde8, metalness: 0.95, roughness: 0.25 });
+const metalDark = new THREE.MeshStandardMaterial({ color: 0x9aa3b5, metalness: 0.9, roughness: 0.35 });
+for (const z of [-DEPTH / 2, DEPTH / 2]) {
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(R, 0.035, 12, 120), metal); ring.position.z = z; ring.castShadow = true; wheel.add(ring);
+  if (z > 0) continue; // open front side, like a real hamster wheel
+  for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; const s = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, R, 8), metalDark);
+    s.position.set(Math.cos(a) * R / 2, Math.sin(a) * R / 2, z); s.rotation.z = a - Math.PI / 2; s.castShadow = true; wheel.add(s); }
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.06, 20), metal); hub.rotation.x = Math.PI / 2; hub.position.z = z; wheel.add(hub);
+}
+for (let i = 0; i < 56; i++) { const a = i / 56 * Math.PI * 2; const r = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, DEPTH, 6), metalDark);
+  r.rotation.x = Math.PI / 2; r.position.set(Math.cos(a) * (R - 0.01), Math.sin(a) * (R - 0.01), 0); r.castShadow = true; wheel.add(r); }
+// stand
+const standMat = new THREE.MeshStandardMaterial({ color: 0x1f2433, metalness: 0.6, roughness: 0.4 });
+for (const z of [-DEPTH / 2 - 0.12]) {
+  const leg1 = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 1.75, 10), standMat); leg1.position.set(-0.45, WHEEL_Y / 2, z); leg1.rotation.z = -0.32; leg1.castShadow = true; scene.add(leg1);
+  const leg2 = leg1.clone(); leg2.position.x = 0.45; leg2.rotation.z = 0.32; scene.add(leg2);
+  const axle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, DEPTH / 2 + 0.15, 10), metal); axle.rotation.x = Math.PI / 2; axle.position.set(0, WHEEL_Y, z / 2); scene.add(axle);
+}
+const base = new THREE.Mesh(new RoundedBoxGeometry(1.6, 0.08, 0.5, 4, 0.03), standMat); base.position.set(0, 0.04, -DEPTH / 2 - 0.12); base.castShadow = true; base.receiveShadow = true; scene.add(base);
+
+// ---------- hamster ----------
+const fur = new THREE.MeshPhysicalMaterial({ color: 0xd99a55, roughness: 0.85, sheen: 1, sheenColor: new THREE.Color(0xffd2a0), sheenRoughness: 0.5 });
+const cream = new THREE.MeshPhysicalMaterial({ color: 0xfff0dc, roughness: 0.9, sheen: 1, sheenColor: new THREE.Color(0xffffff), sheenRoughness: 0.6 });
+const pink = new THREE.MeshStandardMaterial({ color: 0xff8f9c, roughness: 0.6 });
+const black = new THREE.MeshPhysicalMaterial({ color: 0x050505, roughness: 0.05, clearcoat: 1 });
+const white = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+const ham = new THREE.Group(); scene.add(ham);
+const bodyG = new THREE.Group(); ham.add(bodyG);
+const sph = (r, m, ws = 40) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, ws, ws * 0.75), m); o.castShadow = true; o.receiveShadow = true; return o; };
+const body = sph(0.33, fur); body.scale.set(1.3, 1.0, 1.05); bodyG.add(body);
+const belly = sph(0.29, cream); belly.scale.set(1.2, 0.85, 0.98); belly.position.set(0.05, -0.08, 0); bodyG.add(belly);
+const headG = new THREE.Group(); headG.position.set(0.36, 0.1, 0); bodyG.add(headG);
+const head = sph(0.25, fur); head.scale.set(1.05, 0.95, 1.05); headG.add(head);
+const muzzle = sph(0.15, cream); muzzle.scale.set(1.1, 0.85, 1.2); muzzle.position.set(0.15, -0.07, 0); headG.add(muzzle);
+for (const s of [-1, 1]) { const ch = sph(0.13, cream); ch.position.set(0.08, -0.08, s * 0.13); headG.add(ch); }
+const nose = sph(0.03, pink, 16); nose.position.set(0.31, -0.03, 0); headG.add(nose);
+const eyes = [], lids = [];
+for (const s of [-1, 1]) {
+  const e = new THREE.Group(); e.position.set(0.14, 0.06, s * 0.15); headG.add(e);
+  const ball = sph(0.075, black, 24); e.add(ball);
+  const hl = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), white); hl.position.set(0.068, 0.0, s * 0.03); e.add(hl);
+  const hl2 = new THREE.Mesh(new THREE.SphereGeometry(0.007, 8, 6), white); hl2.position.set(0.07, -0.035, s * 0.02); e.add(hl2); e.userData.hl = [hl, hl2];
+  // upper eyelid: fur-coloured cap that slides down
+  const lid = new THREE.Mesh(new THREE.SphereGeometry(0.083, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), fur);
+  e.add(lid); lids.push(lid); eyes.push(e);
+  const ear = sph(0.085, fur, 20); ear.scale.set(0.5, 1, 1); ear.position.set(-0.02, 0.2, s * 0.15); ear.rotation.x = s * 0.35; headG.add(ear);
+  const inner = sph(0.06, pink, 16); inner.scale.set(0.4, 0.9, 0.85); inner.position.set(0.015, 0.2, s * 0.15); inner.rotation.x = s * 0.35; headG.add(inner);
+  for (let k = 0; k < 3; k++) { const wk = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.002, 0.22, 4), new THREE.MeshBasicMaterial({ color: 0xf5f0e8 }));
+    wk.position.set(0.27, -0.05 + k * 0.025, s * 0.11); wk.rotation.set(Math.PI / 2, 0, (k - 1) * 0.15); wk.rotation.order = 'YXZ'; wk.rotation.y = s * 0.3; headG.add(wk); }
+}
+const legs = [];
+for (const [x, s] of [[0.22, -1], [0.22, 1], [-0.22, -1], [-0.22, 1]]) {
+  const piv = new THREE.Group(); piv.position.set(x, -0.16, s * 0.17); bodyG.add(piv);
+  const leg = new THREE.Mesh(new THREE.CapsuleGeometry(0.045, 0.1, 6, 12), pink); leg.position.y = -0.09; leg.castShadow = true; piv.add(leg);
+  legs.push(piv);
+}
+const tail = sph(0.04, pink, 12); tail.position.set(-0.42, -0.05, 0); bodyG.add(tail);
+
+// ---------- animation ----------
+const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+const lerp = (a, b, t) => a + (b - a) * t;
+function wheelAngle(t) { // still → fast sprint (rad)
+  if (t < T_DROP - 0.15) return 0;
+  const tt = t - (T_DROP - 0.15); const vmax = 26; // rad/s
+  return vmax * (tt - 0.25 * (1 - Math.exp(-tt / 0.25)) * 1) - vmax * 0.25 * (1 - Math.exp(-tt / 0.25)) * 0;
+}
+function wheelSpeed(t) { if (t < T_DROP - 0.15) return 0; return 26 * (1 - Math.exp(-(t - T_DROP + 0.15) / 0.25)); }
+let wheelAcc = 0, lastT = 0;
+
+window.renderAt = (t) => {
+  // integrate wheel rotation deterministically
+  const steps = 200; let ang = 0;
+  for (let i = 0; i < steps; i++) ang += wheelSpeed(t * (i + 0.5) / steps) * t / steps;
+  wheel.rotation.z = -ang;
+  const sp = wheelSpeed(t);
+  const running = sp > 1;
+
+  // hamster pose
+  const baseY = WHEEL_Y - R + 0.33 + 0.02;
+  let bob = 0, lean = 0, run = 0;
+  if (t < T_DROP) {
+    // asleep → eyes snap open at 0.85s → crouch at 1.2 → launch
+    bob = Math.sin(t * 3) * 0.01 * (t < 0.85 ? 1 : 0.3);
+    lean = -0.12 * ease((t - 1.15) / 0.3);
+    bodyG.scale.set(1 + 0.08 * ease((t - 1.15) / 0.3), 1 - 0.1 * ease((t - 1.15) / 0.3), 1);
+  } else {
+    run = 1; const ph = t * 28;
+    bob = Math.abs(Math.sin(ph)) * 0.05; lean = 0.18 + Math.sin(ph * 2) * 0.03;
+    const sq = 1 + Math.sin(ph * 2) * 0.05; bodyG.scale.set(1 / Math.sqrt(sq), sq, 1);
+  }
+  ham.position.set(0.02, baseY + bob, 0); ham.rotation.z = -lean;
+  headG.rotation.z = run ? 0.12 + Math.sin(t * 56) * 0.04 : (t > 0.85 && t < 1.2 ? 0.08 : 0) ;
+  headG.rotation.y = !run && t > 0.85 ? Math.sin((t - 0.85) * 18) * 0.06 * Math.exp(-(t - 0.85) * 5) : 0;
+  legs.forEach((p, i) => { p.rotation.z = run ? Math.sin(t * 28 + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * 1.1 : 0.15 * (i > 1 ? -1 : 1); });
+  // eyelids: closed until 0.85s, snap open, then determined half-squint after the drop
+  // lid rotation: -1.57 = fully closed (cap covers the front), 0.5 = wide open, -0.55 = determined squint
+  let lidRot;
+  if (t < 0.85) lidRot = -1.45; else if (t < T_DROP) lidRot = lerp(-1.45, 0.6, ease((t - 0.85) / 0.06)); else lidRot = 0.35;
+  lids.forEach(l => { l.rotation.set(0, 0, lidRot); });
+  eyes.forEach(e => e.userData.hl.forEach(h => h.visible = lidRot > -1.2));
+  eyes.forEach(e => e.scale.setScalar(t > 0.85 && t < T_DROP ? 1 + 0.25 * Math.exp(-(t - 0.85) * 6) : 1));
+
+  // ---------- cameras (4 shots, cuts on the beat) ----------
+  const target = new THREE.Vector3();
+  if (t < T_DROP) { // A: dark close-medium, slow push-in toward face
+    const k = t / T_DROP; camera.fov = 30;
+    camera.position.set(lerp(1.75, 1.5, k), baseY + 0.24, lerp(2.7, 2.15, k));
+    target.set(0.22, baseY + 0.12, 0);
+    lamp.intensity = 7 + 9 * ease((t - 0.85) / 0.1);
+  } else if (t < T_C) { // B: wide 3/4, wheel spinning, camera shake
+    const k = (t - T_DROP) / (T_C - T_DROP); camera.fov = 38;
+    const sh = 0.02 * Math.sin(t * 61) + 0.015 * Math.sin(t * 97);
+    camera.position.set(lerp(1.6, 1.4, k) + sh, 1.35 + sh, lerp(4.4, 4.1, k)); target.set(0, 1.15, 0); lamp.intensity = 16;
+  } else if (t < T_D) { // C: extreme close-up, determined face
+    camera.fov = 26; const sh = 0.008 * Math.sin(t * 83);
+    camera.position.set(1.1 + sh, baseY + 0.17 + sh, 1.6); target.set(0.4, baseY + 0.12, 0.05); lamp.intensity = 16;
+  } else { // D: low hero angle with the moon behind
+    const k = (t - T_D) / (4 - T_D); camera.fov = 34;
+    camera.position.set(lerp(2.4, 2.2, k), 0.35, lerp(3.3, 3.0, k)); target.set(0.2, 1.2, 0); lamp.intensity = 16;
+  }
+  camera.updateProjectionMatrix(); camera.lookAt(target);
+  renderer.render(scene, camera);
+  return renderer.domElement.toDataURL('image/png');
+};
+window.ready = true;
+</script></body></html>
